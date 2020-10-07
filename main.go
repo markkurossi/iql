@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/markkurossi/htmlq/data"
 	"github.com/markkurossi/htmlq/query"
 	"github.com/markkurossi/tabulate"
 )
@@ -53,59 +54,95 @@ func main() {
 }
 
 func test() {
-	q := &query.Query{
-		Columns: []query.ColumnSelector{
+	ref, err := data.NewHTMLFromReader(os.Stdin, "tbody > tr",
+		[]data.ColumnSelector{
 			{
-				Find: ".name",
-				As:   "Name",
+				Name: data.Reference{
+					Column: ".name",
+				},
+				As: "Name",
 			},
 			{
-				Find:  ".avgprice",
+				Name: data.Reference{
+					Column: ".avgprice",
+				},
 				As:    "Price",
 				Align: tabulate.MR,
 			},
 			{
-				Find:  ".share",
+				Name: data.Reference{
+					Column: ".share",
+				},
 				As:    "Weight",
 				Align: tabulate.MR,
 			},
 			{
-				Find: "a",
-				As:   "link",
+				Name: data.Reference{
+					Column: "a",
+				},
+				As: "link",
+			},
+		})
+	q := &query.Query{
+		Select: []data.ColumnSelector{
+			{
+				Name: data.Reference{
+					Column: "Name",
+				},
+			},
+			{
+				Name: data.Reference{
+					Column: "Price",
+				},
+				Align: tabulate.MR,
+			},
+			{
+				Name: data.Reference{
+					Column: "Weight",
+				},
+				Align: tabulate.MR,
+			},
+			{
+				Name: data.Reference{
+					Column: "link",
+				},
 			},
 		},
-		Document: "tbody > tr",
+		From: []query.SourceSelector{
+			{
+				Source: ref,
+				As:     "ref",
+			},
+		},
 		Where: &query.Binary{
-			Type: query.BinGT,
-			Left: &query.Function{
-				Type:      query.FuncLength,
-				Arguments: []string{"link"},
+			Type: query.BinNEQ,
+			Left: &query.Reference{
+				Reference: data.Reference{
+					Column: "link",
+				},
 			},
 			Right: &query.Constant{
-				Value: query.IntValue(0),
+				Value: query.StringValue(""),
 			},
 		},
 	}
 
-	doc, err := goquery.NewDocumentFromReader(os.Stdin)
+	rows, err := q.Get()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	tab := tabulate.New(tabulate.Unicode)
-	for _, col := range q.Columns {
+	for _, col := range q.Columns() {
 		if col.IsPublic() {
-			tab.Header(col.As).SetAlign(col.Align)
+			tab.Header(col.String()).SetAlign(col.Align)
 		}
 	}
-
-	q.Execute(doc, func(columns []string) error {
+	for _, columns := range rows {
 		row := tab.Row()
 		for _, col := range columns {
-			row.Column(col)
+			row.Column(col.String())
 		}
-		return nil
-	})
+	}
 
 	tab.Print(os.Stdout)
 }
