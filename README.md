@@ -4,15 +4,6 @@ HTML processor.
 # Query language
 
 ```sql
-SELECT ".name" AS Name,
-       ".avgprice" AS Price align MR,
-       ".share" AS Weight align MR,
-       ".link" AS link
-FROM "tbody > tr"
-WHERE length(link) > 0
-```
-
-```sql
 SELECT ref.Name, ref.Price, ref.Weigth, portfolio.Weigth AS Portfolio
 FROM
     (
