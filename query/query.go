@@ -72,12 +72,14 @@ func (sql *Query) Get() ([]data.Row, error) {
 	}
 
 	var matches [][]data.Row
-	err := sql.eval(0, references, nil, &matches)
+	err := sql.eval(0, nil, &matches)
 	if err != nil {
 		return nil, err
 	}
 
 	// Select result columns.
+	// XXX the select references should be expressions and this step
+	// would evaluate expressions against each row.
 	var result []data.Row
 	for _, match := range matches {
 		var row data.Row
@@ -92,13 +94,12 @@ func (sql *Query) Get() ([]data.Row, error) {
 	return result, nil
 }
 
-func (sql *Query) eval(idx int, references []*Reference, sources []data.Row,
-	result *[][]data.Row) error {
+func (sql *Query) eval(idx int, data []data.Row, result *[][]data.Row) error {
 
 	if idx >= len(sql.From) {
 		match := true
 		if sql.Where != nil {
-			val, err := sql.Where.Eval(sources)
+			val, err := sql.Where.Eval(data)
 			if err != nil {
 				return err
 			}
@@ -108,7 +109,7 @@ func (sql *Query) eval(idx int, references []*Reference, sources []data.Row,
 			}
 		}
 		if match {
-			*result = append(*result, sources)
+			*result = append(*result, data)
 		}
 		return nil
 	}
@@ -118,7 +119,7 @@ func (sql *Query) eval(idx int, references []*Reference, sources []data.Row,
 		return err
 	}
 	for _, row := range rows {
-		err := sql.eval(idx+1, references, append(sources, row), result)
+		err := sql.eval(idx+1, append(data, row), result)
 		if err != nil {
 			return err
 		}

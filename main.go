@@ -64,7 +64,7 @@ func test() {
 			},
 			{
 				Name: data.Reference{
-					Column: ".avgprice",
+					Column: ":nth-child(5)",
 				},
 				As:    "Price",
 				Align: tabulate.MR,
@@ -83,10 +83,26 @@ func test() {
 				As: "link",
 			},
 		})
+	portfolio, err := data.NewCSV(",portfolio.csv", "", []data.ColumnSelector{
+		{
+			Name: data.Reference{
+				Column: "0",
+			},
+			As: "Name",
+		},
+		{
+			Name: data.Reference{
+				Column: "1",
+			},
+			As: "Count",
+		},
+	})
+
 	q := &query.Query{
 		Select: []data.ColumnSelector{
 			{
 				Name: data.Reference{
+					Source: "ref",
 					Column: "Name",
 				},
 			},
@@ -104,6 +120,12 @@ func test() {
 			},
 			{
 				Name: data.Reference{
+					Column: "Count",
+				},
+				Align: tabulate.MR,
+			},
+			{
+				Name: data.Reference{
 					Column: "link",
 				},
 			},
@@ -113,16 +135,38 @@ func test() {
 				Source: ref,
 				As:     "ref",
 			},
+			{
+				Source: portfolio,
+				As:     "portfolio",
+			},
 		},
 		Where: &query.Binary{
-			Type: query.BinNEQ,
-			Left: &query.Reference{
-				Reference: data.Reference{
-					Column: "link",
+			Type: query.BinAND,
+			Left: &query.Binary{
+				Type: query.BinNEQ,
+				Left: &query.Reference{
+					Reference: data.Reference{
+						Column: "link",
+					},
+				},
+				Right: &query.Constant{
+					Value: query.StringValue(""),
 				},
 			},
-			Right: &query.Constant{
-				Value: query.StringValue(""),
+			Right: &query.Binary{
+				Type: query.BinEQ,
+				Left: &query.Reference{
+					Reference: data.Reference{
+						Source: "ref",
+						Column: "Name",
+					},
+				},
+				Right: &query.Reference{
+					Reference: data.Reference{
+						Source: "portfolio",
+						Column: "Name",
+					},
+				},
 			},
 		},
 	}

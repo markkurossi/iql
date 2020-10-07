@@ -23,12 +23,12 @@ WHERE ref.Name = portfolio.Name
 ```
 
 ```sql
-SELECT ref.".name"     AS Name,
-       ref.".avgprice" AS Price,
-       ref.".share"    AS Weigth,
-       ref.".link"     AS link,
-       portfolio.0     AS name
-       portfolio.1     AS Portfolio
+SELECT ref.".name"         AS Name,
+       ref.":nth-child(5)" AS Price,
+       ref.".share"    	   AS Weigth,
+       ref.".link"     	   AS link,
+       portfolio.0     	   AS name
+       portfolio.1     	   AS Portfolio
 FROM HTML ",reference.html" FILTER "tbody > tr" AS ref,
      CSV  ",portfolio.csv" AS portfolio
 WHERE ref.link <> '' AND ref.Name = portfolio.name
