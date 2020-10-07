@@ -16,12 +16,12 @@ WHERE length(link) > 0
 SELECT ref.Name, ref.Price, ref.Weigth, portfolio.Weigth AS Portfolio
 FROM
     (
-        SELECT ".name" AS Name,
+        SELECT ".name"     AS Name,
                ".avgprice" AS Price,
-               ".share" AS Weight,
-               ".link" AS link
+               ".share"    AS Weight,
+               ".link"     AS link
         FROM HTML ",reference.html" FILTER "tbody > tr"
-        WHERE length(link) > 0
+        WHERE link <> ''
     ) AS ref,
     (
         SELECT 0 AS Name,
