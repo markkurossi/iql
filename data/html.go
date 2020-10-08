@@ -8,6 +8,7 @@ package data
 
 import (
 	"io"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -49,7 +50,7 @@ func NewHTMLFromReader(input io.ReadCloser, filter string,
 				row = append(row, StringColumn(""))
 
 			case 1:
-				row = append(row, StringColumn(sel.Text()))
+				row = append(row, StringColumn(strings.TrimSpace(sel.Text())))
 
 			default:
 				strings := sel.Map(func(i int, s *goquery.Selection) string {

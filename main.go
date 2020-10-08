@@ -86,7 +86,7 @@ func test() {
 			Name: data.Reference{
 				Column: "0",
 			},
-			As: "Name",
+			As: "name",
 		},
 		{
 			Name: data.Reference{
@@ -126,18 +126,94 @@ func test() {
 			{
 				Expr: &query.Reference{
 					Reference: data.Reference{
+						Column: "link",
+					},
+				},
+				As: "link",
+			},
+			{
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "portfolio",
+						Column: "name",
+					},
+				},
+				As: "name",
+			},
+			{
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "portfolio",
 						Column: "Count",
 					},
 				},
 				As: "Count",
 			},
 			{
-				Expr: &query.Reference{
-					Reference: data.Reference{
-						Column: "link",
+				Expr: &query.Binary{
+					Type: query.BinMult,
+					Left: &query.Reference{
+						Reference: data.Reference{
+							Source: "portfolio",
+							Column: "Count",
+						},
+					},
+					Right: &query.Reference{
+						Reference: data.Reference{
+							Source: "ref",
+							Column: "Price",
+						},
 					},
 				},
-				As: "link",
+				As: "Invested",
+			},
+
+			{
+				Expr: &query.Binary{
+					Type: query.BinMult,
+					Left: &query.Binary{
+						Type: query.BinDiv,
+						Left: &query.Binary{
+							Type: query.BinMult,
+							Left: &query.Reference{
+								Reference: data.Reference{
+									Source: "portfolio",
+									Column: "Count",
+								},
+							},
+							Right: &query.Reference{
+								Reference: data.Reference{
+									Source: "ref",
+									Column: "Price",
+								},
+							},
+						},
+						Right: &query.Function{
+							Type: query.FuncSum,
+							Arguments: []query.Expr{
+								&query.Binary{
+									Type: query.BinMult,
+									Left: &query.Reference{
+										Reference: data.Reference{
+											Source: "portfolio",
+											Column: "Count",
+										},
+									},
+									Right: &query.Reference{
+										Reference: data.Reference{
+											Source: "ref",
+											Column: "Price",
+										},
+									},
+								},
+							},
+						},
+					},
+					Right: &query.Constant{
+						Value: data.IntValue(100),
+					},
+				},
+				As: "My Weight",
 			},
 		},
 		From: []query.SourceSelector{
@@ -151,9 +227,9 @@ func test() {
 			},
 		},
 		Where: &query.Binary{
-			Type: query.BinAND,
+			Type: query.BinAnd,
 			Left: &query.Binary{
-				Type: query.BinNEQ,
+				Type: query.BinNeq,
 				Left: &query.Reference{
 					Reference: data.Reference{
 						Column: "link",
@@ -164,7 +240,7 @@ func test() {
 				},
 			},
 			Right: &query.Binary{
-				Type: query.BinEQ,
+				Type: query.BinEq,
 				Left: &query.Reference{
 					Reference: data.Reference{
 						Source: "ref",
@@ -174,7 +250,7 @@ func test() {
 				Right: &query.Reference{
 					Reference: data.Reference{
 						Source: "portfolio",
-						Column: "Name",
+						Column: "name",
 					},
 				},
 			},

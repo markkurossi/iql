@@ -108,9 +108,9 @@ func TestJoin(t *testing.T) {
 			},
 		},
 		Where: &query.Binary{
-			Type: query.BinAND,
+			Type: query.BinAnd,
 			Left: &query.Binary{
-				Type: query.BinNEQ,
+				Type: query.BinNeq,
 				Left: &query.Reference{
 					Reference: data.Reference{
 						Source: "ref",
@@ -122,7 +122,7 @@ func TestJoin(t *testing.T) {
 				},
 			},
 			Right: &query.Binary{
-				Type: query.BinEQ,
+				Type: query.BinEq,
 				Left: &query.Reference{
 					Reference: data.Reference{
 						Source: "ref",

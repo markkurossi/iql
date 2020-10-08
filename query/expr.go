@@ -22,7 +22,8 @@ var (
 // Expr implements expressions.
 type Expr interface {
 	Bind(sql *Query) error
-	Eval(row []data.Row, rows [][]data.Row) (data.Value, error)
+	Eval(row []data.Row, columns [][]data.ColumnSelector, rows [][]data.Row) (
+		data.Value, error)
 	String() string
 }
 
@@ -64,19 +65,44 @@ func (f *Function) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (f *Function) Eval(row []data.Row, rows [][]data.Row) (data.Value, error) {
+func (f *Function) Eval(row []data.Row, columns [][]data.ColumnSelector,
+	rows [][]data.Row) (data.Value, error) {
+
 	if len(f.Arguments) != 1 {
 		return nil, fmt.Errorf("%s: expected one argument, got %d",
 			f.Type, len(f.Arguments))
 	}
-	_, err := f.Arguments[0].Eval(row, rows)
-	if err != nil {
-		return nil, err
-	}
-
 	switch f.Type {
 	case FuncSum:
-		return nil, fmt.Errorf("%s not implemented yet", f.Type)
+		var intSum int64
+		var floatSum float64
+
+		for _, sumRow := range rows {
+			val, err := f.Arguments[0].Eval(sumRow, columns, nil)
+			if err != nil {
+				return nil, err
+			}
+			switch v := val.(type) {
+			case data.IntValue:
+				add, err := v.Int()
+				if err != nil {
+					return nil, err
+				}
+				intSum += add
+			case data.FloatValue:
+				add, err := v.Float()
+				if err != nil {
+					return nil, err
+				}
+				floatSum += add
+			default:
+				return nil, fmt.Errorf("sum over %T", val)
+			}
+		}
+		if floatSum != 0 {
+			return data.FloatValue(floatSum), nil
+		}
+		return data.IntValue(intSum), nil
 
 	default:
 		return nil, fmt.Errorf("unknown function: %v", f.Type)
@@ -99,19 +125,23 @@ type BinaryType int
 
 // Binary expressions.
 const (
-	BinEQ BinaryType = iota
-	BinNEQ
-	BinLT
-	BinGT
-	BinAND
+	BinEq BinaryType = iota
+	BinNeq
+	BinLt
+	BinGt
+	BinAnd
+	BinMult
+	BinDiv
 )
 
 var binaries = map[BinaryType]string{
-	BinEQ:  "=",
-	BinNEQ: "<>",
-	BinLT:  "<",
-	BinGT:  ">",
-	BinAND: "AND",
+	BinEq:   "=",
+	BinNeq:  "<>",
+	BinLt:   "<",
+	BinGt:   ">",
+	BinAnd:  "AND",
+	BinMult: "*",
+	BinDiv:  "/",
 }
 
 func (t BinaryType) String() string {
@@ -132,69 +162,159 @@ func (b *Binary) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (b *Binary) Eval(row []data.Row, rows [][]data.Row) (data.Value, error) {
-	left, err := b.Left.Eval(row, rows)
+func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
+	rows [][]data.Row) (data.Value, error) {
+
+	left, err := b.Left.Eval(row, columns, rows)
 	if err != nil {
 		return nil, err
 	}
-	right, err := b.Right.Eval(row, rows)
+	right, err := b.Right.Eval(row, columns, rows)
 	if err != nil {
 		return nil, err
 	}
 
-	switch l := left.(type) {
+	// Resolve operation type.
+
+	var opType data.ColumnType
+
+	switch left.(type) {
 	case data.BoolValue:
+		switch right.(type) {
+		case data.BoolValue:
+			opType = data.ColumnBool
+		default:
+			return nil,
+				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+					left, left, b.Type, right, right)
+		}
+
+	case data.IntValue:
+		switch right.(type) {
+		case data.IntValue:
+			opType = data.ColumnInt
+		case data.FloatValue:
+			opType = data.ColumnFloat
+		default:
+			return nil,
+				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+					left, left, b.Type, right, right)
+		}
+
+	case data.FloatValue:
+		switch right.(type) {
+		case data.IntValue, data.FloatValue:
+			opType = data.ColumnFloat
+		default:
+			return nil,
+				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+					left, left, b.Type, right, right)
+		}
+
+	case data.StringValue:
+		switch right.(type) {
+		case data.StringValue:
+			opType = data.ColumnString
+		default:
+			return nil,
+				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+					left, left, b.Type, right, right)
+		}
+	}
+
+	switch opType {
+	case data.ColumnBool:
+		l, err := left.Bool()
+		if err != nil {
+			return nil, err
+		}
 		r, err := right.Bool()
 		if err != nil {
 			return nil, err
 		}
 		switch b.Type {
-		case BinEQ:
-			return data.BoolValue(bool(l) == r), nil
-		case BinNEQ:
-			return data.BoolValue(bool(l) != r), nil
-		case BinAND:
-			return data.BoolValue(bool(l) && r), nil
+		case BinEq:
+			return data.BoolValue(l == r), nil
+		case BinNeq:
+			return data.BoolValue(l != r), nil
+		case BinAnd:
+			return data.BoolValue(l && r), nil
 		default:
-			return nil, fmt.Errorf("unknown binary expression: %s", b.Type)
+			return nil, fmt.Errorf("unknown bool binary expression: %s %s %s",
+				left, b.Type, right)
 		}
 
-	case data.IntValue:
+	case data.ColumnInt:
+		l, err := left.Int()
+		if err != nil {
+			return nil, err
+		}
 		r, err := right.Int()
 		if err != nil {
 			return nil, err
 		}
 		switch b.Type {
-		case BinEQ:
-			return data.BoolValue(int64(l) == r), nil
-		case BinNEQ:
-			return data.BoolValue(int64(l) != r), nil
-		case BinLT:
-			return data.BoolValue(int64(l) < r), nil
-		case BinGT:
-			return data.BoolValue(int64(l) > r), nil
+		case BinEq:
+			return data.BoolValue(l == r), nil
+		case BinNeq:
+			return data.BoolValue(l != r), nil
+		case BinLt:
+			return data.BoolValue(l < r), nil
+		case BinGt:
+			return data.BoolValue(l > r), nil
 		default:
-			return nil, fmt.Errorf("unknown binary expression: %s", b.Type)
+			return nil, fmt.Errorf("unknown int binary expression: %s %s %s",
+				left, b.Type, right)
 		}
 
-	case data.StringValue:
+	case data.ColumnFloat:
+		l, err := left.Float()
+		if err != nil {
+			return nil, err
+		}
+		r, err := right.Float()
+		if err != nil {
+			return nil, err
+		}
+		switch b.Type {
+		case BinEq:
+			return data.BoolValue(l == r), nil
+		case BinNeq:
+			return data.BoolValue(l != r), nil
+		case BinLt:
+			return data.BoolValue(l < r), nil
+		case BinGt:
+			return data.BoolValue(l > r), nil
+		case BinMult:
+			return data.FloatValue(l * r), nil
+		case BinDiv:
+			return data.FloatValue(l / r), nil
+		default:
+			return nil, fmt.Errorf("unknown float binary expression: %s %s %s",
+				left, b.Type, right)
+		}
+
+	case data.ColumnString:
+		l := left.String()
 		r := right.String()
 		switch b.Type {
-		case BinEQ:
-			return data.BoolValue(string(l) == r), nil
-		case BinNEQ:
-			return data.BoolValue(string(l) != r), nil
-		case BinLT:
-			return data.BoolValue(string(l) < r), nil
-		case BinGT:
-			return data.BoolValue(string(l) > r), nil
+		case BinEq:
+			return data.BoolValue(l == r), nil
+		case BinNeq:
+			return data.BoolValue(l != r), nil
+		case BinLt:
+			return data.BoolValue(l < r), nil
+		case BinGt:
+			return data.BoolValue(l > r), nil
 		default:
-			return nil, fmt.Errorf("unknown binary expression: %s", b.Type)
+			return nil, fmt.Errorf("unknown string binary expression: %s %s %s",
+				left, b.Type, right)
 		}
 
 	default:
 		return nil,
-			fmt.Errorf("invalid types: %s %s %s", left, b.Type, right)
+			fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+				left, left, b.Type, right, right)
 	}
 }
 
@@ -213,7 +333,9 @@ func (c *Constant) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (c *Constant) Eval(row []data.Row, rows [][]data.Row) (data.Value, error) {
+func (c *Constant) Eval(row []data.Row, columns [][]data.ColumnSelector,
+	rows [][]data.Row) (data.Value, error) {
+
 	return c.Value, nil
 }
 
@@ -259,10 +381,20 @@ func (ref *Reference) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (ref *Reference) Eval(row []data.Row, rows [][]data.Row) (
-	data.Value, error) {
+func (ref *Reference) Eval(row []data.Row, columns [][]data.ColumnSelector,
+	rows [][]data.Row) (data.Value, error) {
 
 	col := row[ref.index.source][ref.index.column]
+	t := columns[ref.index.source][ref.index.column].Type
 
-	return data.StringValue(col.String()), nil
+	switch t {
+	case data.ColumnBool:
+		return col.Bool()
+	case data.ColumnInt:
+		return col.Int()
+	case data.ColumnFloat:
+		return col.Float()
+	default:
+		return data.StringValue(col.String()), nil
+	}
 }

@@ -89,7 +89,7 @@ func (v FloatValue) Float() (float64, error) {
 }
 
 func (v FloatValue) String() string {
-	return fmt.Sprintf("%v", float64(v))
+	return fmt.Sprintf("%.2f", float64(v))
 }
 
 // StringValue implements string values.

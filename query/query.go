@@ -104,18 +104,25 @@ func (sql *Query) Get() ([]data.Row, error) {
 	}
 
 	var matches [][]data.Row
-	err := sql.eval(0, nil, &matches)
+	err := sql.eval(0, nil, nil, &matches)
 	if err != nil {
 		return nil, err
 	}
 
 	// Select result columns.
+
 	var result []data.Row
+
+	var columns [][]data.ColumnSelector
+	for _, sel := range sql.From {
+		columns = append(columns, sel.Source.Columns())
+	}
+
 	for _, match := range matches {
 		var row data.Row
 		for i, sel := range sql.Select {
 			if sel.IsPublic() {
-				val, err := sel.Expr.Eval(match, matches)
+				val, err := sel.Expr.Eval(match, columns, matches)
 				if err != nil {
 					return nil, err
 				}
@@ -130,11 +137,13 @@ func (sql *Query) Get() ([]data.Row, error) {
 	return result, nil
 }
 
-func (sql *Query) eval(idx int, data []data.Row, result *[][]data.Row) error {
+func (sql *Query) eval(idx int, data []data.Row,
+	columns [][]data.ColumnSelector, result *[][]data.Row) error {
+
 	if idx >= len(sql.From) {
 		match := true
 		if sql.Where != nil {
-			val, err := sql.Where.Eval(data, nil)
+			val, err := sql.Where.Eval(data, columns, nil)
 			if err != nil {
 				return err
 			}
@@ -153,8 +162,11 @@ func (sql *Query) eval(idx int, data []data.Row, result *[][]data.Row) error {
 	if err != nil {
 		return err
 	}
+	cols := sql.From[idx].Source.Columns()
+	columns = append(columns, cols)
+
 	for _, row := range rows {
-		err := sql.eval(idx+1, append(data, row), result)
+		err := sql.eval(idx+1, append(data, row), columns, result)
 		if err != nil {
 			return err
 		}

@@ -193,6 +193,9 @@ type Column interface {
 	Count() int
 	// Size returns the column size in characters.
 	Size() int
+	Bool() (Value, error)
+	Int() (Value, error)
+	Float() (Value, error)
 	String() string
 }
 
@@ -207,6 +210,36 @@ func (s StringColumn) Count() int {
 // Size implements the Column.Size().
 func (s StringColumn) Size() int {
 	return len(s)
+}
+
+// Bool implements the Column.Bool().
+func (s StringColumn) Bool() (Value, error) {
+	switch s {
+	case True:
+		return BoolValue(true), nil
+	case False:
+		return BoolValue(false), nil
+	default:
+		return nil, fmt.Errorf("string value '%s' used as bool", s)
+	}
+}
+
+// Int implements the Column.Int().
+func (s StringColumn) Int() (Value, error) {
+	v, err := strconv.ParseInt(string(s), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return IntValue(v), nil
+}
+
+// Float implements the Column.Float().
+func (s StringColumn) Float() (Value, error) {
+	v, err := strconv.ParseFloat(string(s), 64)
+	if err != nil {
+		return nil, err
+	}
+	return FloatValue(v), nil
 }
 
 func (s StringColumn) String() string {
@@ -230,6 +263,21 @@ func (s StringsColumn) Size() int {
 		}
 	}
 	return size
+}
+
+// Bool implements the Column.Bool().
+func (s StringsColumn) Bool() (Value, error) {
+	return nil, fmt.Errorf("string array used as bool")
+}
+
+// Int implements the Column.Int().
+func (s StringsColumn) Int() (Value, error) {
+	return nil, fmt.Errorf("string array used as int")
+}
+
+// Float implements the Column.Float().
+func (s StringsColumn) Float() (Value, error) {
+	return nil, fmt.Errorf("string array used as float")
 }
 
 func (s StringsColumn) String() string {
