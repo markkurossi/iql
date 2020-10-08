@@ -22,15 +22,14 @@ var (
 // Expr implements expressions.
 type Expr interface {
 	Bind(sql *Query) error
-	Eval(sources []data.Row) (Value, error)
+	Eval(row []data.Row, rows [][]data.Row) (data.Value, error)
 	String() string
 }
 
 // Function implements function expressions.
 type Function struct {
-	Type       FunctionType
-	Arguments  []string
-	References []*Reference
+	Type      FunctionType
+	Arguments []Expr
 }
 
 // FunctionType specifies built-in functions.
@@ -38,11 +37,11 @@ type FunctionType int
 
 // Built-in functions.
 const (
-	FuncCount FunctionType = iota
+	FuncSum FunctionType = iota
 )
 
 var functions = map[FunctionType]string{
-	FuncCount: "count",
+	FuncSum: "sum",
 }
 
 func (t FunctionType) String() string {
@@ -56,31 +55,28 @@ func (t FunctionType) String() string {
 // Bind implements the Expr.Bind().
 func (f *Function) Bind(sql *Query) error {
 	for _, arg := range f.Arguments {
-		ref, err := sql.resolveName(data.Reference{
-			Column: arg,
-		}, false)
+		err := arg.Bind(sql)
 		if err != nil {
 			return err
 		}
-		f.References = append(f.References, ref)
 	}
 	return nil
 }
 
 // Eval implements the Expr.Eval().
-func (f *Function) Eval(sources []data.Row) (Value, error) {
+func (f *Function) Eval(row []data.Row, rows [][]data.Row) (data.Value, error) {
 	if len(f.Arguments) != 1 {
 		return nil, fmt.Errorf("%s: expected one argument, got %d",
 			f.Type, len(f.Arguments))
 	}
-	ref := f.References[0]
-	arg0 := sources[ref.index.source][ref.index.column]
-
-	fmt.Printf("%s(%s/%T)\n", f.Type, arg0, arg0)
+	_, err := f.Arguments[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
 
 	switch f.Type {
-	case FuncCount:
-		return IntValue(arg0.Count()), nil
+	case FuncSum:
+		return nil, fmt.Errorf("%s not implemented yet", f.Type)
 
 	default:
 		return nil, fmt.Errorf("unknown function: %v", f.Type)
@@ -136,62 +132,62 @@ func (b *Binary) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (b *Binary) Eval(sources []data.Row) (Value, error) {
-	left, err := b.Left.Eval(sources)
+func (b *Binary) Eval(row []data.Row, rows [][]data.Row) (data.Value, error) {
+	left, err := b.Left.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
-	right, err := b.Right.Eval(sources)
+	right, err := b.Right.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
 
 	switch l := left.(type) {
-	case BoolValue:
+	case data.BoolValue:
 		r, err := right.Bool()
 		if err != nil {
 			return nil, err
 		}
 		switch b.Type {
 		case BinEQ:
-			return BoolValue(bool(l) == r), nil
+			return data.BoolValue(bool(l) == r), nil
 		case BinNEQ:
-			return BoolValue(bool(l) != r), nil
+			return data.BoolValue(bool(l) != r), nil
 		case BinAND:
-			return BoolValue(bool(l) && r), nil
+			return data.BoolValue(bool(l) && r), nil
 		default:
 			return nil, fmt.Errorf("unknown binary expression: %s", b.Type)
 		}
 
-	case IntValue:
+	case data.IntValue:
 		r, err := right.Int()
 		if err != nil {
 			return nil, err
 		}
 		switch b.Type {
 		case BinEQ:
-			return BoolValue(int(l) == r), nil
+			return data.BoolValue(int64(l) == r), nil
 		case BinNEQ:
-			return BoolValue(int(l) != r), nil
+			return data.BoolValue(int64(l) != r), nil
 		case BinLT:
-			return BoolValue(int(l) < r), nil
+			return data.BoolValue(int64(l) < r), nil
 		case BinGT:
-			return BoolValue(int(l) > r), nil
+			return data.BoolValue(int64(l) > r), nil
 		default:
 			return nil, fmt.Errorf("unknown binary expression: %s", b.Type)
 		}
 
-	case StringValue:
+	case data.StringValue:
 		r := right.String()
 		switch b.Type {
 		case BinEQ:
-			return BoolValue(string(l) == r), nil
+			return data.BoolValue(string(l) == r), nil
 		case BinNEQ:
-			return BoolValue(string(l) != r), nil
+			return data.BoolValue(string(l) != r), nil
 		case BinLT:
-			return BoolValue(string(l) < r), nil
+			return data.BoolValue(string(l) < r), nil
 		case BinGT:
-			return BoolValue(string(l) > r), nil
+			return data.BoolValue(string(l) > r), nil
 		default:
 			return nil, fmt.Errorf("unknown binary expression: %s", b.Type)
 		}
@@ -208,21 +204,21 @@ func (b *Binary) String() string {
 
 // Constant implements contant expressions.
 type Constant struct {
-	Value Value
+	Value data.Value
 }
 
 // Bind implements the Expr.Bind().
-func (constant *Constant) Bind(sql *Query) error {
+func (c *Constant) Bind(sql *Query) error {
 	return nil
 }
 
 // Eval implements the Expr.Eval().
-func (constant *Constant) Eval(sources []data.Row) (Value, error) {
-	return constant.Value, nil
+func (c *Constant) Eval(row []data.Row, rows [][]data.Row) (data.Value, error) {
+	return c.Value, nil
 }
 
-func (constant *Constant) String() string {
-	return constant.Value.String()
+func (c *Constant) String() string {
+	return c.Value.String()
 }
 
 // Reference implements column reference expressions.
@@ -263,8 +259,10 @@ func (ref *Reference) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (ref *Reference) Eval(sources []data.Row) (Value, error) {
-	col := sources[ref.index.source][ref.index.column]
+func (ref *Reference) Eval(row []data.Row, rows [][]data.Row) (
+	data.Value, error) {
 
-	return StringValue(col.String()), nil
+	col := row[ref.index.source][ref.index.column]
+
+	return data.StringValue(col.String()), nil
 }

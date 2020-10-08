@@ -11,7 +11,6 @@ import (
 	"unicode"
 
 	"github.com/markkurossi/htmlq/data"
-	"github.com/markkurossi/tabulate"
 )
 
 var (
@@ -31,9 +30,9 @@ type Query struct {
 
 // ColumnSelector defines selected query output columns.
 type ColumnSelector struct {
-	Expr  Expr
-	As    string
-	Align tabulate.Align
+	Expr Expr
+	As   string
+	Type data.ColumnType
 }
 
 // IsPublic reports if the column is public and should be included in
@@ -46,6 +45,13 @@ func (col ColumnSelector) IsPublic() bool {
 	return len(runes) > 0 && unicode.IsUpper(runes[0])
 }
 
+func (col ColumnSelector) String() string {
+	if len(col.As) > 0 {
+		return fmt.Sprintf("%s AS %s TYPE %s", col.Expr, col.As, col.Type)
+	}
+	return fmt.Sprintf("%s TYPE %s", col.Expr, col.Type)
+}
+
 // SourceSelector defines an input source with an optional name alias.
 type SourceSelector struct {
 	Source data.Source
@@ -54,22 +60,21 @@ type SourceSelector struct {
 
 // Columns implements the Source.Columns().
 func (sql *Query) Columns() []data.ColumnSelector {
-	if len(sql.selectColumns) == 0 {
-		for _, col := range sql.Select {
-			sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{
-				Name: data.Reference{
-					Column: col.Expr.String(),
-				},
-				As:    col.As,
-				Align: col.Align,
-			})
-		}
-	}
 	return sql.selectColumns
 }
 
 // Get implements the Source.Get().
 func (sql *Query) Get() ([]data.Row, error) {
+	// Create column info.
+	for _, col := range sql.Select {
+		sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{
+			Name: data.Reference{
+				Column: col.Expr.String(),
+			},
+			As: col.As,
+		})
+	}
+
 	// Collect column names.
 	sql.fromColumns = make(map[string]columnIndex)
 	for sourceIdx, from := range sql.From {
@@ -108,13 +113,15 @@ func (sql *Query) Get() ([]data.Row, error) {
 	var result []data.Row
 	for _, match := range matches {
 		var row data.Row
-		for _, sel := range sql.Select {
+		for i, sel := range sql.Select {
 			if sel.IsPublic() {
-				val, err := sel.Expr.Eval(match)
+				val, err := sel.Expr.Eval(match, matches)
 				if err != nil {
 					return nil, err
 				}
-				row = append(row, data.StringColumn(val.String()))
+				str := val.String()
+				row = append(row, data.StringColumn(str))
+				sql.selectColumns[i].ResolveType(str)
 			}
 		}
 		result = append(result, row)
@@ -124,11 +131,10 @@ func (sql *Query) Get() ([]data.Row, error) {
 }
 
 func (sql *Query) eval(idx int, data []data.Row, result *[][]data.Row) error {
-
 	if idx >= len(sql.From) {
 		match := true
 		if sql.Where != nil {
-			val, err := sql.Where.Eval(data)
+			val, err := sql.Where.Eval(data, nil)
 			if err != nil {
 				return err
 			}

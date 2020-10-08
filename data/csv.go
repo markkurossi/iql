@@ -63,6 +63,7 @@ func NewCSV(url, filter string, columns []ColumnSelector) (Source, error) {
 				}
 				val = record[idx]
 			}
+			columns[i].ResolveType(val)
 			row = append(row, StringColumn(val))
 		}
 		rows = append(rows, row)

@@ -76,8 +76,7 @@ func TestJoin(t *testing.T) {
 						Column: "Price",
 					},
 				},
-				As:    "Price",
-				Align: tabulate.MR,
+				As: "Price",
 			},
 			{
 				Expr: &query.Reference{
@@ -86,8 +85,7 @@ func TestJoin(t *testing.T) {
 						Column: "Weight",
 					},
 				},
-				As:    "Weight",
-				Align: tabulate.MR,
+				As: "Weight",
 			},
 			{
 				Expr: &query.Reference{
@@ -96,8 +94,7 @@ func TestJoin(t *testing.T) {
 						Column: "Count",
 					},
 				},
-				As:    "Count",
-				Align: tabulate.MR,
+				As: "Count",
 			},
 		},
 		From: []query.SourceSelector{
@@ -121,7 +118,7 @@ func TestJoin(t *testing.T) {
 					},
 				},
 				Right: &query.Constant{
-					Value: query.StringValue(""),
+					Value: data.StringValue(""),
 				},
 			},
 			Right: &query.Binary{
@@ -145,12 +142,7 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("query.Get() failed: %s", err)
 	}
-	tab := tabulate.New(tabulate.Unicode)
-	for _, col := range q.Columns() {
-		if col.IsPublic() {
-			tab.Header(col.String()).SetAlign(col.Align)
-		}
-	}
+	tab := data.Table(q, tabulate.Unicode)
 	for _, columns := range rows {
 		row := tab.Row()
 		for _, col := range columns {

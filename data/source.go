@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -44,11 +45,51 @@ func openInput(input string) (io.ReadCloser, error) {
 	return os.Open(input)
 }
 
+// ColumnType specifies column types.
+type ColumnType int
+
+// Column types.
+const (
+	ColumnBool ColumnType = iota
+	ColumnInt
+	ColumnFloat
+	ColumnString
+)
+
+// Literal values.
+const (
+	True  = "true"
+	False = "false"
+)
+
+var columnTypes = map[ColumnType]string{
+	ColumnBool:   "bool",
+	ColumnInt:    "int",
+	ColumnFloat:  "float",
+	ColumnString: "string",
+}
+
+func (t ColumnType) String() string {
+	name, ok := columnTypes[t]
+	if ok {
+		return name
+	}
+	return fmt.Sprintf("{columnType %d}", t)
+}
+
+// Align returns the type specific column alignment type.
+func (t ColumnType) Align() tabulate.Align {
+	if t == ColumnString {
+		return tabulate.ML
+	}
+	return tabulate.MR
+}
+
 // ColumnSelector implements data column selector.
 type ColumnSelector struct {
-	Name  Reference
-	As    string
-	Align tabulate.Align
+	Name Reference
+	As   string
+	Type ColumnType
 }
 
 // IsPublic reports if the column is public and should be included in
@@ -56,6 +97,43 @@ type ColumnSelector struct {
 func (col ColumnSelector) IsPublic() bool {
 	runes := []rune(col.String())
 	return len(runes) > 0 && unicode.IsUpper(runes[0])
+}
+
+// ResolveType resolves the column type based on the argument column
+// value. This function must be called once for each value and it will
+// resolve the most specific column type that is able to represent all
+// values
+func (col *ColumnSelector) ResolveType(val string) {
+	// Skip empty values.
+	if len(val) == 0 {
+		return
+	}
+	for {
+		switch col.Type {
+		case ColumnBool:
+			if val == True || val == False {
+				return
+			}
+			col.Type = ColumnInt
+
+		case ColumnInt:
+			_, err := strconv.ParseInt(val, 10, 64)
+			if err == nil {
+				return
+			}
+			col.Type = ColumnFloat
+
+		case ColumnFloat:
+			_, err := strconv.ParseFloat(val, 64)
+			if err == nil {
+				return
+			}
+			col.Type = ColumnString
+
+		case ColumnString:
+			return
+		}
+	}
 }
 
 func (col ColumnSelector) String() string {
@@ -165,4 +243,15 @@ type Row []Column
 type Source interface {
 	Columns() []ColumnSelector
 	Get() ([]Row, error)
+}
+
+// Table creates a tabulation table for the data source.
+func Table(source Source, style tabulate.Style) *tabulate.Tabulate {
+	tab := tabulate.New(style)
+	for _, col := range source.Columns() {
+		if col.IsPublic() {
+			tab.Header(col.String()).SetAlign(col.Type.Align())
+		}
+	}
+	return tab
 }

@@ -42,7 +42,7 @@ func NewHTMLFromReader(input io.ReadCloser, filter string,
 
 	doc.Find(filter).Each(func(i int, s *goquery.Selection) {
 		var row Row
-		for _, col := range columns {
+		for i, col := range columns {
 			sel := s.Find(col.Name.Column)
 			switch sel.Length() {
 			case 0:
@@ -57,6 +57,7 @@ func NewHTMLFromReader(input io.ReadCloser, filter string,
 				})
 				row = append(row, StringsColumn(strings))
 			}
+			columns[i].ResolveType(row[i].String())
 		}
 		rows = append(rows, row)
 	})

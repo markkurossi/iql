@@ -7,8 +7,10 @@
 package data
 
 import (
-	"fmt"
+	"os"
 	"testing"
+
+	"github.com/markkurossi/tabulate"
 )
 
 func TestHTMLCorrect(t *testing.T) {
@@ -39,7 +41,12 @@ func TestHTMLCorrect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("html.Get() failed: %s", err)
 	}
-	for i, row := range rows {
-		fmt.Printf("Row %d: %v\n", i, row)
+	tab := Table(source, tabulate.Unicode)
+	for _, columns := range rows {
+		row := tab.Row()
+		for _, col := range columns {
+			row.Column(col.String())
+		}
 	}
+	tab.Print(os.Stdout)
 }
