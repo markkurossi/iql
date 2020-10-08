@@ -8,8 +8,10 @@ package query
 
 import (
 	"fmt"
+	"unicode"
 
 	"github.com/markkurossi/htmlq/data"
+	"github.com/markkurossi/tabulate"
 )
 
 var (
@@ -20,10 +22,28 @@ var (
 // that the query can be used as a nested data source for other
 // queries.
 type Query struct {
-	Select  []data.ColumnSelector
-	From    []SourceSelector
-	Where   Expr
-	columns map[string]columnIndex
+	Select        []ColumnSelector
+	From          []SourceSelector
+	Where         Expr
+	selectColumns []data.ColumnSelector
+	fromColumns   map[string]columnIndex
+}
+
+// ColumnSelector defines selected query output columns.
+type ColumnSelector struct {
+	Expr  Expr
+	As    string
+	Align tabulate.Align
+}
+
+// IsPublic reports if the column is public and should be included in
+// the result set.
+func (col ColumnSelector) IsPublic() bool {
+	if len(col.As) == 0 {
+		return true
+	}
+	runes := []rune(col.As)
+	return len(runes) > 0 && unicode.IsUpper(runes[0])
 }
 
 // SourceSelector defines an input source with an optional name alias.
@@ -34,33 +54,40 @@ type SourceSelector struct {
 
 // Columns implements the Source.Columns().
 func (sql *Query) Columns() []data.ColumnSelector {
-	return sql.Select
+	if len(sql.selectColumns) == 0 {
+		for _, col := range sql.Select {
+			sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{
+				Name: data.Reference{
+					Column: col.Expr.String(),
+				},
+				As:    col.As,
+				Align: col.Align,
+			})
+		}
+	}
+	return sql.selectColumns
 }
 
 // Get implements the Source.Get().
 func (sql *Query) Get() ([]data.Row, error) {
 	// Collect column names.
-	sql.columns = make(map[string]columnIndex)
+	sql.fromColumns = make(map[string]columnIndex)
 	for sourceIdx, from := range sql.From {
 		for columnIdx, column := range from.Source.Columns() {
 			key := fmt.Sprintf("%s.%s", from.As, column.As)
-			sql.columns[key] = columnIndex{
+			sql.fromColumns[key] = columnIndex{
 				source: sourceIdx,
 				column: columnIdx,
 			}
 		}
 	}
 
-	// Resolve columns into references.
-
-	var references []*Reference
-
+	// Bind Select expressions.
 	for _, sel := range sql.Select {
-		ref, err := sql.resolveName(sel.Name, sel.IsPublic())
+		err := sel.Expr.Bind(sql)
 		if err != nil {
 			return nil, err
 		}
-		references = append(references, ref)
 	}
 
 	// Bind Where expressions.
@@ -78,14 +105,16 @@ func (sql *Query) Get() ([]data.Row, error) {
 	}
 
 	// Select result columns.
-	// XXX the select references should be expressions and this step
-	// would evaluate expressions against each row.
 	var result []data.Row
 	for _, match := range matches {
 		var row data.Row
-		for _, ref := range references {
-			if ref.public {
-				row = append(row, match[ref.index.source][ref.index.column])
+		for _, sel := range sql.Select {
+			if sel.IsPublic() {
+				val, err := sel.Expr.Eval(match)
+				if err != nil {
+					return nil, err
+				}
+				row = append(row, data.StringColumn(val.String()))
 			}
 		}
 		result = append(result, row)
@@ -131,7 +160,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 	*Reference, error) {
 
 	if name.IsAbsolute() {
-		index, ok := sql.columns[name.String()]
+		index, ok := sql.fromColumns[name.String()]
 		if !ok {
 			return nil, fmt.Errorf("Unknown column '%s'", name.String())
 		}
@@ -149,7 +178,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 			Source: from.As,
 			Column: name.Column,
 		}
-		index, ok := sql.columns[key.String()]
+		index, ok := sql.fromColumns[key.String()]
 		if ok {
 			if match != nil {
 				return nil, fmt.Errorf("ambiguous column name '%s'", name)

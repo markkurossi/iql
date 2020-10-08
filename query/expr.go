@@ -23,6 +23,7 @@ var (
 type Expr interface {
 	Bind(sql *Query) error
 	Eval(sources []data.Row) (Value, error)
+	String() string
 }
 
 // Function implements function expressions.
@@ -84,6 +85,10 @@ func (f *Function) Eval(sources []data.Row) (Value, error) {
 	default:
 		return nil, fmt.Errorf("unknown function: %v", f.Type)
 	}
+}
+
+func (f *Function) String() string {
+	return fmt.Sprintf("%s(%q)", f.Type, f.Arguments)
 }
 
 // Binary implements binary expressions.
@@ -197,6 +202,10 @@ func (b *Binary) Eval(sources []data.Row) (Value, error) {
 	}
 }
 
+func (b *Binary) String() string {
+	return fmt.Sprintf("%s %s %s", b.Left, b.Type, b.Right)
+}
+
 // Constant implements contant expressions.
 type Constant struct {
 	Value Value
@@ -210,6 +219,10 @@ func (constant *Constant) Bind(sql *Query) error {
 // Eval implements the Expr.Eval().
 func (constant *Constant) Eval(sources []data.Row) (Value, error) {
 	return constant.Value, nil
+}
+
+func (constant *Constant) String() string {
+	return constant.Value.String()
 }
 
 // Reference implements column reference expressions.

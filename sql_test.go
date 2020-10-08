@@ -59,30 +59,45 @@ func TestJoin(t *testing.T) {
 	}
 
 	q := &query.Query{
-		Select: []data.ColumnSelector{
+		Select: []query.ColumnSelector{
 			{
-				Name: data.Reference{
-					Source: "ref",
-					Column: "Stock",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "ref",
+						Column: "Stock",
+					},
 				},
+				As: "Stock",
 			},
 			{
-				Name: data.Reference{
-					Source: "ref",
-					Column: "Price",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "ref",
+						Column: "Price",
+					},
 				},
+				As:    "Price",
+				Align: tabulate.MR,
 			},
 			{
-				Name: data.Reference{
-					Source: "ref",
-					Column: "Weight",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "ref",
+						Column: "Weight",
+					},
 				},
+				As:    "Weight",
+				Align: tabulate.MR,
 			},
 			{
-				Name: data.Reference{
-					Source: "portfolio",
-					Column: "Count",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "portfolio",
+						Column: "Count",
+					},
 				},
+				As:    "Count",
+				Align: tabulate.MR,
 			},
 		},
 		From: []query.SourceSelector{

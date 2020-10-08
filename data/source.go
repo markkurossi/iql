@@ -100,7 +100,10 @@ func (ref *Reference) IsAbsolute() bool {
 
 func (ref *Reference) String() string {
 	// XXX escapes
-	return fmt.Sprintf("%s.%s", ref.Source, ref.Column)
+	if len(ref.Source) > 0 {
+		return fmt.Sprintf("%s.%s", ref.Source, ref.Column)
+	}
+	return ref.Column
 }
 
 // New defines a constructor for data sources.

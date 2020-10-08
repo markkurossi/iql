@@ -99,34 +99,48 @@ func test() {
 	})
 
 	q := &query.Query{
-		Select: []data.ColumnSelector{
+		Select: []query.ColumnSelector{
 			{
-				Name: data.Reference{
-					Source: "ref",
-					Column: "Name",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Source: "ref",
+						Column: "Name",
+					},
 				},
+				As: "Name",
 			},
 			{
-				Name: data.Reference{
-					Column: "Price",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Column: "Price",
+					},
 				},
+				As:    "Price",
 				Align: tabulate.MR,
 			},
 			{
-				Name: data.Reference{
-					Column: "Weight",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Column: "Weight",
+					},
 				},
+				As:    "Weight",
 				Align: tabulate.MR,
 			},
 			{
-				Name: data.Reference{
-					Column: "Count",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Column: "Count",
+					},
 				},
+				As:    "Count",
 				Align: tabulate.MR,
 			},
 			{
-				Name: data.Reference{
-					Column: "link",
+				Expr: &query.Reference{
+					Reference: data.Reference{
+						Column: "link",
+					},
 				},
 			},
 		},
