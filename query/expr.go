@@ -132,6 +132,8 @@ const (
 	BinAnd
 	BinMult
 	BinDiv
+	BinAdd
+	BinSub
 )
 
 var binaries = map[BinaryType]string{
@@ -142,6 +144,8 @@ var binaries = map[BinaryType]string{
 	BinAnd:  "AND",
 	BinMult: "*",
 	BinDiv:  "/",
+	BinAdd:  "+",
+	BinSub:  "-",
 }
 
 func (t BinaryType) String() string {
@@ -262,6 +266,14 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 			return data.BoolValue(l < r), nil
 		case BinGt:
 			return data.BoolValue(l > r), nil
+		case BinMult:
+			return data.IntValue(l * r), nil
+		case BinDiv:
+			return data.IntValue(l / r), nil
+		case BinAdd:
+			return data.IntValue(l + r), nil
+		case BinSub:
+			return data.IntValue(l - r), nil
 		default:
 			return nil, fmt.Errorf("unknown int binary expression: %s %s %s",
 				left, b.Type, right)

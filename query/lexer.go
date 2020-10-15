@@ -104,6 +104,7 @@ type lexer struct {
 	unreadRune  rune
 	unreadSize  int
 	unreadPoint Point
+	history     map[int][]rune
 }
 
 func newLexer(input io.Reader, source string) *lexer {
@@ -114,6 +115,7 @@ func newLexer(input io.Reader, source string) *lexer {
 			Line:   1,
 			Col:    0,
 		},
+		history: make(map[int][]rune),
 	}
 }
 
@@ -137,6 +139,7 @@ func (l *lexer) ReadRune() (rune, int, error) {
 		l.point.Col = 0
 	} else {
 		l.point.Col++
+		l.history[l.point.Line] = append(l.history[l.point.Line], r)
 	}
 
 	return r, size, nil
@@ -147,6 +150,23 @@ func (l *lexer) UnreadRune() error {
 	l.point, l.unreadPoint = l.unreadPoint, l.point
 	l.unread = true
 	return nil
+}
+
+// FlushEOL discards all remaining input from the current source code
+// line.
+func (l *lexer) FlushEOL() error {
+	for {
+		r, _, err := l.ReadRune()
+		if err != nil {
+			if err != io.EOF {
+				return err
+			}
+			return nil
+		}
+		if r == '\n' {
+			return nil
+		}
+	}
 }
 
 func (l *lexer) get() (*Token, error) {
@@ -185,6 +205,21 @@ lexer:
 			l.UnreadRune()
 			return l.token(TokenType('<')), nil
 
+		case '-':
+			r, _, err := l.ReadRune()
+			if err != nil {
+				if err != io.EOF {
+					return nil, err
+				}
+				return l.token(TokenType('-')), nil
+			}
+			if r == '-' {
+				// Single line comment: -- discard to EOL.
+				l.FlushEOL()
+				continue lexer
+			}
+			return l.token(TokenType('-')), nil
+
 		case '/':
 			r, _, err := l.ReadRune()
 			if err != nil {
@@ -194,7 +229,7 @@ lexer:
 				return l.token(TokenType('/')), nil
 			}
 			if r == '*' {
-				// C-style comment
+				// C-style comment: discard until */
 				for {
 					r, _, err := l.ReadRune()
 					if err != nil {
@@ -287,8 +322,7 @@ lexer:
 					}
 					identifier += string(r)
 				}
-				identifier = strings.ToUpper(identifier)
-				sym, ok := symbols[identifier]
+				sym, ok := symbols[strings.ToUpper(identifier)]
 				if ok {
 					return l.token(sym), nil
 				}
@@ -386,6 +420,10 @@ func (l *lexer) readHexLiteral(val []rune) (int64, error) {
 		}
 	}
 	return strconv.ParseInt(string(val), 0, 64)
+}
+
+func (l *lexer) unget(t *Token) {
+	l.ungot = t
 }
 
 func (l *lexer) token(t TokenType) *Token {
