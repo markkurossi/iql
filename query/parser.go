@@ -97,6 +97,22 @@ func (p *parser) parseSelect() (*Query, error) {
 		}
 	}
 
+	// Where
+	t, err = p.lexer.get()
+	if err != nil {
+		if err != io.EOF {
+			return nil, err
+		}
+		return q, nil
+	}
+	if t.Type != TSymWhere {
+		return nil, p.errf(t.From, "unexpected token: %s", t)
+	}
+	q.Where, err = p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+
 	return q, nil
 }
 
@@ -208,11 +224,63 @@ func (p *parser) parseKeyword(keyword TokenType) (string, error) {
 }
 
 func (p *parser) parseExpr() (Expr, error) {
-	return p.parseAdditive()
+	return p.parseExprLogicalOr()
 }
 
-func (p *parser) parseAdditive() (Expr, error) {
-	left, err := p.parseMultiplicative()
+func (p *parser) parseExprLogicalOr() (Expr, error) {
+	return p.parseExprLogicalAnd()
+}
+
+func (p *parser) parseExprLogicalAnd() (Expr, error) {
+	return p.parseExprComparative()
+}
+
+func (p *parser) parseExprComparative() (Expr, error) {
+	left, err := p.parseExprAdditive()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		t, err := p.lexer.get()
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+			return left, nil
+		}
+		var bt BinaryType
+
+		switch t.Type {
+		case '=':
+			bt = BinEq
+		case TNeq:
+			bt = BinNeq
+		case '<':
+			bt = BinLt
+		case TLe:
+			bt = BinLe
+		case '>':
+			bt = BinGt
+		case TGe:
+			bt = BinGe
+		default:
+			p.lexer.unget(t)
+			return left, nil
+		}
+		right, err := p.parseExprAdditive()
+		if err != nil {
+			return nil, err
+		}
+		left = &Binary{
+			Type:  bt,
+			Left:  left,
+			Right: right,
+		}
+	}
+}
+
+func (p *parser) parseExprAdditive() (Expr, error) {
+	left, err := p.parseExprMultiplicative()
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +305,7 @@ func (p *parser) parseAdditive() (Expr, error) {
 			p.lexer.unget(t)
 			return left, nil
 		}
-		right, err := p.parseMultiplicative()
+		right, err := p.parseExprMultiplicative()
 		if err != nil {
 			return nil, err
 		}
@@ -249,8 +317,8 @@ func (p *parser) parseAdditive() (Expr, error) {
 	}
 }
 
-func (p *parser) parseMultiplicative() (Expr, error) {
-	left, err := p.parseUnary()
+func (p *parser) parseExprMultiplicative() (Expr, error) {
+	left, err := p.parseExprUnary()
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +343,7 @@ func (p *parser) parseMultiplicative() (Expr, error) {
 			p.lexer.unget(t)
 			return left, nil
 		}
-		right, err := p.parseUnary()
+		right, err := p.parseExprUnary()
 		if err != nil {
 			return nil, err
 		}
@@ -287,11 +355,11 @@ func (p *parser) parseMultiplicative() (Expr, error) {
 	}
 }
 
-func (p *parser) parseUnary() (Expr, error) {
-	return p.parsePostfix()
+func (p *parser) parseExprUnary() (Expr, error) {
+	return p.parseExprPostfix()
 }
 
-func (p *parser) parsePostfix() (Expr, error) {
+func (p *parser) parseExprPostfix() (Expr, error) {
 	t, err := p.lexer.get()
 	if err != nil {
 		return nil, err

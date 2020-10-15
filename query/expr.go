@@ -128,7 +128,9 @@ const (
 	BinEq BinaryType = iota
 	BinNeq
 	BinLt
+	BinLe
 	BinGt
+	BinGe
 	BinAnd
 	BinMult
 	BinDiv
@@ -140,7 +142,9 @@ var binaries = map[BinaryType]string{
 	BinEq:   "=",
 	BinNeq:  "<>",
 	BinLt:   "<",
+	BinLe:   "<=",
 	BinGt:   ">",
+	BinGe:   ">=",
 	BinAnd:  "AND",
 	BinMult: "*",
 	BinDiv:  "/",
@@ -264,8 +268,12 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 			return data.BoolValue(l != r), nil
 		case BinLt:
 			return data.BoolValue(l < r), nil
+		case BinLe:
+			return data.BoolValue(l <= r), nil
 		case BinGt:
 			return data.BoolValue(l > r), nil
+		case BinGe:
+			return data.BoolValue(l >= r), nil
 		case BinMult:
 			return data.IntValue(l * r), nil
 		case BinDiv:

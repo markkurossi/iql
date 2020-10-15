@@ -25,6 +25,23 @@ var parserTests = []string{
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'`,
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data`,
+
+	`select Data.0 As Year, Data.1 as Value
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+where Data.Year > 2009`,
+	`select Data.0 As Year, Data.1 as Value
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+where Data.Year = 2009`,
+	`select Data.0 As Year, Data.1 as Value
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+where Data.Year >= 2009`,
+
+	`select Data.0 As Year, Data.1 as Value
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+where Data.Year < 2009`,
+	`select Data.0 As Year, Data.1 as Value
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+where Data.Year <= 2009`,
 }
 
 func TestParser(t *testing.T) {

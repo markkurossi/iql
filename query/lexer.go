@@ -40,6 +40,8 @@ const (
 	TSymAs
 	TSymFilter
 	TNeq
+	TLe
+	TGe
 )
 
 var tokenTypes = map[TokenType]string{
@@ -188,7 +190,7 @@ lexer:
 		}
 
 		switch r {
-		case '+', '*', '>', '=', '.', ',', '(', ')':
+		case '+', '*', '=', '.', ',', '(', ')':
 			return l.token(TokenType(r)), nil
 
 		case '<':
@@ -199,11 +201,31 @@ lexer:
 				}
 				return l.token(TokenType('<')), nil
 			}
-			if r == '>' {
+			switch r {
+			case '>':
 				return l.token(TNeq), nil
+			case '=':
+				return l.token(TLe), nil
+			default:
+				l.UnreadRune()
+				return l.token(TokenType('<')), nil
 			}
-			l.UnreadRune()
-			return l.token(TokenType('<')), nil
+
+		case '>':
+			r, _, err := l.ReadRune()
+			if err != nil {
+				if err != io.EOF {
+					return nil, err
+				}
+				return l.token(TokenType('<')), nil
+			}
+			switch r {
+			case '=':
+				return l.token(TGe), nil
+			default:
+				l.UnreadRune()
+				return l.token(TokenType('>')), nil
+			}
 
 		case '-':
 			r, _, err := l.ReadRune()
