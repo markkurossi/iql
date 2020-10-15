@@ -218,6 +218,7 @@ lexer:
 				l.FlushEOL()
 				continue lexer
 			}
+			l.UnreadRune()
 			return l.token(TokenType('-')), nil
 
 		case '/':
