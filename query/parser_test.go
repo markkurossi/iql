@@ -21,6 +21,8 @@ var parserTests = []string{
 	// 2008,100
 	// 2009,101
 	// 2010,200
+	`select "0" As Year, "1" as Value
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'`,
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data`,
 }

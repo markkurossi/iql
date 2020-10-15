@@ -276,6 +276,32 @@ lexer:
 			token.StrVal = string(runes)
 			return token, nil
 
+		case '"':
+			var runes []rune
+			for {
+				r, _, err := l.ReadRune()
+				if err != nil {
+					return nil, err
+				}
+				if r == '"' {
+					r, _, err := l.ReadRune()
+					if err != nil {
+						if err != io.EOF {
+							return nil, err
+						}
+						break
+					}
+					if r != '"' {
+						l.UnreadRune()
+						break
+					}
+				}
+				runes = append(runes, r)
+			}
+			token := l.token(TIdentifier)
+			token.StrVal = string(runes)
+			return token, nil
+
 		case '0':
 			var i64 int64
 

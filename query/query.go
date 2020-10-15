@@ -79,7 +79,12 @@ func (sql *Query) Get() ([]data.Row, error) {
 	sql.fromColumns = make(map[string]columnIndex)
 	for sourceIdx, from := range sql.From {
 		for columnIdx, column := range from.Source.Columns() {
-			key := fmt.Sprintf("%s.%s", from.As, column.As)
+			var key string
+			if len(from.As) > 0 {
+				key = fmt.Sprintf("%s.%s", from.As, column.As)
+			} else {
+				key = column.As
+			}
 			sql.fromColumns[key] = columnIndex{
 				source: sourceIdx,
 				column: columnIdx,

@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -32,6 +33,11 @@ var (
 // NewSource defines a constructor for data sources.
 type NewSource func(in io.ReadCloser, filter string, columns []ColumnSelector) (
 	Source, error)
+
+var mediatypes = map[string]string{
+	"text/csv":  "csv",
+	"text/html": "html",
+}
 
 var formats = map[string]NewSource{
 	"csv":  NewCSV,
@@ -91,8 +97,6 @@ func openInput(input string) (io.ReadCloser, string, error) {
 			format = format[:idx]
 		}
 
-		fmt.Printf("data:%s;%s,%s\n", format, encoding, data)
-
 		var decoded []byte
 
 		switch encoding {
@@ -110,11 +114,19 @@ func openInput(input string) (io.ReadCloser, string, error) {
 				fmt.Errorf("unknown data URI encoding: %s", encoding)
 		}
 
-		// XXX resolve format
+		// Resolve format.
+		mediatype, _, err := mime.ParseMediaType(format)
+		if err != nil {
+			return nil, "", err
+		}
+		format, ok := mediatypes[mediatype]
+		if !ok {
+			return nil, "", fmt.Errorf("unknown media type: %s", mediatype)
+		}
 
 		return &memory{
 			in: bytes.NewReader(decoded),
-		}, "csv", nil
+		}, format, nil
 	}
 
 	f, err := os.Open(input)
