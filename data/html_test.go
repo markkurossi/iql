@@ -14,7 +14,7 @@ import (
 )
 
 func TestHTMLCorrect(t *testing.T) {
-	source, err := NewHTML("test.html", "tbody > tr", []ColumnSelector{
+	source, err := New("test.html", "tbody > tr", []ColumnSelector{
 		{
 			Name: Reference{
 				Column: ".stock",
@@ -35,7 +35,7 @@ func TestHTMLCorrect(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("NewHTML failed: %s", err)
+		t.Fatalf("New failed: %s", err)
 	}
 	rows, err := source.Get()
 	if err != nil {

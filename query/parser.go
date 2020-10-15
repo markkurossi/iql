@@ -43,16 +43,13 @@ func (p *parser) parse() (*Query, error) {
 }
 
 func (p *parser) parseSelect() (*Query, error) {
-	var q Query
+	q := new(Query)
 
 	// Columns.
 	for {
 		col, err := p.parseColumn()
 		if err != nil {
 			return nil, err
-		}
-		if col == nil {
-			break
 		}
 		q.Select = append(q.Select, *col)
 
@@ -68,7 +65,39 @@ func (p *parser) parseSelect() (*Query, error) {
 			break
 		}
 	}
-	return &q, nil
+
+	// From
+	t, err := p.lexer.get()
+	if err != nil {
+		if err != io.EOF {
+			return nil, err
+		}
+		return q, nil
+	}
+	if t.Type != TSymFrom {
+		return nil, p.errf(t.From, "unexpected token: %s", t)
+	}
+	for {
+		source, err := p.parseSource(q)
+		if err != nil {
+			return nil, err
+		}
+		q.From = append(q.From, *source)
+
+		t, err := p.lexer.get()
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+			break
+		}
+		if t.Type != ',' {
+			p.lexer.unget(t)
+			break
+		}
+	}
+
+	return q, nil
 }
 
 func (p *parser) parseColumn() (*ColumnSelector, error) {
@@ -103,6 +132,79 @@ func (p *parser) parseColumn() (*ColumnSelector, error) {
 		Expr: expr,
 		As:   t.StrVal,
 	}, nil
+}
+
+func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
+	t, err := p.lexer.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type != TString {
+		return nil, p.errf(t.From, "unexpected token: %s", t)
+	}
+
+	filter, err := p.parseKeyword(TSymFilter)
+	if err != nil {
+		return nil, err
+	}
+	as, err := p.parseKeyword(TSymAs)
+	if err != nil {
+		return nil, err
+	}
+
+	source, err := data.New(t.StrVal, filter, columnsFor(q.Select, as))
+	if err != nil {
+		return nil, err
+	}
+
+	return &SourceSelector{
+		Source: source,
+		As:     as,
+	}, nil
+}
+
+func columnsFor(columns []ColumnSelector, source string) []data.ColumnSelector {
+	var result []data.ColumnSelector
+
+	for _, col := range columns {
+		switch c := col.Expr.(type) {
+		case *Reference:
+			if c.Source == source {
+				result = append(result, data.ColumnSelector{
+					Name: c.Reference,
+					As:   col.As,
+				})
+				// We passed the source specific selectors down to the
+				// source and from now on, we are referencing the
+				// fields with their alias names.
+				c.Column = col.As
+			}
+		}
+	}
+
+	return result
+}
+
+func (p *parser) parseKeyword(keyword TokenType) (string, error) {
+	t, err := p.lexer.get()
+	if err != nil {
+		if err != io.EOF {
+			return "", err
+		}
+		return "", nil
+	}
+	if t.Type != keyword {
+		p.lexer.unget(t)
+		return "", nil
+	}
+	t, err = p.lexer.get()
+	if err != nil {
+		return "", err
+	}
+	if t.Type != TIdentifier {
+		return "", p.errf(t.From, "unexpected token: %s", t)
+	}
+	return t.StrVal, nil
 }
 
 func (p *parser) parseExpr() (Expr, error) {
@@ -198,6 +300,43 @@ func (p *parser) parsePostfix() (Expr, error) {
 	var val data.Value
 
 	switch t.Type {
+	case TIdentifier:
+		var source, column string
+
+		n, err := p.lexer.get()
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+			column = t.StrVal
+		} else if n.Type == '.' {
+			n, err := p.lexer.get()
+			if err != nil {
+				return nil, err
+			}
+			switch n.Type {
+			case TIdentifier, TString:
+				source = t.StrVal
+				column = n.StrVal
+
+			case TInteger:
+				source = t.StrVal
+				column = fmt.Sprintf("%d", n.IntVal)
+
+			default:
+				return nil, p.errf(n.From, "unexpected token: %s", n)
+			}
+		} else {
+			p.lexer.unget(n)
+			column = t.StrVal
+		}
+		return &Reference{
+			Reference: data.Reference{
+				Source: source,
+				Column: column,
+			},
+		}, nil
+
 	case TString:
 		val = data.StringValue(t.StrVal)
 	case TInteger:

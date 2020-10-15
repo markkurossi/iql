@@ -14,7 +14,7 @@ import (
 )
 
 func TestCVSCorrect(t *testing.T) {
-	source, err := NewCSV("test.csv", "", []ColumnSelector{
+	source, err := New("test.csv", "", []ColumnSelector{
 		{
 			Name: Reference{
 				Column: "0",

@@ -7,6 +7,8 @@
 package data
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,22 +29,119 @@ var (
 	_ Column = StringsColumn([]string{})
 )
 
-func openInput(input string) (io.ReadCloser, error) {
+// NewSource defines a constructor for data sources.
+type NewSource func(in io.ReadCloser, filter string, columns []ColumnSelector) (
+	Source, error)
+
+var formats = map[string]NewSource{
+	"csv":  NewCSV,
+	"html": NewHTML,
+}
+
+// New creates a new data source for the URL.
+func New(url, filter string, columns []ColumnSelector) (Source, error) {
+	input, format, err := openInput(url)
+	if err != nil {
+		return nil, err
+	}
+
+	n, ok := formats[format]
+	if !ok {
+		return nil, fmt.Errorf("unknown data format '%s'", format)
+	}
+	return n(input, filter, columns)
+}
+
+func openInput(input string) (io.ReadCloser, string, error) {
+	var format string
+
 	u, err := url.Parse(input)
+	if err != nil {
+		format = formatByPath(input)
+	} else {
+		format = formatByPath(u.Path)
+	}
 	if err == nil && u.Scheme == "http" {
 		resp, err := http.Get(input)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		if resp.StatusCode != http.StatusOK {
 			io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
-			return nil, fmt.Errorf("HTTP URL '%s' not found", input)
+			return nil, "", fmt.Errorf("HTTP URL '%s' not found", input)
 		}
-		return resp.Body, nil
+
+		// XXX override format from content-type header if given.
+
+		return resp.Body, format, nil
+	}
+	if err == nil && u.Scheme == "data" {
+		idx := strings.IndexByte(input, ',')
+		if idx < 0 {
+			return nil, "", fmt.Errorf("malformed data URI: %s", input)
+		}
+		data := input[idx+1:]
+		format := input[5:idx]
+		var encoding string
+
+		idx = strings.IndexByte(format, ';')
+		if idx >= 0 {
+			encoding = format[idx+1:]
+			format = format[:idx]
+		}
+
+		fmt.Printf("data:%s;%s,%s\n", format, encoding, data)
+
+		var decoded []byte
+
+		switch encoding {
+		case "base64":
+			decoded, err = base64.StdEncoding.DecodeString(data)
+			if err != nil {
+				return nil, "", err
+			}
+
+		case "":
+			decoded = []byte(data)
+
+		default:
+			return nil, "",
+				fmt.Errorf("unknown data URI encoding: %s", encoding)
+		}
+
+		// XXX resolve format
+
+		return &memory{
+			in: bytes.NewReader(decoded),
+		}, "csv", nil
 	}
 
-	return os.Open(input)
+	f, err := os.Open(input)
+	if err != nil {
+		return nil, "", err
+	}
+	return f, format, nil
+}
+
+type memory struct {
+	in io.Reader
+}
+
+func (m *memory) Read(p []byte) (n int, err error) {
+	return m.in.Read(p)
+}
+
+func (m *memory) Close() error {
+	return nil
+}
+
+func formatByPath(path string) string {
+	idx := strings.LastIndexByte(path, '.')
+	if idx < 0 {
+		return ""
+	}
+	return path[idx+1:]
 }
 
 // ColumnType specifies column types.
@@ -176,16 +275,13 @@ func (ref *Reference) IsAbsolute() bool {
 	return len(ref.Source) > 0
 }
 
-func (ref *Reference) String() string {
+func (ref Reference) String() string {
 	// XXX escapes
 	if len(ref.Source) > 0 {
 		return fmt.Sprintf("%s.%s", ref.Source, ref.Column)
 	}
 	return ref.Column
 }
-
-// New defines a constructor for data sources.
-type New func(url, filter string, columns []ColumnSelector) (Source, error)
 
 // Column defines a data column.
 type Column interface {

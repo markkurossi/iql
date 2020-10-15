@@ -19,21 +19,12 @@ type HTML struct {
 	rows    []Row
 }
 
-// NewHTML creates a new HTML data source from the argument URL.
-func NewHTML(url, filter string, columns []ColumnSelector) (Source, error) {
-	input, err := openInput(url)
-	if err != nil {
-		return nil, err
-	}
-	return NewHTMLFromReader(input, filter, columns)
-}
-
-// NewHTMLFromReader creates a new HTML data source from the argument
-// reader.
-func NewHTMLFromReader(input io.ReadCloser, filter string,
-	columns []ColumnSelector) (Source, error) {
+// NewHTML creates a new HTML data source from the input.
+func NewHTML(input io.ReadCloser, filter string, columns []ColumnSelector) (
+	Source, error) {
 
 	defer input.Close()
+
 	doc, err := goquery.NewDocumentFromReader(input)
 	if err != nil {
 		return nil, err

@@ -9,6 +9,7 @@ package data
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"strconv"
 )
 
@@ -18,12 +19,10 @@ type CSV struct {
 	rows    []Row
 }
 
-// NewCSV creates a new CSV data source from the argument URL.
-func NewCSV(url, filter string, columns []ColumnSelector) (Source, error) {
-	input, err := openInput(url)
-	if err != nil {
-		return nil, err
-	}
+// NewCSV creates a new CSV data source from the input.
+func NewCSV(input io.ReadCloser, filter string, columns []ColumnSelector) (
+	Source, error) {
+
 	defer input.Close()
 
 	reader := csv.NewReader(input)

@@ -16,7 +16,7 @@ import (
 )
 
 func TestJoin(t *testing.T) {
-	ref, err := data.NewHTML("data/test.html", "tbody > tr",
+	ref, err := data.New("data/test.html", "tbody > tr",
 		[]data.ColumnSelector{
 			{
 				Name: data.Reference{
@@ -40,7 +40,7 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewHTML failed: %s", err)
 	}
-	portfolio, err := data.NewCSV("data/test.csv", "", []data.ColumnSelector{
+	portfolio, err := data.New("data/test.csv", "", []data.ColumnSelector{
 		{
 			Name: data.Reference{
 				Column: "0",

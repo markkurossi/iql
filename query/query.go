@@ -180,7 +180,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 	if name.IsAbsolute() {
 		index, ok := sql.fromColumns[name.String()]
 		if !ok {
-			return nil, fmt.Errorf("Unknown column '%s'", name.String())
+			return nil, fmt.Errorf("unknown column '%s'", name)
 		}
 		return &Reference{
 			Reference: name,
@@ -209,7 +209,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 		}
 	}
 	if match == nil {
-		return nil, fmt.Errorf("unknown column name '%s'", name)
+		return nil, fmt.Errorf("unknown column '%s'", name)
 	}
 
 	return match, nil

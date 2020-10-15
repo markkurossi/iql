@@ -16,8 +16,8 @@ FROM
         WHERE link <> ''
     ) AS ref,
     (
-        SELECT 0 AS Name,
-               1 AS Weigth
+        SELECT '0' AS Name,
+               '1' AS Weigth
         FROM ',portfolio.csv'
     ) AS portfolio,
 WHERE ref.Name = portfolio.Name
@@ -28,8 +28,8 @@ SELECT ref.'.name'         	      		AS Name,
        ref.':nth-child(5)' 	      		AS Price,
        ref.'.share'    	   	      		AS Weigth,
        ref.a     	   	      		AS link,
-       portfolio.0     	   	      		AS name
-       portfolio.1     	   	      		AS Count
+       portfolio.'0'   	   	      		AS name
+       portfolio.'1'   	   	      		AS Count
        Count * Price	   	      		AS Invested
        Count * Price / SUM(Count * Price) * 100 AS 'My Weight'
 FROM ',reference.html' FILTER 'tbody > tr' AS ref,

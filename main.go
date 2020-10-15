@@ -54,7 +54,7 @@ func main() {
 }
 
 func test() {
-	ref, err := data.NewHTMLFromReader(os.Stdin, "tbody > tr",
+	ref, err := data.NewHTML(os.Stdin, "tbody > tr",
 		[]data.ColumnSelector{
 			{
 				Name: data.Reference{
@@ -81,7 +81,7 @@ func test() {
 				As: "link",
 			},
 		})
-	portfolio, err := data.NewCSV(",portfolio.csv", "", []data.ColumnSelector{
+	portfolio, err := data.New(",portfolio.csv", "", []data.ColumnSelector{
 		{
 			Name: data.Reference{
 				Column: "0",
