@@ -9,7 +9,7 @@ package query
 import (
 	"fmt"
 
-	"github.com/markkurossi/htmlq/data"
+	"github.com/markkurossi/iql/data"
 )
 
 var (

@@ -12,8 +12,8 @@ import (
 	"os"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/markkurossi/htmlq/data"
-	"github.com/markkurossi/htmlq/query"
+	"github.com/markkurossi/iql/data"
+	"github.com/markkurossi/iql/query"
 	"github.com/markkurossi/tabulate"
 )
 

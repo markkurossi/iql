@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"unicode"
 
-	"github.com/markkurossi/htmlq/data"
+	"github.com/markkurossi/iql/data"
 )
 
 var (
