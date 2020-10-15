@@ -27,6 +27,7 @@ FROM ',reference.html' FILTER 'tbody > tr' AS ref,
      ',portfolio.csv' AS portfolio
 WHERE ref.link <> '' AND ref.Name = portfolio.name
 `,
+	`select 1 + 0x01 + 0b10 + 077 + 0o70`,
 }
 
 func TestLexer(t *testing.T) {

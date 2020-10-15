@@ -241,30 +241,29 @@ lexer:
 			return token, nil
 
 		case '0':
+			var i64 int64
+
 			r, _, err = l.ReadRune()
 			if err != nil {
 				if err != io.EOF {
 					return nil, err
 				}
-				token := l.token(TInteger)
-				token.IntVal = 0
-				return token, nil
-			}
-			var i64 int64
-			switch r {
-			case 'b', 'B':
-				i64, err = l.readBinaryLiteral([]rune{'0', r})
-			case 'o', 'O':
-				i64, err = l.readOctalLiteral([]rune{'0', r})
-			case 'x', 'X':
-				i64, err = l.readHexLiteral([]rune{'0', r})
-			case '0', '1', '2', '3', '4', '5', '6', '7':
-				i64, err = l.readOctalLiteral([]rune{'0', r})
-			default:
-				l.UnreadRune()
-			}
-			if err != nil {
-				return nil, err
+			} else {
+				switch r {
+				case 'b', 'B':
+					i64, err = l.readBinaryLiteral([]rune{'0', r})
+				case 'o', 'O':
+					i64, err = l.readOctalLiteral([]rune{'0', r})
+				case 'x', 'X':
+					i64, err = l.readHexLiteral([]rune{'0', r})
+				case '0', '1', '2', '3', '4', '5', '6', '7':
+					i64, err = l.readOctalLiteral([]rune{'0', r})
+				default:
+					l.UnreadRune()
+				}
+				if err != nil {
+					return nil, err
+				}
 			}
 			token := l.token(TInteger)
 			token.IntVal = i64
@@ -329,6 +328,7 @@ lexer:
 }
 
 func (l *lexer) readBinaryLiteral(val []rune) (int64, error) {
+loop:
 	for {
 		r, _, err := l.ReadRune()
 		if err != nil {
@@ -342,13 +342,14 @@ func (l *lexer) readBinaryLiteral(val []rune) (int64, error) {
 			val = append(val, r)
 		default:
 			l.UnreadRune()
-			break
+			break loop
 		}
 	}
 	return strconv.ParseInt(string(val), 0, 64)
 }
 
 func (l *lexer) readOctalLiteral(val []rune) (int64, error) {
+loop:
 	for {
 		r, _, err := l.ReadRune()
 		if err != nil {
@@ -362,7 +363,7 @@ func (l *lexer) readOctalLiteral(val []rune) (int64, error) {
 			val = append(val, r)
 		default:
 			l.UnreadRune()
-			break
+			break loop
 		}
 	}
 	return strconv.ParseInt(string(val), 0, 64)
