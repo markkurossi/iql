@@ -42,6 +42,35 @@ where Data.Year < 2009`,
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
 where Data.Year <= 2009`,
+
+	`
+select Year, Value
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     ) as Data`,
+	`
+select Data.Year, Data.Value
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     ) as Data`,
+	`
+select Year, Value
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     )`,
+	`
+select Year as Y, Value as V
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     )`,
 }
 
 func TestParser(t *testing.T) {

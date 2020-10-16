@@ -1,18 +1,30 @@
 /* -*- sql -*- */
 
-SELECT customers.'.id'        AS customerID,
-       customers.'.name'      AS Name,
-       customers.'.address'   AS Address,
-       products.'.id'         AS productID,
-       products.'.name'       AS Product,
-       products.'.price'      AS price,
-       orders.'.id'           AS orderID,
-       orders.':nth-child(2)' AS orderCustomer,
-       orders.':nth-child(3)' AS orderProduct,
-       orders.':nth-child(4)' AS Count
-FROM 'store.html' FILTER 'table:nth-of-type(1) tr' AS customers,
-     'store.html' FILTER 'table:nth-of-type(2) tr' AS products,
-     'store.html' FILTER 'table:nth-of-type(3) tr' AS orders
-WHERE customerID <> null AND productID <> null AND orderID <> null
-      AND orderProduct = productID
-      AND orderCustomer = customerID
+SELECT customers.Name                AS Name,
+       customers.Address             AS Address,
+       products.Name                 AS Product,
+       orders.Count                  AS Count,
+       products.Price * orders.Count AS Price
+FROM (
+        SELECT c.'.id'      AS ID,
+               c.'.name'    AS Name,
+               c.'.address' AS Address
+        FROM 'store.html' FILTER 'table:nth-of-type(1) tr' AS c
+        WHERE ID <> null
+     ) AS customers,
+     (
+        SELECT p.'.id'    AS ID,
+               p.'.name'  AS Name,
+               p.'.price' AS Price
+        FROM 'store.html' FILTER 'table:nth-of-type(2) tr' AS p
+        WHERE ID <> null
+     ) AS products,
+     (
+        SELECT o.'.id'           AS ID,
+               o.':nth-child(2)' AS Customer,
+               o.':nth-child(3)' AS Product,
+               o.':nth-child(4)' AS Count
+        FROM 'store.html' FILTER 'table:nth-of-type(3) tr' AS o
+        WHERE ID <> null
+     ) as orders
+WHERE orders.Product = products.ID AND orders.Customer = customers.ID

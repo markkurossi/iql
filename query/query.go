@@ -65,6 +65,14 @@ func (sql *Query) Columns() []data.ColumnSelector {
 
 // Get implements the Source.Get().
 func (sql *Query) Get() ([]data.Row, error) {
+	// Eval all sources.
+	for _, from := range sql.From {
+		_, err := from.Source.Get()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Create column info.
 	for _, col := range sql.Select {
 		sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{

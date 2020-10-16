@@ -41,7 +41,7 @@ func TestLexer(t *testing.T) {
 				}
 				t.Fatalf("get failed: %v", err)
 			}
-			if true {
+			if false {
 				fmt.Printf("%v ", token)
 			}
 		}

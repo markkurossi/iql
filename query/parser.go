@@ -106,12 +106,13 @@ func (p *parser) parseSelect() (*Query, error) {
 		}
 		return q, nil
 	}
-	if t.Type != TSymWhere {
-		return nil, p.errf(t.From, "unexpected token: %s", t)
-	}
-	q.Where, err = p.parseExpr()
-	if err != nil {
-		return nil, err
+	if t.Type == TSymWhere {
+		q.Where, err = p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		p.lexer.unget(t)
 	}
 
 	return q, nil
@@ -152,26 +153,48 @@ func (p *parser) parseColumn() (*ColumnSelector, error) {
 }
 
 func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
+	var source data.Source
+	var as string
+
 	t, err := p.lexer.get()
 	if err != nil {
 		return nil, err
 	}
-	if t.Type != TString {
+	switch t.Type {
+	case TString:
+		filter, err := p.parseKeyword(TSymFilter)
+		if err != nil {
+			return nil, err
+		}
+		as, err = p.parseKeyword(TSymAs)
+		if err != nil {
+			return nil, err
+		}
+
+		source, err = data.New(t.StrVal, filter, columnsFor(q.Select, as))
+		if err != nil {
+			return nil, err
+		}
+
+	case '(':
+		source, err = p.parse()
+		if err != nil {
+			return nil, err
+		}
+		t, err = p.lexer.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != ')' {
+			return nil, p.errf(t.From, "unexpected token: %s", t)
+		}
+		as, err = p.parseKeyword(TSymAs)
+		if err != nil {
+			return nil, err
+		}
+
+	default:
 		return nil, p.errf(t.From, "unexpected token: %s", t)
-	}
-
-	filter, err := p.parseKeyword(TSymFilter)
-	if err != nil {
-		return nil, err
-	}
-	as, err := p.parseKeyword(TSymAs)
-	if err != nil {
-		return nil, err
-	}
-
-	source, err := data.New(t.StrVal, filter, columnsFor(q.Select, as))
-	if err != nil {
-		return nil, err
 	}
 
 	return &SourceSelector{
