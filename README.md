@@ -24,15 +24,15 @@ WHERE ref.Name = portfolio.Name
 ```
 
 ```sql
-SELECT ref.'.name'         	      		AS Name,
-       ref.':nth-child(5)' 	      		AS Price,
-       ref.'.share'    	   	      		AS Weigth,
-       ref.a     	   	      		AS link,
-       portfolio.'0'   	   	      		AS name
-       portfolio.'1'   	   	      		AS Count
-       Count * Price	   	      		AS Invested
-       Count * Price / SUM(Count * Price) * 100 AS 'My Weight'
-FROM ',reference.html' FILTER 'tbody > tr' AS ref,
+SELECT ind.'.name'         	      		AS Name,
+       ind.':nth-child(5)' 	      		AS Price,
+       ind.'.share'    	   	      		AS Weigth,
+       ind.a     	   	      		AS link,
+       portfolio.'0'   	   	      		AS name,
+       portfolio.'1'   	   	      		AS Count,
+       Count * Price	   	      		AS Invested,
+       Count * Price / SUM(Count * Price) * 100 AS "My Weight"
+FROM ',reference.html' FILTER 'tbody > tr' AS ind,
      ',portfolio.csv' AS portfolio
-WHERE ref.link <> '' AND ref.Name = portfolio.name
+WHERE ind.link <> '' AND ind.Name = portfolio.name
 ```

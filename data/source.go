@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -34,16 +33,6 @@ var (
 type NewSource func(in io.ReadCloser, filter string, columns []ColumnSelector) (
 	Source, error)
 
-var mediatypes = map[string]string{
-	"text/csv":  "csv",
-	"text/html": "html",
-}
-
-var formats = map[string]NewSource{
-	"csv":  NewCSV,
-	"html": NewHTML,
-}
-
 // New creates a new data source for the URL.
 func New(url, filter string, columns []ColumnSelector) (Source, error) {
 	input, format, err := openInput(url)
@@ -58,82 +47,79 @@ func New(url, filter string, columns []ColumnSelector) (Source, error) {
 	return n(input, filter, columns)
 }
 
-func openInput(input string) (io.ReadCloser, string, error) {
-	var format string
+func openInput(input string) (io.ReadCloser, Format, error) {
+	var resolver Resolver
 
 	u, err := url.Parse(input)
 	if err != nil {
-		format = formatByPath(input)
+		resolver.ResolvePath(input)
 	} else {
-		format = formatByPath(u.Path)
+		resolver.ResolvePath(u.Path)
 	}
-	if err == nil && u.Scheme == "http" {
+	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
 		resp, err := http.Get(input)
 		if err != nil {
-			return nil, "", err
+			return nil, 0, err
 		}
 		if resp.StatusCode != http.StatusOK {
 			io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
-			return nil, "", fmt.Errorf("HTTP URL '%s' not found", input)
+			return nil, 0, fmt.Errorf("HTTP URL '%s' not found", input)
 		}
 
-		// XXX override format from content-type header if given.
+		resolver.ResolveMediaType(resp.Header.Get("Content-Type"))
 
-		return resp.Body, format, nil
+		format, err := resolver.Format()
+		return resp.Body, format, err
 	}
 	if err == nil && u.Scheme == "data" {
 		idx := strings.IndexByte(input, ',')
 		if idx < 0 {
-			return nil, "", fmt.Errorf("malformed data URI: %s", input)
+			return nil, 0, fmt.Errorf("malformed data URI: %s", input)
 		}
 		data := input[idx+1:]
-		format := input[5:idx]
+		contentType := input[5:idx]
 		var encoding string
 
-		idx = strings.IndexByte(format, ';')
+		idx = strings.IndexByte(contentType, ';')
 		if idx >= 0 {
-			encoding = format[idx+1:]
-			format = format[:idx]
+			encoding = contentType[idx+1:]
+			contentType = contentType[:idx]
 		}
 
 		var decoded []byte
 
+		// Decode data.
 		switch encoding {
 		case "base64":
 			decoded, err = base64.StdEncoding.DecodeString(data)
 			if err != nil {
-				return nil, "", err
+				return nil, 0, err
 			}
-
 		case "":
 			decoded = []byte(data)
-
 		default:
-			return nil, "",
-				fmt.Errorf("unknown data URI encoding: %s", encoding)
+			return nil, 0, fmt.Errorf("unknown data URI encoding: %s", encoding)
 		}
 
 		// Resolve format.
-		mediatype, _, err := mime.ParseMediaType(format)
-		if err != nil {
-			return nil, "", err
-		}
-		format, ok := mediatypes[mediatype]
-		if !ok {
-			return nil, "", fmt.Errorf("unknown media type: %s", mediatype)
-		}
+		resolver.ResolveMediaType(contentType)
+
+		format, err := resolver.Format()
 
 		return &memory{
 			in: bytes.NewReader(decoded),
-		}, format, nil
+		}, format, err
 	}
 
 	f, err := os.Open(input)
 	if err != nil {
-		return nil, "", err
+		return nil, 0, err
 	}
-	return f, format, nil
+
+	format, err := resolver.Format()
+
+	return f, format, err
 }
 
 type memory struct {
@@ -146,14 +132,6 @@ func (m *memory) Read(p []byte) (n int, err error) {
 
 func (m *memory) Close() error {
 	return nil
-}
-
-func formatByPath(path string) string {
-	idx := strings.LastIndexByte(path, '.')
-	if idx < 0 {
-		return ""
-	}
-	return path[idx+1:]
 }
 
 // ColumnType specifies column types.

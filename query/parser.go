@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 
 	"github.com/markkurossi/iql/data"
 )
@@ -217,7 +218,9 @@ func (p *parser) parseKeyword(keyword TokenType) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if t.Type != TIdentifier {
+	switch t.Type {
+	case TIdentifier, TString:
+	default:
 		return "", p.errf(t.From, "unexpected token: %s", t)
 	}
 	return t.StrVal, nil
@@ -232,6 +235,35 @@ func (p *parser) parseExprLogicalOr() (Expr, error) {
 }
 
 func (p *parser) parseExprLogicalAnd() (Expr, error) {
+	left, err := p.parseExprLogicalNot()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		t, err := p.lexer.get()
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+			return left, nil
+		}
+		if t.Type != TAnd {
+			p.lexer.unget(t)
+			return left, nil
+		}
+		right, err := p.parseExprLogicalNot()
+		if err != nil {
+			return nil, err
+		}
+		left = &Binary{
+			Type:  BinAnd,
+			Left:  left,
+			Right: right,
+		}
+	}
+}
+
+func (p *parser) parseExprLogicalNot() (Expr, error) {
 	return p.parseExprComparative()
 }
 
@@ -377,6 +409,8 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 				return nil, err
 			}
 			column = t.StrVal
+		} else if n.Type == '(' {
+			return p.parseFunc(t)
 		} else if n.Type == '.' {
 			n, err := p.lexer.get()
 			if err != nil {
@@ -416,6 +450,43 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 
 	return &Constant{
 		Value: val,
+	}, nil
+}
+
+func (p *parser) parseFunc(name *Token) (Expr, error) {
+	var args []Expr
+
+	for {
+		t, err := p.lexer.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type == ')' {
+			break
+		}
+		p.lexer.unget(t)
+
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, expr)
+
+		t, err = p.lexer.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != ',' {
+			p.lexer.unget(t)
+		}
+	}
+	f, ok := functions[strings.ToUpper(name.StrVal)]
+	if !ok {
+		return nil, p.errf(name.From, "unknown function: %s", name.StrVal)
+	}
+	return &Function{
+		Type:      f,
+		Arguments: args,
 	}, nil
 }
 

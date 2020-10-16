@@ -39,6 +39,8 @@ const (
 	TSymWhere
 	TSymAs
 	TSymFilter
+	TAnd
+	TOr
 	TNeq
 	TLe
 	TGe
@@ -53,6 +55,8 @@ var tokenTypes = map[TokenType]string{
 	TSymWhere:   "WHERE",
 	TSymAs:      "AS",
 	TSymFilter:  "FILTER",
+	TAnd:        "AND",
+	TOr:         "OR",
 	TNeq:        "<>",
 }
 
@@ -73,6 +77,8 @@ var symbols = map[string]TokenType{
 	"WHERE":  TSymWhere,
 	"AS":     TSymAs,
 	"FILTER": TSymFilter,
+	"AND":    TAnd,
+	"OR":     TOr,
 }
 
 // Token implements an input token.
@@ -190,7 +196,7 @@ lexer:
 		}
 
 		switch r {
-		case '+', '*', '=', '.', ',', '(', ')':
+		case '+', '*', '~', '%', '=', '.', ',', '(', ')':
 			return l.token(TokenType(r)), nil
 
 		case '<':

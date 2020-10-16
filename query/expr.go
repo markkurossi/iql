@@ -41,12 +41,16 @@ const (
 	FuncSum FunctionType = iota
 )
 
-var functions = map[FunctionType]string{
-	FuncSum: "sum",
+var functionTypes = map[FunctionType]string{
+	FuncSum: "SUM",
+}
+
+var functions = map[string]FunctionType{
+	"SUM": FuncSum,
 }
 
 func (t FunctionType) String() string {
-	name, ok := functions[t]
+	name, ok := functionTypes[t]
 	if ok {
 		return name
 	}
