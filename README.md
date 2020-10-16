@@ -23,7 +23,8 @@ table contain information about store customers:
 SELECT customers.'.id'      AS ID,
        customers.'.name'    AS Name,
        customers.'.address' AS Address
-FROM 'https://markkurossi.com/iql/examples/store.htmll' FILTER 'table:nth-of-type(1) tr' AS customers
+FROM 'https://markkurossi.com/iql/examples/store.htmll'
+     FILTER 'table:nth-of-type(1) tr' AS customers
 WHERE ID <> null
 ```
 
@@ -46,7 +47,8 @@ The "products" table defines the store products:
 SELECT products.'.id'    AS ID,
        products.'.name'  AS Name,
        products.'.price' AS Price
-FROM 'https://markkurossi.com/iql/examples/store.html' FILTER 'table:nth-of-type(2) tr' AS products
+FROM 'https://markkurossi.com/iql/examples/store.html'
+     FILTER 'table:nth-of-type(2) tr' AS products
 WHERE products.ID <> null
 ```
 
@@ -67,7 +69,8 @@ SELECT orders.'.id'           AS ID,
        orders.':nth-child(2)' AS Customer,
        orders.':nth-child(3)' AS Product,
        orders.':nth-child(4)' AS Count
-FROM 'https://markkurossi.com/iql/examples/store.html' FILTER 'table:nth-of-type(3) tr' AS orders
+FROM 'https://markkurossi.com/iql/examples/store.html'
+     FILTER 'table:nth-of-type(3) tr' AS orders
 WHERE ID <> null
 ```
 
