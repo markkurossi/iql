@@ -1,6 +1,83 @@
 # IQL - Internet Query Language
 
-IQL is SQL-inspired query language for processing Internet resources.
+IQL is an SQL-inspired query language for processing Internet
+resources. The IQL uses common data formats as input tables and allows
+users to run SQL-like queries over the tables. The currently supported
+data formats are comma-separated values (CSV) and HTML.
+
+# Practical Examples
+
+The [examples](examples/) directory contains sample data files and
+queries. The data files are also hosted at my [web
+site](https://markkurossi.com/iql/examples/) and we use that location
+for these examples.
+
+The [store.html](https://markkurossi.com/iql/examples/store.html) file
+contains 3 data sources, encoded has HTML tables. The "customers"
+table contain information about store customers:
+
+
+```sql
+SELECT customers.'.id'      AS ID,
+       customers.'.name'    AS Name,
+       customers.'.address' AS Address
+FROM 'https://markkurossi.com/iql/examples/store.htmll' FILTER 'table:nth-of-type(1) tr' AS customers
+WHERE ID <> null
+```
+
+```
+┏━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ID ┃ Name             ┃ Address                                           ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│  1 │ Alyssa P. Hacker │ 77 Massachusetts Ave Cambridge, MA 02139          │
+│  2 │ Ben Bitdiddle    │ 2200 Mission College Blvd. Santa Clara, CA  95052 │
+│  3 │ Cy D. Fect       │ 208 S. Akard St. Dallas, TX 75202                 │
+│  4 │ Eva Lu Ator      │ 353 Jane Stanford Way Stanford, CA 94305          │
+│  5 │ Lem E. Tweakit   │ 1 Hacker Way Menlo Park, CA 94025                 │
+│  6 │ Louis Reasoner   │ Princeton NJ 08544, United States                 │
+└────┴──────────────────┴───────────────────────────────────────────────────┘
+```
+
+The "products" table defines the store products:
+
+```sql
+SELECT products.'.id'    AS ID,
+       products.'.name'  AS Name,
+       products.'.price' AS Price
+FROM 'https://markkurossi.com/iql/examples/store.html' FILTER 'table:nth-of-type(2) tr' AS products
+WHERE products.ID <> null
+```
+
+```
+┏━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ ID ┃ Name                                              ┃ Price ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│  1 │ Structure and Interpretation of Computer Programs │ 14.95 │
+│  2 │ GNU Emacs Manual, For Version 21, 15th Edition    │  9.95 │
+│  3 │ ISO/IEC 9075-1:2016(en) SQL — Part 1 Framework    │  0.00 │
+└────┴───────────────────────────────────────────────────┴───────┘
+```
+
+The "orders" table defines the orders:
+
+```sql
+SELECT orders.'.id'           AS ID,
+       orders.':nth-child(2)' AS Customer,
+       orders.':nth-child(3)' AS Product,
+       orders.':nth-child(4)' AS Count
+FROM 'https://markkurossi.com/iql/examples/store.html' FILTER 'table:nth-of-type(3) tr' AS orders
+WHERE ID <> null
+```
+
+```
+┏━━━━┳━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓
+┃ ID ┃ Customer ┃ Product ┃ Count ┃
+┡━━━━╇━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩
+│  1 │        1 │       2 │     1 │
+│  2 │        4 │       1 │     2 │
+│  3 │        5 │       3 │     5 │
+└────┴──────────┴─────────┴───────┘
+```
 
 # Query language
 
