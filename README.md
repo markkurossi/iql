@@ -3,7 +3,9 @@
 IQL is an SQL-inspired query language for processing Internet
 resources. The IQL uses common data formats as input tables and allows
 users to run SQL-like queries over the tables. The currently supported
-data formats are comma-separated values (CSV) and HTML.
+data formats are comma-separated values (CSV) and HTML. The data
+sources can be retrieved from HTTP and HTTPS URLs, local files, and
+data URIs.
 
 # Practical Examples
 

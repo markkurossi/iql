@@ -40,14 +40,17 @@ type FunctionType int
 // Built-in functions.
 const (
 	FuncSum FunctionType = iota
+	FuncAvg
 )
 
 var functionTypes = map[FunctionType]string{
 	FuncSum: "SUM",
+	FuncAvg: "AVG",
 }
 
 var functions = map[string]FunctionType{
 	"SUM": FuncSum,
+	"AVG": FuncAvg,
 }
 
 func (t FunctionType) String() string {
@@ -88,26 +91,72 @@ func (f *Function) Eval(row []data.Row, columns [][]data.ColumnSelector,
 				return nil, err
 			}
 			switch v := val.(type) {
+			case data.NullValue:
+
 			case data.IntValue:
 				add, err := v.Int()
 				if err != nil {
 					return nil, err
 				}
 				intSum += add
+
 			case data.FloatValue:
 				add, err := v.Float()
 				if err != nil {
 					return nil, err
 				}
 				floatSum += add
+
 			default:
-				return nil, fmt.Errorf("sum over %T", val)
+				return nil, fmt.Errorf("SUM over %T", val)
 			}
 		}
 		if floatSum != 0 {
 			return data.FloatValue(floatSum), nil
 		}
 		return data.IntValue(intSum), nil
+
+	case FuncAvg:
+		var intSum int64
+		var floatSum float64
+		var count int
+
+		for _, sumRow := range rows {
+			val, err := f.Arguments[0].Eval(sumRow, columns, nil)
+			if err != nil {
+				return nil, err
+			}
+			switch v := val.(type) {
+			case data.NullValue:
+
+			case data.IntValue:
+				add, err := v.Int()
+				if err != nil {
+					return nil, err
+
+				}
+				intSum += add
+				count++
+
+			case data.FloatValue:
+				add, err := v.Float()
+				if err != nil {
+					return nil, err
+				}
+				floatSum += add
+				count++
+
+			default:
+				return nil, fmt.Errorf("AVG over %T", val)
+			}
+		}
+		if count == 0 {
+			return data.Null, nil
+		}
+		if floatSum != 0 {
+			return data.FloatValue(floatSum / float64(count)), nil
+		}
+		return data.IntValue(intSum / int64(count)), nil
 
 	default:
 		return nil, fmt.Errorf("unknown function: %v", f.Type)
