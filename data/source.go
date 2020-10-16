@@ -27,6 +27,7 @@ var (
 	_ Source = &HTML{}
 	_ Column = StringColumn("")
 	_ Column = StringsColumn([]string{})
+	_ Column = NullColumn{}
 )
 
 // NewSource defines a constructor for data sources.
@@ -283,6 +284,38 @@ type Column interface {
 	Int() (Value, error)
 	Float() (Value, error)
 	String() string
+}
+
+// NullColumn implements a null-column.
+type NullColumn NullValue
+
+// Count implements the Column.Count().
+func (n NullColumn) Count() int {
+	return 0
+}
+
+// Size implements the Column.Size().
+func (n NullColumn) Size() int {
+	return 0
+}
+
+// Bool implements the Column.Bool().
+func (n NullColumn) Bool() (Value, error) {
+	return Null, nil
+}
+
+// Int implements the Column.Int().
+func (n NullColumn) Int() (Value, error) {
+	return Null, nil
+}
+
+// Float implements the Column.Float().
+func (n NullColumn) Float() (Value, error) {
+	return Null, nil
+}
+
+func (n NullColumn) String() string {
+	return "NULL"
 }
 
 // StringColumn implements a string column.

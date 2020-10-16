@@ -8,9 +8,11 @@ package query
 
 import (
 	"fmt"
+	"os"
 	"unicode"
 
 	"github.com/markkurossi/iql/data"
+	"github.com/markkurossi/tabulate"
 )
 
 var (
@@ -66,10 +68,27 @@ func (sql *Query) Columns() []data.ColumnSelector {
 // Get implements the Source.Get().
 func (sql *Query) Get() ([]data.Row, error) {
 	// Eval all sources.
-	for _, from := range sql.From {
+	for sourceIdx, from := range sql.From {
 		_, err := from.Source.Get()
 		if err != nil {
 			return nil, err
+		}
+		if false {
+			fmt.Printf("%d\t%s\n", sourceIdx, from.As)
+			tab := tabulate.New(tabulate.Unicode)
+			tab.Header("Index")
+			tab.Header("data.Name")
+			tab.Header("data.As")
+			tab.Header("Type")
+
+			for idx, col := range from.Source.Columns() {
+				row := tab.Row()
+				row.Column(fmt.Sprintf("%d", idx))
+				row.Column(col.Name.String())
+				row.Column(col.As)
+				row.Column(col.Type.String())
+			}
+			tab.Print(os.Stdout)
 		}
 	}
 
@@ -139,9 +158,13 @@ func (sql *Query) Get() ([]data.Row, error) {
 				if err != nil {
 					return nil, err
 				}
-				str := val.String()
-				row = append(row, data.StringColumn(str))
-				sql.selectColumns[i].ResolveType(str)
+				if val == data.Null {
+					row = append(row, data.NullColumn{})
+				} else {
+					str := val.String()
+					row = append(row, data.StringColumn(str))
+					sql.selectColumns[i].ResolveType(str)
+				}
 			}
 		}
 		result = append(result, row)

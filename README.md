@@ -7,7 +7,7 @@ data formats are comma-separated values (CSV) and HTML. The data
 sources can be retrieved from HTTP and HTTPS URLs, local files, and
 data URIs.
 
-# Practical Examples
+# Examples
 
 The [examples](examples/) directory contains sample data files and
 queries. The data files are also hosted at my [web
