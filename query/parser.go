@@ -255,8 +255,7 @@ func (p *parser) parseExprLogicalAnd() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = &Binary{
-			Type:  BinAnd,
+		left = &And{
 			Left:  left,
 			Right: right,
 		}
@@ -443,6 +442,8 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 		val = data.StringValue(t.StrVal)
 	case TInteger:
 		val = data.IntValue(t.IntVal)
+	case TNull:
+		val = data.Null
 	default:
 		p.lexer.unget(t)
 		return nil, p.errf(t.From, "unexpected token: %s", t)

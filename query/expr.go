@@ -15,6 +15,7 @@ import (
 var (
 	_ Expr = &Function{}
 	_ Expr = &Binary{}
+	_ Expr = &And{}
 	_ Expr = &Constant{}
 	_ Expr = &Reference{}
 )
@@ -135,7 +136,6 @@ const (
 	BinLe
 	BinGt
 	BinGe
-	BinAnd
 	BinMult
 	BinDiv
 	BinAdd
@@ -149,7 +149,6 @@ var binaries = map[BinaryType]string{
 	BinLe:   "<=",
 	BinGt:   ">",
 	BinGe:   ">=",
-	BinAnd:  "AND",
 	BinMult: "*",
 	BinDiv:  "/",
 	BinAdd:  "+",
@@ -184,6 +183,20 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 	right, err := b.Right.Eval(row, columns, rows)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check null values.
+	_, lNull := left.(data.NullValue)
+	_, rNull := right.(data.NullValue)
+	if lNull || rNull {
+		switch b.Type {
+		case BinEq:
+			return data.BoolValue(lNull && rNull), nil
+		case BinNeq:
+			return data.BoolValue(lNull != rNull), nil
+		default:
+			return data.Null, nil
+		}
 	}
 
 	// Resolve operation type.
@@ -224,14 +237,11 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 		}
 
 	case data.StringValue:
-		switch right.(type) {
-		case data.StringValue:
-			opType = data.ColumnString
-		default:
-			return nil,
-				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
-					left, left, b.Type, right, right)
-		}
+		opType = data.ColumnString
+
+	default:
+		return nil, fmt.Errorf("binary %s(%T) %s %s(%T) not implemented",
+			left, left, b.Type, right, right)
 	}
 
 	switch opType {
@@ -249,8 +259,6 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 			return data.BoolValue(l == r), nil
 		case BinNeq:
 			return data.BoolValue(l != r), nil
-		case BinAnd:
-			return data.BoolValue(l && r), nil
 		default:
 			return nil, fmt.Errorf("unknown bool binary expression: %s %s %s",
 				left, b.Type, right)
@@ -344,6 +352,52 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 
 func (b *Binary) String() string {
 	return fmt.Sprintf("%s %s %s", b.Left, b.Type, b.Right)
+}
+
+// And implements logical AND expressions.
+type And struct {
+	Left  Expr
+	Right Expr
+}
+
+// Bind implements the Expr.Bind().
+func (and *And) Bind(sql *Query) error {
+	err := and.Left.Bind(sql)
+	if err != nil {
+		return err
+	}
+	return and.Right.Bind(sql)
+}
+
+// Eval implements the Expr.Eval().
+func (and *And) Eval(row []data.Row, columns [][]data.ColumnSelector,
+	rows [][]data.Row) (data.Value, error) {
+
+	left, err := and.Left.Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	l, err := left.Bool()
+	if err != nil {
+		return nil, err
+	}
+	if !l {
+		return data.BoolValue(false), nil
+	}
+
+	right, err := and.Right.Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	r, err := right.Bool()
+	if err != nil {
+		return nil, err
+	}
+	return data.BoolValue(r), nil
+}
+
+func (and *And) String() string {
+	return fmt.Sprintf("%s AND %s", and.Left, and.Right)
 }
 
 // Constant implements contant expressions.

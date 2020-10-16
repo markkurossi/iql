@@ -107,8 +107,7 @@ func TestJoin(t *testing.T) {
 				As:     "portfolio",
 			},
 		},
-		Where: &query.Binary{
-			Type: query.BinAnd,
+		Where: &query.And{
 			Left: &query.Binary{
 				Type: query.BinNeq,
 				Left: &query.Reference{

@@ -34,6 +34,7 @@ const (
 	TIdentifier TokenType = iota + 256
 	TString
 	TInteger
+	TNull
 	TSymSelect
 	TSymFrom
 	TSymWhere
@@ -50,6 +51,7 @@ var tokenTypes = map[TokenType]string{
 	TIdentifier: "identifier",
 	TString:     "string",
 	TInteger:    "integer",
+	TNull:       "NULL",
 	TSymSelect:  "SELECT",
 	TSymFrom:    "FROM",
 	TSymWhere:   "WHERE",
@@ -72,6 +74,7 @@ func (t TokenType) String() string {
 }
 
 var symbols = map[string]TokenType{
+	"NULL":   TNull,
 	"SELECT": TSymSelect,
 	"FROM":   TSymFrom,
 	"WHERE":  TSymWhere,

@@ -7,6 +7,7 @@
 package data
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -16,6 +17,9 @@ var (
 	_ Value = IntValue(0)
 	_ Value = FloatValue(0.0)
 	_ Value = StringValue("")
+
+	// Null value specifies a non-existing value.
+	Null Value = NullValue{}
 )
 
 // Value implements expression values.
@@ -112,4 +116,27 @@ func (v StringValue) Float() (float64, error) {
 
 func (v StringValue) String() string {
 	return string(v)
+}
+
+// NullValue implements non-existing value.
+type NullValue struct {
+}
+
+// Bool implements the Value.Bool().
+func (v NullValue) Bool() (bool, error) {
+	return false, errors.New("null used as bool")
+}
+
+// Int implements the Value.Int().
+func (v NullValue) Int() (int64, error) {
+	return 0, errors.New("null used as int")
+}
+
+// Float implements the Value.Float().
+func (v NullValue) Float() (float64, error) {
+	return 0, errors.New("null used as float")
+}
+
+func (v NullValue) String() string {
+	return "null"
 }

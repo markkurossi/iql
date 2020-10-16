@@ -300,6 +300,9 @@ func (s StringColumn) Size() int {
 
 // Bool implements the Column.Bool().
 func (s StringColumn) Bool() (Value, error) {
+	if len(s) == 0 {
+		return Null, nil
+	}
 	switch s {
 	case True:
 		return BoolValue(true), nil
@@ -312,6 +315,9 @@ func (s StringColumn) Bool() (Value, error) {
 
 // Int implements the Column.Int().
 func (s StringColumn) Int() (Value, error) {
+	if len(s) == 0 {
+		return Null, nil
+	}
 	v, err := strconv.ParseInt(string(s), 10, 64)
 	if err != nil {
 		return nil, err
@@ -321,6 +327,9 @@ func (s StringColumn) Int() (Value, error) {
 
 // Float implements the Column.Float().
 func (s StringColumn) Float() (Value, error) {
+	if len(s) == 0 {
+		return Null, nil
+	}
 	v, err := strconv.ParseFloat(string(s), 64)
 	if err != nil {
 		return nil, err
@@ -353,16 +362,25 @@ func (s StringsColumn) Size() int {
 
 // Bool implements the Column.Bool().
 func (s StringsColumn) Bool() (Value, error) {
+	if len(s) == 0 {
+		return Null, nil
+	}
 	return nil, fmt.Errorf("string array used as bool")
 }
 
 // Int implements the Column.Int().
 func (s StringsColumn) Int() (Value, error) {
+	if len(s) == 0 {
+		return Null, nil
+	}
 	return nil, fmt.Errorf("string array used as int")
 }
 
 // Float implements the Column.Float().
 func (s StringsColumn) Float() (Value, error) {
+	if len(s) == 0 {
+		return Null, nil
+	}
 	return nil, fmt.Errorf("string array used as float")
 }
 
