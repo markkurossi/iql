@@ -79,6 +79,53 @@ WHERE ID <> null
 └────┴──────────┴─────────┴───────┘
 ```
 
+In addition of listing individual tables, you can join tables and
+compute values over the columns:
+
+```sql
+SELECT customers.Name                AS Name,
+       customers.Address             AS Address,
+       products.Name                 AS Product,
+       orders.Count                  AS Count,
+       products.Price * orders.Count AS Price
+FROM (
+        SELECT c.'.id'      AS ID,
+               c.'.name'    AS Name,
+               c.'.address' AS Address
+        FROM 'https://markkurossi.com/iql/examples/store.html'
+	     FILTER 'table:nth-of-type(1) tr' AS c
+        WHERE ID <> null
+     ) AS customers,
+     (
+        SELECT p.'.id'    AS ID,
+               p.'.name'  AS Name,
+               p.'.price' AS Price
+        FROM 'https://markkurossi.com/iql/examples/store.html'
+	     FILTER 'table:nth-of-type(2) tr' AS p
+        WHERE ID <> null
+     ) AS products,
+     (
+        SELECT o.'.id'           AS ID,
+               o.':nth-child(2)' AS Customer,
+               o.':nth-child(3)' AS Product,
+               o.':nth-child(4)' AS Count
+        FROM 'https://markkurossi.com/iql/examples/store.html'
+	     FILTER 'table:nth-of-type(3) tr' AS o
+        WHERE ID <> null
+     ) as orders
+WHERE orders.Product = products.ID AND orders.Customer = customers.ID
+```
+
+```
+┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃ Name             ┃ Address                                  ┃ Product                                           ┃ Count ┃ Price ┃
+┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ Alyssa P. Hacker │ 77 Massachusetts Ave Cambridge, MA 02139 │ GNU Emacs Manual, For Version 21, 15th Edition    │     1 │  9.95 │
+│ Eva Lu Ator      │ 353 Jane Stanford Way Stanford, CA 94305 │ Structure and Interpretation of Computer Programs │     2 │ 29.90 │
+│ Lem E. Tweakit   │ 1 Hacker Way Menlo Park, CA 94025        │ ISO/IEC 9075-1:2016(en) SQL — Part 1 Framework    │     5 │  0.00 │
+└──────────────────┴──────────────────────────────────────────┴───────────────────────────────────────────────────┴───────┴───────┘
+```
+
 # Query language
 
 ```sql
