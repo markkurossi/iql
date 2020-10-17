@@ -10,7 +10,8 @@ SelectClause = 'SELECT', SelectColumns,
 	       [ 'FROM', FromClause, { ',', FromClause } ],
 	       [ 'WHERE', Expr ];
 
-SelectColumns = Expr, [ AsClause ];
+SelectColumns = SelectColumn, {',', SelectColumn};
+SelectColumn = Expr, [ AsClause ];
 
 FromClause = (string, [ 'FILTER', string ] | '(', SelectClause, ')'),
 	     'AS', Identifier;

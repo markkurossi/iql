@@ -3,7 +3,7 @@
   xmlns='http://www.w3.org/2000/svg'
   xmlns:xlink='http://www.w3.org/1999/xlink'
 
-  width='870' height='2940'>
+  width='870' height='3050'>
 
   <style>
     rect, line, path { stroke-width: 1.5px; stroke: black; fill: transparent; }
@@ -135,6 +135,22 @@
 
   <g transform='translate(40 600)'>
     <text x='-30' y='-10'>SelectColumns:</text>
+    <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
+    <path d='M220.5 14 v12 m 4 0 v-12' class='station'/>
+    <rect x='60' y='10' height='20' width='110' rx='0' ry='0' class='rule'/>
+    <text x='115' y='25' text-anchor='middle' class='rule'>SelectColumn</text>
+    <rect x='105' y='40' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='115' y='55' text-anchor='middle' class='literal'>,</text>
+    <path d='M40 30 v10 q0 10 10 10 h55'/>
+    <path d='M125 50 h55 q10 0 10 -10'/>
+    <path d='M180 20 q10 0 10 10 v10'/>
+    <path d='M170 20 h50'/>
+    <path d='M40 30 q0 -10 10 -10'/>
+    <path d='M10 20 h50'/>
+  </g>
+
+  <g transform='translate(40 710)'>
+    <text x='-30' y='-10'>SelectColumn:</text>
     <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
     <path d='M270.5 34 v12 m 4 0 v-12' class='station'/>
     <rect x='30' y='30' height='20' width='50' rx='0' ry='0' class='rule'/>
@@ -151,7 +167,7 @@
     <path d='M10 40 h20'/>
   </g>
 
-  <g transform='translate(40 700)'>
+  <g transform='translate(40 810)'>
     <text x='-30' y='-10'>FromClause:</text>
     <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
     <path d='M580.5 34 v12 m 4 0 v-12' class='station'/>
@@ -191,7 +207,7 @@
     <path d='M10 40 h50'/>
   </g>
 
-  <g transform='translate(40 830)'>
+  <g transform='translate(40 940)'>
     <text x='-30' y='-10'>Expr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M240.5 14 v12 m 4 0 v-12' class='station'/>
@@ -207,7 +223,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 940)'>
+  <g transform='translate(40 1050)'>
     <text x='-30' y='-10'>LogicalAndExpr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M240.5 14 v12 m 4 0 v-12' class='station'/>
@@ -223,7 +239,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 1050)'>
+  <g transform='translate(40 1160)'>
     <text x='-30' y='-10'>LogicalNotExpr:</text>
     <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
     <path d='M320.5 34 v12 m 4 0 v-12' class='station'/>
@@ -241,7 +257,7 @@
     <path d='M10 40 h50'/>
   </g>
 
-  <g transform='translate(40 1150)'>
+  <g transform='translate(40 1260)'>
     <text x='-30' y='-10'>ComparativeExpr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M220.5 14 v12 m 4 0 v-12' class='station'/>
@@ -280,7 +296,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 1410)'>
+  <g transform='translate(40 1520)'>
     <text x='-30' y='-10'>AdditiveExpr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M260.5 14 v12 m 4 0 v-12' class='station'/>
@@ -303,7 +319,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 1550)'>
+  <g transform='translate(40 1660)'>
     <text x='-30' y='-10'>MultiplicativeExpr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M200.5 14 v12 m 4 0 v-12' class='station'/>
@@ -326,7 +342,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 1690)'>
+  <g transform='translate(40 1800)'>
     <text x='-30' y='-10'>UnaryExpr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M160.5 14 v12 m 4 0 v-12' class='station'/>
@@ -336,7 +352,7 @@
     <path d='M10 20 h20'/>
   </g>
 
-  <g transform='translate(40 1770)'>
+  <g transform='translate(40 1880)'>
     <text x='-30' y='-10'>PostfixExpr:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M260.5 14 v12 m 4 0 v-12' class='station'/>
@@ -373,7 +389,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 2030)'>
+  <g transform='translate(40 2140)'>
     <text x='-30' y='-10'>SimpleReference:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M140.5 14 v12 m 4 0 v-12' class='station'/>
@@ -383,7 +399,7 @@
     <path d='M10 20 h20'/>
   </g>
 
-  <g transform='translate(40 2110)'>
+  <g transform='translate(40 2220)'>
     <text x='-30' y='-10'>QualifiedReference:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M290.5 14 v12 m 4 0 v-12' class='station'/>
@@ -399,7 +415,7 @@
     <path d='M10 20 h20'/>
   </g>
 
-  <g transform='translate(40 2190)'>
+  <g transform='translate(40 2300)'>
     <text x='-30' y='-10'>FunctionCall:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M390.5 14 v12 m 4 0 v-12' class='station'/>
@@ -421,7 +437,7 @@
     <path d='M10 20 h20'/>
   </g>
 
-  <g transform='translate(40 2300)'>
+  <g transform='translate(40 2410)'>
     <text x='-30' y='-10'>Arguments:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M160.5 14 v12 m 4 0 v-12' class='station'/>
@@ -437,7 +453,7 @@
     <path d='M10 20 h50'/>
   </g>
 
-  <g transform='translate(40 2410)'>
+  <g transform='translate(40 2520)'>
     <text x='-30' y='-10'>AsClause:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M190.5 14 v12 m 4 0 v-12' class='station'/>
@@ -450,7 +466,7 @@
     <path d='M10 20 h20'/>
   </g>
 
-  <g transform='translate(40 2490)'>
+  <g transform='translate(40 2600)'>
     <text x='-30' y='-10'>Bool:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M170.5 14 v12 m 4 0 v-12' class='station'/>
@@ -467,7 +483,7 @@
     <path d='M10 20 h55'/>
   </g>
 
-  <g transform='translate(40 2600)'>
+  <g transform='translate(40 2710)'>
     <text x='-30' y='-10'>Identifier:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M280.5 14 v12 m 4 0 v-12' class='station'/>
@@ -490,7 +506,7 @@
     <path d='M10 20 h90'/>
   </g>
 
-  <g transform='translate(40 2710)'>
+  <g transform='translate(40 2820)'>
     <text x='-30' y='-10'>Type:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M190.5 14 v12 m 4 0 v-12' class='station'/>
