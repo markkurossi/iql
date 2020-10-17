@@ -25,7 +25,7 @@ SELECT customers.'.id'      AS ID,
        customers.'.address' AS Address
 FROM 'https://markkurossi.com/iql/examples/store.htmll'
      FILTER 'table:nth-of-type(1) tr' AS customers
-WHERE ID <> null
+WHERE ID <> null;
 ```
 
 ```
@@ -49,7 +49,7 @@ SELECT products.'.id'    AS ID,
        products.'.price' AS Price
 FROM 'https://markkurossi.com/iql/examples/store.html'
      FILTER 'table:nth-of-type(2) tr' AS products
-WHERE products.ID <> null
+WHERE products.ID <> null;
 ```
 
 ```
@@ -71,7 +71,7 @@ SELECT orders.'.id'           AS ID,
        orders.':nth-child(4)' AS Count
 FROM 'https://markkurossi.com/iql/examples/store.html'
      FILTER 'table:nth-of-type(3) tr' AS orders
-WHERE ID <> null
+WHERE ID <> null;
 ```
 
 ```
@@ -118,7 +118,7 @@ FROM (
 	     FILTER 'table:nth-of-type(3) tr' AS o
         WHERE ID <> null
      ) as orders
-WHERE orders.Product = products.ID AND orders.Customer = customers.ID
+WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 ```
 
 ```
@@ -159,7 +159,7 @@ FROM
                '1' AS Weigth
         FROM ',portfolio.csv'
     ) AS portfolio,
-WHERE ref.Name = portfolio.Name
+WHERE ref.Name = portfolio.Name;
 ```
 
 ```sql
@@ -173,5 +173,5 @@ SELECT ind.'.name'         	      		AS Name,
        Count * Price / SUM(Count * Price) * 100 AS "My Weight"
 FROM ',reference.html' FILTER 'tbody > tr' AS ind,
      ',portfolio.csv' AS portfolio
-WHERE ind.link <> '' AND ind.Name = portfolio.name
+WHERE ind.link <> '' AND ind.Name = portfolio.name;
 ```
