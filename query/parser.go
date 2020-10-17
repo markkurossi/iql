@@ -7,7 +7,6 @@
 package query
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -26,10 +25,24 @@ func Parse(input io.Reader, source string) (*Query, error) {
 }
 
 type parser struct {
-	lexer *lexer
+	lexer   *lexer
+	nesting int
+}
+
+func (p *parser) get() (*Token, error) {
+	t, err := p.lexer.get()
+	if err != nil {
+		return nil, p.err(err)
+	}
+	return t, nil
 }
 
 func (p *parser) parse() (*Query, error) {
+	p.nesting++
+	defer func() {
+		p.nesting--
+	}()
+
 	t, err := p.lexer.get()
 	if err != nil {
 		return nil, err
@@ -54,12 +67,9 @@ func (p *parser) parseSelect() (*Query, error) {
 		}
 		q.Select = append(q.Select, *col)
 
-		t, err := p.lexer.get()
+		t, err := p.get()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			break
+			return nil, err
 		}
 		if t.Type != ',' {
 			p.lexer.unget(t)
@@ -68,43 +78,35 @@ func (p *parser) parseSelect() (*Query, error) {
 	}
 
 	// From
-	t, err := p.lexer.get()
+	t, err := p.get()
 	if err != nil {
-		if err != io.EOF {
-			return nil, err
-		}
-		return q, nil
+		return nil, err
 	}
-	if t.Type != TSymFrom {
-		return nil, p.errf(t.From, "unexpected token: %s", t)
-	}
-	for {
-		source, err := p.parseSource(q)
-		if err != nil {
-			return nil, err
-		}
-		q.From = append(q.From, *source)
-
-		t, err := p.lexer.get()
-		if err != nil {
-			if err != io.EOF {
+	if t.Type == TSymFrom {
+		for {
+			source, err := p.parseSource(q)
+			if err != nil {
 				return nil, err
 			}
-			break
+			q.From = append(q.From, *source)
+
+			t, err := p.get()
+			if err != nil {
+				return nil, err
+			}
+			if t.Type != ',' {
+				p.lexer.unget(t)
+				break
+			}
 		}
-		if t.Type != ',' {
-			p.lexer.unget(t)
-			break
-		}
+	} else {
+		p.lexer.unget(t)
 	}
 
 	// Where
-	t, err = p.lexer.get()
+	t, err = p.get()
 	if err != nil {
-		if err != io.EOF {
-			return nil, err
-		}
-		return q, nil
+		return nil, err
 	}
 	if t.Type == TSymWhere {
 		q.Where, err = p.parseExpr()
@@ -115,6 +117,20 @@ func (p *parser) parseSelect() (*Query, error) {
 		p.lexer.unget(t)
 	}
 
+	// Terminator.
+	var expected TokenType
+	if p.nesting == 1 {
+		expected = ';'
+	} else {
+		expected = ')'
+	}
+	t, err = p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type != expected {
+		return nil, p.errf(t.From, "unexpected token: %s", t)
+	}
 	return q, nil
 }
 
@@ -123,32 +139,27 @@ func (p *parser) parseColumn() (*ColumnSelector, error) {
 	if err != nil {
 		return nil, err
 	}
-	t, err := p.lexer.get()
-	if err != nil {
-		if err != io.EOF {
-			return nil, err
-		}
-		return &ColumnSelector{
-			Expr: expr,
-		}, nil
-	}
-	if t.Type != TSymAs {
-		p.lexer.unget(t)
-		return &ColumnSelector{
-			Expr: expr,
-		}, nil
-	}
-	t, err = p.lexer.get()
+	t, err := p.get()
 	if err != nil {
 		return nil, err
 	}
-	if t.Type != TIdentifier {
-		return nil, p.errf(t.From, "unexpected token: %s", t)
+	var as string
+	if t.Type == TSymAs {
+		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != TIdentifier {
+			return nil, p.errf(t.From, "unexpected token: %s", t)
+		}
+		as = t.StrVal
+	} else {
+		p.lexer.unget(t)
 	}
 
 	return &ColumnSelector{
 		Expr: expr,
-		As:   t.StrVal,
+		As:   as,
 	}, nil
 }
 
@@ -156,7 +167,7 @@ func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
 	var source data.Source
 	var as string
 
-	t, err := p.lexer.get()
+	t, err := p.get()
 	if err != nil {
 		return nil, err
 	}
@@ -180,13 +191,6 @@ func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
 		source, err = p.parse()
 		if err != nil {
 			return nil, err
-		}
-		t, err = p.lexer.get()
-		if err != nil {
-			return nil, err
-		}
-		if t.Type != ')' {
-			return nil, p.errf(t.From, "unexpected token: %s", t)
 		}
 		as, err = p.parseKeyword(TSymAs)
 		if err != nil {
@@ -226,18 +230,15 @@ func columnsFor(columns []ColumnSelector, source string) []data.ColumnSelector {
 }
 
 func (p *parser) parseKeyword(keyword TokenType) (string, error) {
-	t, err := p.lexer.get()
+	t, err := p.get()
 	if err != nil {
-		if err != io.EOF {
-			return "", err
-		}
-		return "", nil
+		return "", err
 	}
 	if t.Type != keyword {
 		p.lexer.unget(t)
 		return "", nil
 	}
-	t, err = p.lexer.get()
+	t, err = p.get()
 	if err != nil {
 		return "", err
 	}
@@ -263,12 +264,9 @@ func (p *parser) parseExprLogicalAnd() (Expr, error) {
 		return nil, err
 	}
 	for {
-		t, err := p.lexer.get()
+		t, err := p.get()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			return left, nil
+			return nil, err
 		}
 		if t.Type != TAnd {
 			p.lexer.unget(t)
@@ -295,12 +293,9 @@ func (p *parser) parseExprComparative() (Expr, error) {
 		return nil, err
 	}
 	for {
-		t, err := p.lexer.get()
+		t, err := p.get()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			return left, nil
+			return nil, err
 		}
 		var bt BinaryType
 
@@ -339,12 +334,9 @@ func (p *parser) parseExprAdditive() (Expr, error) {
 		return nil, err
 	}
 	for {
-		t, err := p.lexer.get()
+		t, err := p.get()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			return left, nil
+			return nil, err
 		}
 		var bt BinaryType
 
@@ -377,12 +369,9 @@ func (p *parser) parseExprMultiplicative() (Expr, error) {
 		return nil, err
 	}
 	for {
-		t, err := p.lexer.get()
+		t, err := p.get()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			return left, nil
+			return nil, err
 		}
 		var bt BinaryType
 
@@ -414,7 +403,7 @@ func (p *parser) parseExprUnary() (Expr, error) {
 }
 
 func (p *parser) parseExprPostfix() (Expr, error) {
-	t, err := p.lexer.get()
+	t, err := p.get()
 	if err != nil {
 		return nil, err
 	}
@@ -425,16 +414,13 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 	case TIdentifier:
 		var source, column string
 
-		n, err := p.lexer.get()
+		n, err := p.get()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			column = t.StrVal
+			return nil, err
 		} else if n.Type == '(' {
 			return p.parseFunc(t)
 		} else if n.Type == '.' {
-			n, err := p.lexer.get()
+			n, err := p.get()
 			if err != nil {
 				return nil, err
 			}
@@ -481,7 +467,7 @@ func (p *parser) parseFunc(name *Token) (Expr, error) {
 	var args []Expr
 
 	for {
-		t, err := p.lexer.get()
+		t, err := p.get()
 		if err != nil {
 			return nil, err
 		}
@@ -496,7 +482,7 @@ func (p *parser) parseFunc(name *Token) (Expr, error) {
 		}
 		args = append(args, expr)
 
-		t, err = p.lexer.get()
+		t, err = p.get()
 		if err != nil {
 			return nil, err
 		}
@@ -515,8 +501,14 @@ func (p *parser) parseFunc(name *Token) (Expr, error) {
 }
 
 func (p *parser) errf(loc Point, format string, a ...interface{}) error {
-	msg := fmt.Sprintf(format, a...)
+	return p.error(loc, fmt.Errorf(format, a...))
+}
 
+func (p *parser) err(err error) error {
+	return p.error(p.lexer.point, err)
+}
+
+func (p *parser) error(loc Point, err error) error {
 	p.lexer.FlushEOL()
 
 	line, ok := p.lexer.history[loc.Line]
@@ -533,9 +525,7 @@ func (p *parser) errf(loc Point, format string, a ...interface{}) error {
 		}
 		indicator = append(indicator, '^')
 		log.Printf("%s: %s\n%s\n%s\n",
-			loc, msg, string(line), string(indicator))
-
-		return errors.New(msg)
+			loc, err, string(line), string(indicator))
 	}
-	return errors.New(msg)
+	return fmt.Errorf("%s: %s", loc, err)
 }

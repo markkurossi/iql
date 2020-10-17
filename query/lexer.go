@@ -199,7 +199,7 @@ lexer:
 		}
 
 		switch r {
-		case '+', '*', '~', '%', '=', '.', ',', '(', ')':
+		case '+', '*', '~', '%', '=', '.', ',', '(', ')', ';':
 			return l.token(TokenType(r)), nil
 
 		case '<':

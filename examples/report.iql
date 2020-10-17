@@ -27,4 +27,4 @@ FROM (
         FROM 'store.html' FILTER 'table:nth-of-type(3) tr' AS o
         WHERE ID <> null
      ) as orders
-WHERE orders.Product = products.ID AND orders.Customer = customers.ID
+WHERE orders.Product = products.ID AND orders.Customer = customers.ID;

@@ -16,32 +16,32 @@ import (
 )
 
 var parserTests = []string{
-	`select 1 + 0x01 + 0b10 + 077 + 0o70 as Sum, 100-42 as Diff`,
+	`select 1 + 0x01 + 0b10 + 077 + 0o70 as Sum, 100-42 as Diff;`,
 
 	// 2008,100
 	// 2009,101
 	// 2010,200
 	`select "0" As Year, "1" as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'`,
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK';`,
 	`select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data`,
+from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data;`,
 
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year > 2009`,
+where Data.Year > 2009;`,
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year = 2009`,
+where Data.Year = 2009;`,
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year >= 2009`,
+where Data.Year >= 2009;`,
 
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year < 2009`,
+where Data.Year < 2009;`,
 	`select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year <= 2009`,
+where Data.Year <= 2009;`,
 
 	`
 select Year, Value
@@ -49,28 +49,28 @@ from (
         select "0" AS Year,
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-     ) as Data`,
+     ) as Data;`,
 	`
 select Data.Year, Data.Value
 from (
         select "0" AS Year,
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-     ) as Data`,
+     ) as Data;`,
 	`
 select Year, Value
 from (
         select "0" AS Year,
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-     )`,
+     );`,
 	`
 select Year as Y, Value as V
 from (
         select "0" AS Year,
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-     )`,
+     );`,
 }
 
 func TestParser(t *testing.T) {
