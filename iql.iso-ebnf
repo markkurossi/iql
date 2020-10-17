@@ -1,0 +1,54 @@
+Program = { TopLevelClause, ';'};
+
+TopLevelClause = (VariableDecl | VariableInit | SelectClause);
+
+
+VariableDecl = 'DECLARE', Identifier, Type;
+VariableInit = 'SET', Identifier, '=', Expr;
+
+SelectClause = 'SELECT', SelectColumns,
+	       [ 'FROM', FromClause, { ',', FromClause } ],
+	       [ 'WHERE', Expr ];
+
+SelectColumns = Expr, [ AsClause ];
+
+FromClause = (string, [ 'FILTER', string ] | '(', SelectClause, ')'),
+	     'AS', Identifier;
+
+Expr = LogicalAndExpr, {'OR', LogicalAndExpr};
+
+LogicalAndExpr = LogicalNotExpr, {'AND', LogicalNotExpr};
+
+LogicalNotExpr = ['NOT'], ComparativeExpr;
+
+ComparativeExpr = AdditiveExpr,
+		  {('=' | '<>' | '<' | '<=' | '>' | '>='), AdditiveExpr};
+
+AdditiveExpr = MultiplicativeExpr, {('+' | '-'), MultiplicativeExpr};
+
+MultiplicativeExpr = UnaryExpr, {('*' | '/'), UnaryExpr};
+
+UnaryExpr = PostfixExpr;
+
+PostfixExpr = SimpleReference
+	    | QualifiedReference
+	    | FunctionCall
+	    | Bool
+	    | integer
+	    | real
+	    | string
+	    ;
+
+SimpleReference = Identifier;
+QualifiedReference = Identifier, '.', Identifier;
+FunctionCall = Identifier, '(', {Arguments}, ')';
+
+Arguments = Expr, {',', Expr};
+
+AsClause = 'AS', Identifier;
+
+Bool = 'TRUE' | 'FALSE';
+
+Identifier = identifier | '"', characters, '"';
+
+Type = 'BOOLEAN' | 'INTEGER' | 'REAL' | 'VARCHAR';

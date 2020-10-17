@@ -143,6 +143,8 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 
 # Query language
 
+<img align="center" src="iql.svg">
+
 ```sql
 SELECT ref.Name, ref.Price, ref.Weigth, portfolio.Weigth AS Portfolio
 FROM
