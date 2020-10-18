@@ -12,6 +12,7 @@ import (
 	"unicode"
 
 	"github.com/markkurossi/iql/data"
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
@@ -34,7 +35,7 @@ type Query struct {
 type ColumnSelector struct {
 	Expr Expr
 	As   string
-	Type data.ColumnType
+	Type types.Type
 }
 
 // IsPublic reports if the column is public and should be included in
@@ -158,7 +159,7 @@ func (sql *Query) Get() ([]data.Row, error) {
 				if err != nil {
 					return nil, err
 				}
-				if val == data.Null {
+				if val == types.Null {
 					row = append(row, data.NullColumn{})
 				} else {
 					str := val.String()

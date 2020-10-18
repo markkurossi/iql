@@ -19,6 +19,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
@@ -135,51 +136,11 @@ func (m *memory) Close() error {
 	return nil
 }
 
-// ColumnType specifies column types.
-type ColumnType int
-
-// Column types.
-const (
-	ColumnBool ColumnType = iota
-	ColumnInt
-	ColumnFloat
-	ColumnString
-)
-
-// Literal values.
-const (
-	True  = "true"
-	False = "false"
-)
-
-var columnTypes = map[ColumnType]string{
-	ColumnBool:   "bool",
-	ColumnInt:    "int",
-	ColumnFloat:  "float",
-	ColumnString: "string",
-}
-
-func (t ColumnType) String() string {
-	name, ok := columnTypes[t]
-	if ok {
-		return name
-	}
-	return fmt.Sprintf("{columnType %d}", t)
-}
-
-// Align returns the type specific column alignment type.
-func (t ColumnType) Align() tabulate.Align {
-	if t == ColumnString {
-		return tabulate.ML
-	}
-	return tabulate.MR
-}
-
 // ColumnSelector implements data column selector.
 type ColumnSelector struct {
 	Name Reference
 	As   string
-	Type ColumnType
+	Type types.Type
 }
 
 // IsPublic reports if the column is public and should be included in
@@ -200,27 +161,27 @@ func (col *ColumnSelector) ResolveType(val string) {
 	}
 	for {
 		switch col.Type {
-		case ColumnBool:
-			if val == True || val == False {
+		case types.Bool:
+			if val == types.True || val == types.False {
 				return
 			}
-			col.Type = ColumnInt
+			col.Type = types.Int
 
-		case ColumnInt:
+		case types.Int:
 			_, err := strconv.ParseInt(val, 10, 64)
 			if err == nil {
 				return
 			}
-			col.Type = ColumnFloat
+			col.Type = types.Float
 
-		case ColumnFloat:
+		case types.Float:
 			_, err := strconv.ParseFloat(val, 64)
 			if err == nil {
 				return
 			}
-			col.Type = ColumnString
+			col.Type = types.String
 
-		case ColumnString:
+		case types.String:
 			return
 		}
 	}
@@ -280,14 +241,14 @@ type Column interface {
 	Count() int
 	// Size returns the column size in characters.
 	Size() int
-	Bool() (Value, error)
-	Int() (Value, error)
-	Float() (Value, error)
+	Bool() (types.Value, error)
+	Int() (types.Value, error)
+	Float() (types.Value, error)
 	String() string
 }
 
 // NullColumn implements a null-column.
-type NullColumn NullValue
+type NullColumn types.NullValue
 
 // Count implements the Column.Count().
 func (n NullColumn) Count() int {
@@ -300,18 +261,18 @@ func (n NullColumn) Size() int {
 }
 
 // Bool implements the Column.Bool().
-func (n NullColumn) Bool() (Value, error) {
-	return Null, nil
+func (n NullColumn) Bool() (types.Value, error) {
+	return types.Null, nil
 }
 
 // Int implements the Column.Int().
-func (n NullColumn) Int() (Value, error) {
-	return Null, nil
+func (n NullColumn) Int() (types.Value, error) {
+	return types.Null, nil
 }
 
 // Float implements the Column.Float().
-func (n NullColumn) Float() (Value, error) {
-	return Null, nil
+func (n NullColumn) Float() (types.Value, error) {
+	return types.Null, nil
 }
 
 func (n NullColumn) String() string {
@@ -332,42 +293,42 @@ func (s StringColumn) Size() int {
 }
 
 // Bool implements the Column.Bool().
-func (s StringColumn) Bool() (Value, error) {
+func (s StringColumn) Bool() (types.Value, error) {
 	if len(s) == 0 {
-		return Null, nil
+		return types.Null, nil
 	}
 	switch s {
-	case True:
-		return BoolValue(true), nil
-	case False:
-		return BoolValue(false), nil
+	case types.True:
+		return types.BoolValue(true), nil
+	case types.False:
+		return types.BoolValue(false), nil
 	default:
 		return nil, fmt.Errorf("string value '%s' used as bool", s)
 	}
 }
 
 // Int implements the Column.Int().
-func (s StringColumn) Int() (Value, error) {
+func (s StringColumn) Int() (types.Value, error) {
 	if len(s) == 0 {
-		return Null, nil
+		return types.Null, nil
 	}
 	v, err := strconv.ParseInt(string(s), 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	return IntValue(v), nil
+	return types.IntValue(v), nil
 }
 
 // Float implements the Column.Float().
-func (s StringColumn) Float() (Value, error) {
+func (s StringColumn) Float() (types.Value, error) {
 	if len(s) == 0 {
-		return Null, nil
+		return types.Null, nil
 	}
 	v, err := strconv.ParseFloat(string(s), 64)
 	if err != nil {
 		return nil, err
 	}
-	return FloatValue(v), nil
+	return types.FloatValue(v), nil
 }
 
 func (s StringColumn) String() string {
@@ -394,25 +355,25 @@ func (s StringsColumn) Size() int {
 }
 
 // Bool implements the Column.Bool().
-func (s StringsColumn) Bool() (Value, error) {
+func (s StringsColumn) Bool() (types.Value, error) {
 	if len(s) == 0 {
-		return Null, nil
+		return types.Null, nil
 	}
 	return nil, fmt.Errorf("string array used as bool")
 }
 
 // Int implements the Column.Int().
-func (s StringsColumn) Int() (Value, error) {
+func (s StringsColumn) Int() (types.Value, error) {
 	if len(s) == 0 {
-		return Null, nil
+		return types.Null, nil
 	}
 	return nil, fmt.Errorf("string array used as int")
 }
 
 // Float implements the Column.Float().
-func (s StringsColumn) Float() (Value, error) {
+func (s StringsColumn) Float() (types.Value, error) {
 	if len(s) == 0 {
-		return Null, nil
+		return types.Null, nil
 	}
 	return nil, fmt.Errorf("string array used as float")
 }

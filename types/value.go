@@ -4,7 +4,7 @@
 // All rights reserved.
 //
 
-package data
+package types
 
 import (
 	"errors"

@@ -12,6 +12,7 @@ import (
 
 	"github.com/markkurossi/iql/data"
 	"github.com/markkurossi/iql/query"
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
@@ -117,7 +118,7 @@ func TestJoin(t *testing.T) {
 					},
 				},
 				Right: &query.Constant{
-					Value: data.StringValue(""),
+					Value: types.StringValue(""),
 				},
 			},
 			Right: &query.Binary{

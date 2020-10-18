@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/markkurossi/iql/data"
+	"github.com/markkurossi/iql/types"
 )
 
 // Parse parses the query input and returns a query object.
@@ -408,7 +409,7 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 		return nil, err
 	}
 
-	var val data.Value
+	var val types.Value
 
 	switch t.Type {
 	case TIdentifier:
@@ -448,11 +449,11 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 		}, nil
 
 	case TString:
-		val = data.StringValue(t.StrVal)
+		val = types.StringValue(t.StrVal)
 	case TInteger:
-		val = data.IntValue(t.IntVal)
+		val = types.IntValue(t.IntVal)
 	case TNull:
-		val = data.Null
+		val = types.Null
 	default:
 		p.lexer.unget(t)
 		return nil, p.errf(t.From, "unexpected token: %s", t)
