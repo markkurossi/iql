@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ Expr = &Function{}
+	_ Expr = &Call{}
 	_ Expr = &Binary{}
 	_ Expr = &And{}
 	_ Expr = &Constant{}
@@ -23,48 +23,21 @@ var (
 // Expr implements expressions.
 type Expr interface {
 	Bind(sql *Query) error
-	Eval(row []types.Row, columns [][]types.ColumnSelector, rows [][]types.Row) (
-		types.Value, error)
+	Eval(row []types.Row, columns [][]types.ColumnSelector,
+		rows [][]types.Row) (types.Value, error)
 	IsIdempotent() bool
 	String() string
 }
 
-// Function implements function expressions.
-type Function struct {
-	Type      FunctionType
+// Call implements function call expressions.
+type Call struct {
+	Function  *Function
 	Arguments []Expr
 }
 
-// FunctionType specifies built-in functions.
-type FunctionType int
-
-// Built-in functions.
-const (
-	FuncSum FunctionType = iota
-	FuncAvg
-)
-
-var functionTypes = map[FunctionType]string{
-	FuncSum: "SUM",
-	FuncAvg: "AVG",
-}
-
-var functions = map[string]FunctionType{
-	"SUM": FuncSum,
-	"AVG": FuncAvg,
-}
-
-func (t FunctionType) String() string {
-	name, ok := functionTypes[t]
-	if ok {
-		return name
-	}
-	return fmt.Sprintf("{function %d}", t)
-}
-
 // Bind implements the Expr.Bind().
-func (f *Function) Bind(sql *Query) error {
-	for _, arg := range f.Arguments {
+func (call *Call) Bind(sql *Query) error {
+	for _, arg := range call.Arguments {
 		err := arg.Bind(sql)
 		if err != nil {
 			return err
@@ -74,20 +47,23 @@ func (f *Function) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (f *Function) Eval(row []types.Row, columns [][]types.ColumnSelector,
+func (call *Call) Eval(row []types.Row, columns [][]types.ColumnSelector,
 	rows [][]types.Row) (types.Value, error) {
 
-	if len(f.Arguments) != 1 {
-		return nil, fmt.Errorf("%s: expected one argument, got %d",
-			f.Type, len(f.Arguments))
+	if len(call.Arguments) < call.Function.MinArgs ||
+		len(call.Arguments) > call.Function.MaxArgs {
+		return nil, fmt.Errorf("%s: invalid amount of arguments", call.Function)
 	}
-	switch f.Type {
+
+	// XXX argument handling.
+
+	switch call.Function.Type {
 	case FuncSum:
 		var intSum int64
 		var floatSum float64
 
 		for _, sumRow := range rows {
-			val, err := f.Arguments[0].Eval(sumRow, columns, nil)
+			val, err := call.Arguments[0].Eval(sumRow, columns, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -123,7 +99,7 @@ func (f *Function) Eval(row []types.Row, columns [][]types.ColumnSelector,
 		var count int
 
 		for _, sumRow := range rows {
-			val, err := f.Arguments[0].Eval(sumRow, columns, nil)
+			val, err := call.Arguments[0].Eval(sumRow, columns, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -160,19 +136,17 @@ func (f *Function) Eval(row []types.Row, columns [][]types.ColumnSelector,
 		return types.IntValue(intSum / int64(count)), nil
 
 	default:
-		return nil, fmt.Errorf("unknown function: %v", f.Type)
+		return nil, fmt.Errorf("unknown function: %v", call.Function.Type)
 	}
 }
 
 // IsIdempotent implements the Expr.IsIdempotent().
-func (f *Function) IsIdempotent() bool {
-	// XXX need function registry with attributes. Currently all
-	// implemented functions are idempotent.
-	return true
+func (call *Call) IsIdempotent() bool {
+	return call.Function.Idempotent
 }
 
-func (f *Function) String() string {
-	return fmt.Sprintf("%s(%q)", f.Type, f.Arguments)
+func (call *Call) String() string {
+	return fmt.Sprintf("%s(%q)", call.Function, call.Arguments)
 }
 
 // Binary implements binary expressions.

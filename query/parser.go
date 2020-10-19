@@ -370,7 +370,9 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 	}, nil
 }
 
-func columnsFor(columns []ColumnSelector, source string) []types.ColumnSelector {
+func columnsFor(columns []ColumnSelector,
+	source string) []types.ColumnSelector {
+
 	var result []types.ColumnSelector
 
 	for _, col := range columns {
@@ -653,12 +655,12 @@ func (p *Parser) parseFunc(name *Token) (Expr, error) {
 			p.lexer.unget(t)
 		}
 	}
-	f, ok := functions[strings.ToUpper(name.StrVal)]
-	if !ok {
+	f := builtIn(strings.ToUpper(name.StrVal))
+	if f == nil {
 		return nil, p.errf(name.From, "unknown function: %s", name.StrVal)
 	}
-	return &Function{
-		Type:      f,
+	return &Call{
+		Function:  f,
 		Arguments: args,
 	}, nil
 }
