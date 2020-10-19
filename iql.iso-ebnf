@@ -7,13 +7,14 @@ VariableDecl = 'DECLARE', Identifier, Type;
 VariableInit = 'SET', Identifier, '=', Expr;
 
 SelectClause = 'SELECT', SelectColumns,
+	       [ 'INTO', Identifier ],
 	       [ 'FROM', FromClause, { ',', FromClause } ],
 	       [ 'WHERE', Expr ];
 
 SelectColumns = SelectColumn, {',', SelectColumn};
 SelectColumn = Expr, [ AsClause ];
 
-FromClause = (string, [ 'FILTER', string ] | '(', SelectClause, ')'),
+FromClause = (String, [ 'FILTER', String ] | '(', SelectClause, ')'),
 	     'AS', Identifier;
 
 Expr = LogicalAndExpr, {'OR', LogicalAndExpr};
@@ -37,7 +38,7 @@ PostfixExpr = SimpleReference
 	    | Bool
 	    | integer
 	    | real
-	    | string
+	    | String
 	    ;
 
 SimpleReference = Identifier;
@@ -50,6 +51,8 @@ AsClause = 'AS', Identifier;
 
 Bool = 'TRUE' | 'FALSE';
 
-Identifier = identifier | '"', characters, '"';
+Identifier = ucLetter, {ucLetter|ucDigit|'_'|'$'} | '"', characters, '"';
+
+String = "'", characters, "'";
 
 Type = 'BOOLEAN' | 'INTEGER' | 'REAL' | 'VARCHAR';
