@@ -30,10 +30,10 @@ const (
 )
 
 var types = map[Type]string{
-	Bool:   "bool",
-	Int:    "int",
-	Float:  "float",
-	String: "string",
+	Bool:   "boolean",
+	Int:    "integer",
+	Float:  "real",
+	String: "varchar",
 }
 
 func (t Type) String() string {
@@ -50,4 +50,23 @@ func (t Type) Align() tabulate.Align {
 		return tabulate.ML
 	}
 	return tabulate.MR
+}
+
+// CanAssign tests if the argument value can be assigned into a
+// variable this type.
+func (t Type) CanAssign(v Value) bool {
+	switch v.(type) {
+	case BoolValue:
+		return t == Bool
+	case IntValue:
+		return t == Int || t == Float
+	case FloatValue:
+		return t == Int || t == Float
+	case StringValue:
+		return t == String
+	case NullValue:
+		return true
+	default:
+		return false
+	}
 }

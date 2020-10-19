@@ -27,8 +27,19 @@ type Query struct {
 	Select        []ColumnSelector
 	From          []SourceSelector
 	Where         Expr
+	Global        *Scope
 	selectColumns []data.ColumnSelector
 	fromColumns   map[string]columnIndex
+	evaluated     bool
+	result        []data.Row
+}
+
+// NewQuery creates a new query object.
+func NewQuery(global *Scope) *Query {
+	return &Query{
+		Global:      global,
+		fromColumns: make(map[string]columnIndex),
+	}
 }
 
 // ColumnSelector defines selected query output columns.
@@ -68,6 +79,20 @@ func (sql *Query) Columns() []data.ColumnSelector {
 
 // Get implements the Source.Get().
 func (sql *Query) Get() ([]data.Row, error) {
+	if sql.evaluated {
+		return sql.result, nil
+	}
+
+	// Create column info.
+	for _, col := range sql.Select {
+		sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{
+			Name: data.Reference{
+				Column: col.Expr.String(),
+			},
+			As: col.As,
+		})
+	}
+
 	// Eval all sources.
 	for sourceIdx, from := range sql.From {
 		_, err := from.Source.Get()
@@ -91,21 +116,8 @@ func (sql *Query) Get() ([]data.Row, error) {
 			}
 			tab.Print(os.Stdout)
 		}
-	}
 
-	// Create column info.
-	for _, col := range sql.Select {
-		sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{
-			Name: data.Reference{
-				Column: col.Expr.String(),
-			},
-			As: col.As,
-		})
-	}
-
-	// Collect column names.
-	sql.fromColumns = make(map[string]columnIndex)
-	for sourceIdx, from := range sql.From {
+		// Collect column names.
 		for columnIdx, column := range from.Source.Columns() {
 			var key string
 			if len(from.As) > 0 {
@@ -120,11 +132,15 @@ func (sql *Query) Get() ([]data.Row, error) {
 		}
 	}
 
-	// Bind Select expressions.
+	// Bind select expressions.
+	var idempotent = true
 	for _, sel := range sql.Select {
 		err := sel.Expr.Bind(sql)
 		if err != nil {
 			return nil, err
+		}
+		if !sel.Expr.IsIdempotent() {
+			idempotent = false
 		}
 	}
 
@@ -143,8 +159,6 @@ func (sql *Query) Get() ([]data.Row, error) {
 	}
 
 	// Select result columns.
-
-	var result []data.Row
 
 	var columns [][]data.ColumnSelector
 	for _, sel := range sql.From {
@@ -168,10 +182,14 @@ func (sql *Query) Get() ([]data.Row, error) {
 				}
 			}
 		}
-		result = append(result, row)
+		sql.result = append(sql.result, row)
+		if idempotent {
+			break
+		}
 	}
+	sql.evaluated = true
 
-	return result, nil
+	return sql.result, nil
 }
 
 func (sql *Query) eval(idx int, data []data.Row,
@@ -217,7 +235,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 	if name.IsAbsolute() {
 		index, ok := sql.fromColumns[name.String()]
 		if !ok {
-			return nil, fmt.Errorf("unknown column '%s'", name)
+			return nil, fmt.Errorf("undefined column '%s'", name)
 		}
 		return &Reference{
 			Reference: name,
@@ -245,9 +263,20 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 			}
 		}
 	}
-	if match == nil {
-		return nil, fmt.Errorf("unknown column '%s'", name)
+	if match != nil {
+		return match, nil
 	}
 
-	return match, nil
+	// Check variables.
+	b := sql.Global.Get(name.Column)
+	if b != nil {
+		return &Reference{
+			Reference: data.Reference{
+				Column: name.Column,
+			},
+			binding: b,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("undefined identifier '%s'", name)
 }

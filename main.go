@@ -27,7 +27,8 @@ func main() {
 			fmt.Printf("failed to open '%s': %s\n", arg, err)
 			os.Exit(1)
 		}
-		q, err := query.Parse(f, arg)
+		parser := query.NewParser(f, arg)
+		q, err := parser.Parse()
 		if err != nil {
 			fmt.Printf("%s\n", err)
 			os.Exit(1)

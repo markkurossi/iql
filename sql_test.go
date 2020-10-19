@@ -59,81 +59,81 @@ func TestJoin(t *testing.T) {
 		t.Fatalf("NewHTML failed: %s", err)
 	}
 
-	q := &query.Query{
-		Select: []query.ColumnSelector{
-			{
-				Expr: &query.Reference{
-					Reference: data.Reference{
-						Source: "ref",
-						Column: "Stock",
-					},
+	q := query.NewQuery(nil)
+
+	q.Select = []query.ColumnSelector{
+		{
+			Expr: &query.Reference{
+				Reference: data.Reference{
+					Source: "ref",
+					Column: "Stock",
 				},
-				As: "Stock",
 			},
-			{
-				Expr: &query.Reference{
-					Reference: data.Reference{
-						Source: "ref",
-						Column: "Price",
-					},
+			As: "Stock",
+		},
+		{
+			Expr: &query.Reference{
+				Reference: data.Reference{
+					Source: "ref",
+					Column: "Price",
 				},
-				As: "Price",
 			},
-			{
-				Expr: &query.Reference{
-					Reference: data.Reference{
-						Source: "ref",
-						Column: "Weight",
-					},
+			As: "Price",
+		},
+		{
+			Expr: &query.Reference{
+				Reference: data.Reference{
+					Source: "ref",
+					Column: "Weight",
 				},
-				As: "Weight",
 			},
-			{
-				Expr: &query.Reference{
-					Reference: data.Reference{
-						Source: "portfolio",
-						Column: "Count",
-					},
+			As: "Weight",
+		},
+		{
+			Expr: &query.Reference{
+				Reference: data.Reference{
+					Source: "portfolio",
+					Column: "Count",
 				},
-				As: "Count",
+			},
+			As: "Count",
+		},
+	}
+	q.From = []query.SourceSelector{
+		{
+			Source: ref,
+			As:     "ref",
+		},
+		{
+			Source: portfolio,
+			As:     "portfolio",
+		},
+	}
+	q.Where = &query.And{
+		Left: &query.Binary{
+			Type: query.BinNeq,
+			Left: &query.Reference{
+				Reference: data.Reference{
+					Source: "ref",
+					Column: "Stock",
+				},
+			},
+			Right: &query.Constant{
+				Value: types.StringValue(""),
 			},
 		},
-		From: []query.SourceSelector{
-			{
-				Source: ref,
-				As:     "ref",
-			},
-			{
-				Source: portfolio,
-				As:     "portfolio",
-			},
-		},
-		Where: &query.And{
-			Left: &query.Binary{
-				Type: query.BinNeq,
-				Left: &query.Reference{
-					Reference: data.Reference{
-						Source: "ref",
-						Column: "Stock",
-					},
-				},
-				Right: &query.Constant{
-					Value: types.StringValue(""),
+		Right: &query.Binary{
+			Type: query.BinEq,
+			Left: &query.Reference{
+				Reference: data.Reference{
+					Source: "ref",
+					Column: "Stock",
 				},
 			},
-			Right: &query.Binary{
-				Type: query.BinEq,
-				Left: &query.Reference{
-					Reference: data.Reference{
-						Source: "ref",
-						Column: "Stock",
-					},
-				},
-				Right: &query.Reference{
-					Reference: data.Reference{
-						Source: "portfolio",
-						Column: "Stock",
-					},
+			Right: &query.Reference{
+				Reference: data.Reference{
+					Source: "portfolio",
+					Column: "Stock",
 				},
 			},
 		},

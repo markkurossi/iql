@@ -40,6 +40,12 @@ const (
 	TSymWhere
 	TSymAs
 	TSymFilter
+	TSymDeclare
+	TSymSet
+	TSymBoolean
+	TSymInteger
+	TSymReal
+	TSymVarchar
 	TAnd
 	TOr
 	TNeq
@@ -57,6 +63,12 @@ var tokenTypes = map[TokenType]string{
 	TSymWhere:   "WHERE",
 	TSymAs:      "AS",
 	TSymFilter:  "FILTER",
+	TSymDeclare: "DECLARE",
+	TSymSet:     "SET",
+	TSymBoolean: "BOOLEAN",
+	TSymInteger: "INTEGER",
+	TSymReal:    "REAL",
+	TSymVarchar: "VARCHAR",
 	TAnd:        "AND",
 	TOr:         "OR",
 	TNeq:        "<>",
@@ -74,14 +86,20 @@ func (t TokenType) String() string {
 }
 
 var symbols = map[string]TokenType{
-	"NULL":   TNull,
-	"SELECT": TSymSelect,
-	"FROM":   TSymFrom,
-	"WHERE":  TSymWhere,
-	"AS":     TSymAs,
-	"FILTER": TSymFilter,
-	"AND":    TAnd,
-	"OR":     TOr,
+	"NULL":    TNull,
+	"SELECT":  TSymSelect,
+	"FROM":    TSymFrom,
+	"WHERE":   TSymWhere,
+	"AS":      TSymAs,
+	"FILTER":  TSymFilter,
+	"DECLARE": TSymDeclare,
+	"SET":     TSymSet,
+	"BOOLEAN": TSymBoolean,
+	"INTEGER": TSymInteger,
+	"REAL":    TSymReal,
+	"VARCHAR": TSymVarchar,
+	"AND":     TAnd,
+	"OR":      TOr,
 }
 
 // Token implements an input token.

@@ -71,11 +71,28 @@ from (
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
      );`,
+	`
+declare data varchar;
+set data = 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK';
+select Year as Y, Value as V
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from data
+     );`,
+	`
+select SUM(Year) as Sum
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     );`,
 }
 
 func TestParser(t *testing.T) {
 	for _, input := range parserTests {
-		q, err := Parse(bytes.NewReader([]byte(input)), "{data}")
+		parser := NewParser(bytes.NewReader([]byte(input)), "{data}")
+		q, err := parser.Parse()
 		if err != nil {
 			t.Fatalf("Parse failed: %v", err)
 		}

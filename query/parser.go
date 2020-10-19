@@ -16,21 +16,22 @@ import (
 	"github.com/markkurossi/iql/types"
 )
 
-// Parse parses the query input and returns a query object.
-func Parse(input io.Reader, source string) (*Query, error) {
-	p := &parser{
-		lexer: newLexer(input, source),
-	}
-
-	return p.parse()
-}
-
-type parser struct {
+// Parser implements IQL parser.
+type Parser struct {
 	lexer   *lexer
 	nesting int
+	global  *Scope
 }
 
-func (p *parser) get() (*Token, error) {
+// NewParser creates a new IQL parser.
+func NewParser(input io.Reader, source string) *Parser {
+	return &Parser{
+		lexer:  newLexer(input, source),
+		global: NewScope(nil),
+	}
+}
+
+func (p *Parser) get() (*Token, error) {
 	t, err := p.lexer.get()
 	if err != nil {
 		return nil, p.err(err)
@@ -38,27 +39,134 @@ func (p *parser) get() (*Token, error) {
 	return t, nil
 }
 
-func (p *parser) parse() (*Query, error) {
+// Parse parses the next query from the parser's input.
+func (p *Parser) Parse() (*Query, error) {
 	p.nesting++
 	defer func() {
 		p.nesting--
 	}()
 
-	t, err := p.lexer.get()
-	if err != nil {
-		return nil, err
-	}
-	switch t.Type {
-	case TSymSelect:
-		return p.parseSelect()
+	for {
+		t, err := p.lexer.get()
+		if err != nil {
+			return nil, err
+		}
+		switch t.Type {
+		case TSymDeclare:
+			err = p.parseDeclare()
+			if err != nil {
+				return nil, err
+			}
 
-	default:
-		return nil, p.errf(t.From, "unexpected token: %s", t)
+		case TSymSet:
+			err = p.parseSet()
+			if err != nil {
+				return nil, err
+			}
+
+		case TSymSelect:
+			return p.parseSelect()
+
+		default:
+			return nil, p.errUnexpected(t)
+		}
 	}
 }
 
-func (p *parser) parseSelect() (*Query, error) {
-	q := new(Query)
+func (p *Parser) parseDeclare() error {
+	t, err := p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != TIdentifier {
+		return p.errUnexpected(t)
+	}
+	name := t.StrVal
+	binding := p.global.Get(name)
+	if binding != nil {
+		return p.errf(t.From, "identifier '%s' already declared", name)
+	}
+
+	typ, err := p.parseType()
+	if err != nil {
+		return err
+	}
+
+	t, err = p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != ';' {
+		return p.errUnexpected(t)
+	}
+
+	p.global.Declare(name, typ)
+
+	return nil
+}
+
+func (p *Parser) parseType() (types.Type, error) {
+	t, err := p.get()
+	if err != nil {
+		return 0, err
+	}
+	switch t.Type {
+	case TSymBoolean:
+		return types.Bool, nil
+	case TSymInteger:
+		return types.Int, nil
+	case TSymReal:
+		return types.Float, nil
+	case TSymVarchar:
+		return types.String, nil
+	default:
+		return 0, p.errUnexpected(t)
+	}
+}
+
+func (p *Parser) parseSet() error {
+	t, err := p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != TIdentifier {
+		return p.errUnexpected(t)
+	}
+	name := t.StrVal
+	t, err = p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != '=' {
+		return p.errUnexpected(t)
+	}
+	expr, err := p.parseExpr()
+	if err != nil {
+		return err
+	}
+	t, err = p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != ';' {
+		return p.errUnexpected(t)
+	}
+
+	q := NewQuery(p.global)
+	err = expr.Bind(q)
+	if err != nil {
+		return err
+	}
+	v, err := expr.Eval(nil, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return p.global.Set(name, v)
+}
+
+func (p *Parser) parseSelect() (*Query, error) {
+	q := NewQuery(p.global)
 
 	// Columns.
 	for {
@@ -130,12 +238,12 @@ func (p *parser) parseSelect() (*Query, error) {
 		return nil, err
 	}
 	if t.Type != expected {
-		return nil, p.errf(t.From, "unexpected token: %s", t)
+		return nil, p.errUnexpected(t)
 	}
 	return q, nil
 }
 
-func (p *parser) parseColumn() (*ColumnSelector, error) {
+func (p *Parser) parseColumn() (*ColumnSelector, error) {
 	expr, err := p.parseExpr()
 	if err != nil {
 		return nil, err
@@ -151,7 +259,7 @@ func (p *parser) parseColumn() (*ColumnSelector, error) {
 			return nil, err
 		}
 		if t.Type != TIdentifier {
-			return nil, p.errf(t.From, "unexpected token: %s", t)
+			return nil, p.errUnexpected(t)
 		}
 		as = t.StrVal
 	} else {
@@ -164,7 +272,7 @@ func (p *parser) parseColumn() (*ColumnSelector, error) {
 	}, nil
 }
 
-func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
+func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 	var source data.Source
 	var as string
 
@@ -172,8 +280,38 @@ func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch t.Type {
-	case TString:
+	if t.Type == '(' {
+		source, err = p.Parse()
+		if err != nil {
+			return nil, err
+		}
+		as, err = p.parseKeyword(TSymAs)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var url string
+
+		switch t.Type {
+		case TIdentifier:
+			b := q.Global.Get(t.StrVal)
+			if b == nil {
+				return nil, p.errf(t.From, "unknown identifier '%s'", t.StrVal)
+			}
+			if b.Type != types.String {
+				return nil, p.errf(t.From, "invalid source type: %s", b.Type)
+			}
+			if b.Value == types.Null {
+				return nil, p.errf(t.From, "identifier '%s' unset", t.StrVal)
+			}
+			url = b.Value.String()
+
+		case TString:
+			url = t.StrVal
+		default:
+			return nil, p.errUnexpected(t)
+		}
+
 		filter, err := p.parseKeyword(TSymFilter)
 		if err != nil {
 			return nil, err
@@ -183,23 +321,10 @@ func (p *parser) parseSource(q *Query) (*SourceSelector, error) {
 			return nil, err
 		}
 
-		source, err = data.New(t.StrVal, filter, columnsFor(q.Select, as))
+		source, err = data.New(url, filter, columnsFor(q.Select, as))
 		if err != nil {
 			return nil, err
 		}
-
-	case '(':
-		source, err = p.parse()
-		if err != nil {
-			return nil, err
-		}
-		as, err = p.parseKeyword(TSymAs)
-		if err != nil {
-			return nil, err
-		}
-
-	default:
-		return nil, p.errf(t.From, "unexpected token: %s", t)
 	}
 
 	return &SourceSelector{
@@ -230,7 +355,7 @@ func columnsFor(columns []ColumnSelector, source string) []data.ColumnSelector {
 	return result
 }
 
-func (p *parser) parseKeyword(keyword TokenType) (string, error) {
+func (p *Parser) parseKeyword(keyword TokenType) (string, error) {
 	t, err := p.get()
 	if err != nil {
 		return "", err
@@ -246,20 +371,20 @@ func (p *parser) parseKeyword(keyword TokenType) (string, error) {
 	switch t.Type {
 	case TIdentifier, TString:
 	default:
-		return "", p.errf(t.From, "unexpected token: %s", t)
+		return "", p.errUnexpected(t)
 	}
 	return t.StrVal, nil
 }
 
-func (p *parser) parseExpr() (Expr, error) {
+func (p *Parser) parseExpr() (Expr, error) {
 	return p.parseExprLogicalOr()
 }
 
-func (p *parser) parseExprLogicalOr() (Expr, error) {
+func (p *Parser) parseExprLogicalOr() (Expr, error) {
 	return p.parseExprLogicalAnd()
 }
 
-func (p *parser) parseExprLogicalAnd() (Expr, error) {
+func (p *Parser) parseExprLogicalAnd() (Expr, error) {
 	left, err := p.parseExprLogicalNot()
 	if err != nil {
 		return nil, err
@@ -284,11 +409,11 @@ func (p *parser) parseExprLogicalAnd() (Expr, error) {
 	}
 }
 
-func (p *parser) parseExprLogicalNot() (Expr, error) {
+func (p *Parser) parseExprLogicalNot() (Expr, error) {
 	return p.parseExprComparative()
 }
 
-func (p *parser) parseExprComparative() (Expr, error) {
+func (p *Parser) parseExprComparative() (Expr, error) {
 	left, err := p.parseExprAdditive()
 	if err != nil {
 		return nil, err
@@ -329,7 +454,7 @@ func (p *parser) parseExprComparative() (Expr, error) {
 	}
 }
 
-func (p *parser) parseExprAdditive() (Expr, error) {
+func (p *Parser) parseExprAdditive() (Expr, error) {
 	left, err := p.parseExprMultiplicative()
 	if err != nil {
 		return nil, err
@@ -364,7 +489,7 @@ func (p *parser) parseExprAdditive() (Expr, error) {
 	}
 }
 
-func (p *parser) parseExprMultiplicative() (Expr, error) {
+func (p *Parser) parseExprMultiplicative() (Expr, error) {
 	left, err := p.parseExprUnary()
 	if err != nil {
 		return nil, err
@@ -399,11 +524,11 @@ func (p *parser) parseExprMultiplicative() (Expr, error) {
 	}
 }
 
-func (p *parser) parseExprUnary() (Expr, error) {
+func (p *Parser) parseExprUnary() (Expr, error) {
 	return p.parseExprPostfix()
 }
 
-func (p *parser) parseExprPostfix() (Expr, error) {
+func (p *Parser) parseExprPostfix() (Expr, error) {
 	t, err := p.get()
 	if err != nil {
 		return nil, err
@@ -435,7 +560,7 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 				column = fmt.Sprintf("%d", n.IntVal)
 
 			default:
-				return nil, p.errf(n.From, "unexpected token: %s", n)
+				return nil, p.errUnexpected(n)
 			}
 		} else {
 			p.lexer.unget(n)
@@ -456,7 +581,7 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 		val = types.Null
 	default:
 		p.lexer.unget(t)
-		return nil, p.errf(t.From, "unexpected token: %s", t)
+		return nil, p.errUnexpected(t)
 	}
 
 	return &Constant{
@@ -464,7 +589,7 @@ func (p *parser) parseExprPostfix() (Expr, error) {
 	}, nil
 }
 
-func (p *parser) parseFunc(name *Token) (Expr, error) {
+func (p *Parser) parseFunc(name *Token) (Expr, error) {
 	var args []Expr
 
 	for {
@@ -501,15 +626,19 @@ func (p *parser) parseFunc(name *Token) (Expr, error) {
 	}, nil
 }
 
-func (p *parser) errf(loc Point, format string, a ...interface{}) error {
+func (p *Parser) errUnexpected(t *Token) error {
+	return p.errf(t.From, "unexpected token: %s", t)
+}
+
+func (p *Parser) errf(loc Point, format string, a ...interface{}) error {
 	return p.error(loc, fmt.Errorf(format, a...))
 }
 
-func (p *parser) err(err error) error {
+func (p *Parser) err(err error) error {
 	return p.error(p.lexer.point, err)
 }
 
-func (p *parser) error(loc Point, err error) error {
+func (p *Parser) error(loc Point, err error) error {
 	p.lexer.FlushEOL()
 
 	line, ok := p.lexer.history[loc.Line]

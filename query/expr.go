@@ -26,6 +26,7 @@ type Expr interface {
 	Bind(sql *Query) error
 	Eval(row []data.Row, columns [][]data.ColumnSelector, rows [][]data.Row) (
 		types.Value, error)
+	IsIdempotent() bool
 	String() string
 }
 
@@ -162,6 +163,13 @@ func (f *Function) Eval(row []data.Row, columns [][]data.ColumnSelector,
 	default:
 		return nil, fmt.Errorf("unknown function: %v", f.Type)
 	}
+}
+
+// IsIdempotent implements the Expr.IsIdempotent().
+func (f *Function) IsIdempotent() bool {
+	// XXX need function registry with attributes. Currently all
+	// implemented functions are idempotent.
+	return true
 }
 
 func (f *Function) String() string {
@@ -400,6 +408,11 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 	}
 }
 
+// IsIdempotent implements the Expr.IsIdempotent().
+func (b *Binary) IsIdempotent() bool {
+	return b.Left.IsIdempotent() && b.Right.IsIdempotent()
+}
+
 func (b *Binary) String() string {
 	return fmt.Sprintf("%s %s %s", b.Left, b.Type, b.Right)
 }
@@ -446,6 +459,11 @@ func (and *And) Eval(row []data.Row, columns [][]data.ColumnSelector,
 	return types.BoolValue(r), nil
 }
 
+// IsIdempotent implements the Expr.IsIdempotent().
+func (and *And) IsIdempotent() bool {
+	return and.Left.IsIdempotent() && and.Right.IsIdempotent()
+}
+
 func (and *And) String() string {
 	return fmt.Sprintf("%s AND %s", and.Left, and.Right)
 }
@@ -467,6 +485,11 @@ func (c *Constant) Eval(row []data.Row, columns [][]data.ColumnSelector,
 	return c.Value, nil
 }
 
+// IsIdempotent implements the Expr.IsIdempotent().
+func (c *Constant) IsIdempotent() bool {
+	return true
+}
+
 func (c *Constant) String() string {
 	return c.Value.String()
 }
@@ -474,8 +497,9 @@ func (c *Constant) String() string {
 // Reference implements column reference expressions.
 type Reference struct {
 	data.Reference
-	index  columnIndex
-	public bool
+	index   columnIndex
+	binding *Binding
+	public  bool
 }
 
 // NewReference creates a new reference for the argument name.
@@ -525,4 +549,13 @@ func (ref *Reference) Eval(row []data.Row, columns [][]data.ColumnSelector,
 	default:
 		return types.StringValue(col.String()), nil
 	}
+}
+
+// IsIdempotent implements the Expr.IsIdempotent().
+func (ref *Reference) IsIdempotent() bool {
+	// Variable references are idempotent, column references are not.
+	if ref.binding != nil {
+		return true
+	}
+	return false
 }
