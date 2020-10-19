@@ -28,9 +28,9 @@ type Query struct {
 	Into          *Binding
 	Where         Expr
 	Global        *Scope
-	selectColumns []types.ColumnSelector
 	fromColumns   map[string]columnIndex
 	evaluated     bool
+	resultColumns []types.ColumnSelector
 	result        []types.Row
 }
 
@@ -74,7 +74,7 @@ type SourceSelector struct {
 
 // Columns implements the Source.Columns().
 func (sql *Query) Columns() []types.ColumnSelector {
-	return sql.selectColumns
+	return sql.resultColumns
 }
 
 // Get implements the Source.Get().
@@ -85,6 +85,9 @@ func (sql *Query) Get() ([]types.Row, error) {
 
 	// Create column info.
 	for _, col := range sql.Select {
+		if !col.IsPublic() {
+			continue
+		}
 		// Promote expressions to aliases unless explicit aliases are
 		// defined.
 		var as string
@@ -93,7 +96,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 		} else {
 			as = col.Expr.String()
 		}
-		sql.selectColumns = append(sql.selectColumns, types.ColumnSelector{
+		sql.resultColumns = append(sql.resultColumns, types.ColumnSelector{
 			Name: types.Reference{
 				Column: col.Expr.String(),
 			},
@@ -175,20 +178,23 @@ func (sql *Query) Get() ([]types.Row, error) {
 
 	for _, match := range matches {
 		var row types.Row
-		for i, sel := range sql.Select {
-			if sel.IsPublic() {
-				val, err := sel.Expr.Eval(match, columns, matches)
-				if err != nil {
-					return nil, err
-				}
-				if val == types.Null {
-					row = append(row, types.NullColumn{})
-				} else {
-					str := val.String()
-					row = append(row, types.StringColumn(str))
-					sql.selectColumns[i].ResolveType(str)
-				}
+		var i int
+		for _, sel := range sql.Select {
+			if !sel.IsPublic() {
+				continue
 			}
+			val, err := sel.Expr.Eval(match, columns, matches)
+			if err != nil {
+				return nil, err
+			}
+			if val == types.Null {
+				row = append(row, types.NullColumn{})
+			} else {
+				str := val.String()
+				row = append(row, types.StringColumn(str))
+				sql.resultColumns[i].ResolveType(str)
+			}
+			i++
 		}
 		sql.result = append(sql.result, row)
 		if idempotent {

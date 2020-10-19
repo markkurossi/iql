@@ -336,7 +336,7 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 					return nil, p.errf(t.From,
 						"invalid table value for identifier '%s'", t.StrVal)
 				}
-				source, err = NewSource(table.Source)
+				source = table.Source
 			} else {
 				return nil, p.errf(t.From, "invalid source type: %s", b.Type)
 			}

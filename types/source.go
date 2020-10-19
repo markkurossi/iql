@@ -280,9 +280,7 @@ func (s StringsColumn) String() string {
 func Tabulate(source Source, style tabulate.Style) *tabulate.Tabulate {
 	tab := tabulate.New(style)
 	for _, col := range source.Columns() {
-		if col.IsPublic() {
-			tab.Header(col.String()).SetAlign(col.Type.Align())
-		}
+		tab.Header(col.String()).SetAlign(col.Type.Align())
 	}
 	return tab
 }
