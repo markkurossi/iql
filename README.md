@@ -23,7 +23,7 @@ table contain information about store customers:
 SELECT customers.'.id'      AS ID,
        customers.'.name'    AS Name,
        customers.'.address' AS Address
-FROM 'https://markkurossi.com/iql/examples/store.htmll'
+FROM 'https://markkurossi.com/iql/examples/store.html'
      FILTER 'table:nth-of-type(1) tr' AS customers
 WHERE ID <> null;
 ```
@@ -88,6 +88,9 @@ In addition of listing individual tables, you can join tables and
 compute values over the columns:
 
 ```sql
+DECLARE storeurl VARCHAR;
+SET storeurl = 'https://markkurossi.com/iql/examples/store.html';
+
 SELECT customers.Name                AS Name,
        customers.Address             AS Address,
        products.Name                 AS Product,
@@ -97,16 +100,14 @@ FROM (
         SELECT c.'.id'      AS ID,
                c.'.name'    AS Name,
                c.'.address' AS Address
-        FROM 'https://markkurossi.com/iql/examples/store.html'
-	     FILTER 'table:nth-of-type(1) tr' AS c
+        FROM storeurl FILTER 'table:nth-of-type(1) tr' AS c
         WHERE ID <> null
      ) AS customers,
      (
         SELECT p.'.id'    AS ID,
                p.'.name'  AS Name,
                p.'.price' AS Price
-        FROM 'https://markkurossi.com/iql/examples/store.html'
-	     FILTER 'table:nth-of-type(2) tr' AS p
+        FROM storeurl FILTER 'table:nth-of-type(2) tr' AS p
         WHERE ID <> null
      ) AS products,
      (
@@ -114,8 +115,7 @@ FROM (
                o.':nth-child(2)' AS Customer,
                o.':nth-child(3)' AS Product,
                o.':nth-child(4)' AS Count
-        FROM 'https://markkurossi.com/iql/examples/store.html'
-	     FILTER 'table:nth-of-type(3) tr' AS o
+        FROM storeurl FILTER 'table:nth-of-type(3) tr' AS o
         WHERE ID <> null
      ) as orders
 WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
