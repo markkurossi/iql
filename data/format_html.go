@@ -11,17 +11,18 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/markkurossi/iql/types"
 )
 
 // HTML implements a data source from HTML data.
 type HTML struct {
-	columns []ColumnSelector
-	rows    []Row
+	columns []types.ColumnSelector
+	rows    []types.Row
 }
 
 // NewHTML creates a new HTML data source from the input.
-func NewHTML(input io.ReadCloser, filter string, columns []ColumnSelector) (
-	Source, error) {
+func NewHTML(input io.ReadCloser, filter string,
+	columns []types.ColumnSelector) (types.Source, error) {
 
 	defer input.Close()
 
@@ -30,24 +31,25 @@ func NewHTML(input io.ReadCloser, filter string, columns []ColumnSelector) (
 		return nil, err
 	}
 
-	var rows []Row
+	var rows []types.Row
 
 	doc.Find(filter).Each(func(i int, s *goquery.Selection) {
-		var row Row
+		var row types.Row
 		for i, col := range columns {
 			sel := s.Find(col.Name.Column)
 			switch sel.Length() {
 			case 0:
-				row = append(row, StringColumn(""))
+				row = append(row, types.StringColumn(""))
 
 			case 1:
-				row = append(row, StringColumn(strings.TrimSpace(sel.Text())))
+				row = append(row,
+					types.StringColumn(strings.TrimSpace(sel.Text())))
 
 			default:
 				strings := sel.Map(func(i int, s *goquery.Selection) string {
 					return s.Text()
 				})
-				row = append(row, StringsColumn(strings))
+				row = append(row, types.StringsColumn(strings))
 			}
 			columns[i].ResolveType(row[i].String())
 		}
@@ -61,11 +63,11 @@ func NewHTML(input io.ReadCloser, filter string, columns []ColumnSelector) (
 }
 
 // Columns implements the Source.Columns().
-func (html *HTML) Columns() []ColumnSelector {
+func (html *HTML) Columns() []types.ColumnSelector {
 	return html.columns
 }
 
 // Get implements the Source.Get().
-func (html *HTML) Get() ([]Row, error) {
+func (html *HTML) Get() ([]types.Row, error) {
 	return html.rows, nil
 }

@@ -36,6 +36,8 @@ const (
 	TInteger
 	TNull
 	TSymSelect
+	TSymInto
+	TSymInfo
 	TSymFrom
 	TSymWhere
 	TSymAs
@@ -59,6 +61,7 @@ var tokenTypes = map[TokenType]string{
 	TInteger:    "integer",
 	TNull:       "NULL",
 	TSymSelect:  "SELECT",
+	TSymInto:    "INTO",
 	TSymFrom:    "FROM",
 	TSymWhere:   "WHERE",
 	TSymAs:      "AS",
@@ -88,6 +91,7 @@ func (t TokenType) String() string {
 var symbols = map[string]TokenType{
 	"NULL":    TNull,
 	"SELECT":  TSymSelect,
+	"INTO":    TSymInto,
 	"FROM":    TSymFrom,
 	"WHERE":   TSymWhere,
 	"AS":      TSymAs,

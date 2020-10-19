@@ -18,21 +18,21 @@ import (
 
 func TestJoin(t *testing.T) {
 	ref, err := data.New("data/test.html", "tbody > tr",
-		[]data.ColumnSelector{
+		[]types.ColumnSelector{
 			{
-				Name: data.Reference{
+				Name: types.Reference{
 					Column: ".stock",
 				},
 				As: "Stock",
 			},
 			{
-				Name: data.Reference{
+				Name: types.Reference{
 					Column: ".price",
 				},
 				As: "Price",
 			},
 			{
-				Name: data.Reference{
+				Name: types.Reference{
 					Column: ".share",
 				},
 				As: "Weight",
@@ -41,15 +41,15 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewHTML failed: %s", err)
 	}
-	portfolio, err := data.New("data/test.csv", "", []data.ColumnSelector{
+	portfolio, err := data.New("data/test.csv", "", []types.ColumnSelector{
 		{
-			Name: data.Reference{
+			Name: types.Reference{
 				Column: "0",
 			},
 			As: "Stock",
 		},
 		{
-			Name: data.Reference{
+			Name: types.Reference{
 				Column: "1",
 			},
 			As: "Count",
@@ -64,7 +64,7 @@ func TestJoin(t *testing.T) {
 	q.Select = []query.ColumnSelector{
 		{
 			Expr: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "ref",
 					Column: "Stock",
 				},
@@ -73,7 +73,7 @@ func TestJoin(t *testing.T) {
 		},
 		{
 			Expr: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "ref",
 					Column: "Price",
 				},
@@ -82,7 +82,7 @@ func TestJoin(t *testing.T) {
 		},
 		{
 			Expr: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "ref",
 					Column: "Weight",
 				},
@@ -91,7 +91,7 @@ func TestJoin(t *testing.T) {
 		},
 		{
 			Expr: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "portfolio",
 					Column: "Count",
 				},
@@ -113,7 +113,7 @@ func TestJoin(t *testing.T) {
 		Left: &query.Binary{
 			Type: query.BinNeq,
 			Left: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "ref",
 					Column: "Stock",
 				},
@@ -125,13 +125,13 @@ func TestJoin(t *testing.T) {
 		Right: &query.Binary{
 			Type: query.BinEq,
 			Left: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "ref",
 					Column: "Stock",
 				},
 			},
 			Right: &query.Reference{
-				Reference: data.Reference{
+				Reference: types.Reference{
 					Source: "portfolio",
 					Column: "Stock",
 				},
@@ -142,7 +142,7 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("query.Get() failed: %s", err)
 	}
-	tab := data.Table(q, tabulate.Unicode)
+	tab := types.Tabulate(q, tabulate.Unicode)
 	for _, columns := range rows {
 		row := tab.Row()
 		for _, col := range columns {

@@ -21,6 +21,7 @@ const (
 	Int
 	Float
 	String
+	Table
 )
 
 // Literal values.
@@ -34,6 +35,7 @@ var types = map[Type]string{
 	Int:    "integer",
 	Float:  "real",
 	String: "varchar",
+	Table:  "table",
 }
 
 func (t Type) String() string {
@@ -64,6 +66,8 @@ func (t Type) CanAssign(v Value) bool {
 		return t == Int || t == Float
 	case StringValue:
 		return t == String
+	case TableValue:
+		return t == Table
 	case NullValue:
 		return true
 	default:

@@ -4,143 +4,37 @@
 // All rights reserved.
 //
 
-package data
+package types
 
 import (
-	"bytes"
-	"encoding/base64"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"unicode"
 
-	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
 var (
-	_ Source = &CSV{}
-	_ Source = &HTML{}
 	_ Column = StringColumn("")
 	_ Column = StringsColumn([]string{})
 	_ Column = NullColumn{}
 )
 
-// NewSource defines a constructor for data sources.
-type NewSource func(in io.ReadCloser, filter string, columns []ColumnSelector) (
-	Source, error)
-
-// New creates a new data source for the URL.
-func New(url, filter string, columns []ColumnSelector) (Source, error) {
-	input, format, err := openInput(url)
-	if err != nil {
-		return nil, err
-	}
-
-	n, ok := formats[format]
-	if !ok {
-		return nil, fmt.Errorf("unknown data format '%s'", format)
-	}
-	return n(input, filter, columns)
+// Source is an interface that defines data input sources.
+type Source interface {
+	Columns() []ColumnSelector
+	Get() ([]Row, error)
 }
 
-func openInput(input string) (io.ReadCloser, Format, error) {
-	var resolver Resolver
-
-	u, err := url.Parse(input)
-	if err != nil {
-		resolver.ResolvePath(input)
-	} else {
-		resolver.ResolvePath(u.Path)
-	}
-	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
-		resp, err := http.Get(input)
-		if err != nil {
-			return nil, 0, err
-		}
-		if resp.StatusCode != http.StatusOK {
-			io.Copy(ioutil.Discard, resp.Body)
-			resp.Body.Close()
-			return nil, 0, fmt.Errorf("HTTP URL '%s' not found", input)
-		}
-
-		resolver.ResolveMediaType(resp.Header.Get("Content-Type"))
-
-		format, err := resolver.Format()
-		return resp.Body, format, err
-	}
-	if err == nil && u.Scheme == "data" {
-		idx := strings.IndexByte(input, ',')
-		if idx < 0 {
-			return nil, 0, fmt.Errorf("malformed data URI: %s", input)
-		}
-		data := input[idx+1:]
-		contentType := input[5:idx]
-		var encoding string
-
-		idx = strings.IndexByte(contentType, ';')
-		if idx >= 0 {
-			encoding = contentType[idx+1:]
-			contentType = contentType[:idx]
-		}
-
-		var decoded []byte
-
-		// Decode data.
-		switch encoding {
-		case "base64":
-			decoded, err = base64.StdEncoding.DecodeString(data)
-			if err != nil {
-				return nil, 0, err
-			}
-		case "":
-			decoded = []byte(data)
-		default:
-			return nil, 0, fmt.Errorf("unknown data URI encoding: %s", encoding)
-		}
-
-		// Resolve format.
-		resolver.ResolveMediaType(contentType)
-
-		format, err := resolver.Format()
-
-		return &memory{
-			in: bytes.NewReader(decoded),
-		}, format, err
-	}
-
-	f, err := os.Open(input)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	format, err := resolver.Format()
-
-	return f, format, err
-}
-
-type memory struct {
-	in io.Reader
-}
-
-func (m *memory) Read(p []byte) (n int, err error) {
-	return m.in.Read(p)
-}
-
-func (m *memory) Close() error {
-	return nil
-}
+// Row defines an input data row.
+type Row []Column
 
 // ColumnSelector implements data column selector.
 type ColumnSelector struct {
 	Name Reference
 	As   string
-	Type types.Type
+	Type Type
 }
 
 // IsPublic reports if the column is public and should be included in
@@ -161,27 +55,27 @@ func (col *ColumnSelector) ResolveType(val string) {
 	}
 	for {
 		switch col.Type {
-		case types.Bool:
-			if val == types.True || val == types.False {
+		case Bool:
+			if val == True || val == False {
 				return
 			}
-			col.Type = types.Int
+			col.Type = Int
 
-		case types.Int:
+		case Int:
 			_, err := strconv.ParseInt(val, 10, 64)
 			if err == nil {
 				return
 			}
-			col.Type = types.Float
+			col.Type = Float
 
-		case types.Float:
+		case Float:
 			_, err := strconv.ParseFloat(val, 64)
 			if err == nil {
 				return
 			}
-			col.Type = types.String
+			col.Type = String
 
-		case types.String:
+		case String:
 			return
 		}
 	}
@@ -241,14 +135,14 @@ type Column interface {
 	Count() int
 	// Size returns the column size in characters.
 	Size() int
-	Bool() (types.Value, error)
-	Int() (types.Value, error)
-	Float() (types.Value, error)
+	Bool() (Value, error)
+	Int() (Value, error)
+	Float() (Value, error)
 	String() string
 }
 
 // NullColumn implements a null-column.
-type NullColumn types.NullValue
+type NullColumn NullValue
 
 // Count implements the Column.Count().
 func (n NullColumn) Count() int {
@@ -261,18 +155,18 @@ func (n NullColumn) Size() int {
 }
 
 // Bool implements the Column.Bool().
-func (n NullColumn) Bool() (types.Value, error) {
-	return types.Null, nil
+func (n NullColumn) Bool() (Value, error) {
+	return Null, nil
 }
 
 // Int implements the Column.Int().
-func (n NullColumn) Int() (types.Value, error) {
-	return types.Null, nil
+func (n NullColumn) Int() (Value, error) {
+	return Null, nil
 }
 
 // Float implements the Column.Float().
-func (n NullColumn) Float() (types.Value, error) {
-	return types.Null, nil
+func (n NullColumn) Float() (Value, error) {
+	return Null, nil
 }
 
 func (n NullColumn) String() string {
@@ -293,42 +187,42 @@ func (s StringColumn) Size() int {
 }
 
 // Bool implements the Column.Bool().
-func (s StringColumn) Bool() (types.Value, error) {
+func (s StringColumn) Bool() (Value, error) {
 	if len(s) == 0 {
-		return types.Null, nil
+		return Null, nil
 	}
 	switch s {
-	case types.True:
-		return types.BoolValue(true), nil
-	case types.False:
-		return types.BoolValue(false), nil
+	case True:
+		return BoolValue(true), nil
+	case False:
+		return BoolValue(false), nil
 	default:
 		return nil, fmt.Errorf("string value '%s' used as bool", s)
 	}
 }
 
 // Int implements the Column.Int().
-func (s StringColumn) Int() (types.Value, error) {
+func (s StringColumn) Int() (Value, error) {
 	if len(s) == 0 {
-		return types.Null, nil
+		return Null, nil
 	}
 	v, err := strconv.ParseInt(string(s), 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	return types.IntValue(v), nil
+	return IntValue(v), nil
 }
 
 // Float implements the Column.Float().
-func (s StringColumn) Float() (types.Value, error) {
+func (s StringColumn) Float() (Value, error) {
 	if len(s) == 0 {
-		return types.Null, nil
+		return Null, nil
 	}
 	v, err := strconv.ParseFloat(string(s), 64)
 	if err != nil {
 		return nil, err
 	}
-	return types.FloatValue(v), nil
+	return FloatValue(v), nil
 }
 
 func (s StringColumn) String() string {
@@ -355,25 +249,25 @@ func (s StringsColumn) Size() int {
 }
 
 // Bool implements the Column.Bool().
-func (s StringsColumn) Bool() (types.Value, error) {
+func (s StringsColumn) Bool() (Value, error) {
 	if len(s) == 0 {
-		return types.Null, nil
+		return Null, nil
 	}
 	return nil, fmt.Errorf("string array used as bool")
 }
 
 // Int implements the Column.Int().
-func (s StringsColumn) Int() (types.Value, error) {
+func (s StringsColumn) Int() (Value, error) {
 	if len(s) == 0 {
-		return types.Null, nil
+		return Null, nil
 	}
 	return nil, fmt.Errorf("string array used as int")
 }
 
 // Float implements the Column.Float().
-func (s StringsColumn) Float() (types.Value, error) {
+func (s StringsColumn) Float() (Value, error) {
 	if len(s) == 0 {
-		return types.Null, nil
+		return Null, nil
 	}
 	return nil, fmt.Errorf("string array used as float")
 }
@@ -382,17 +276,8 @@ func (s StringsColumn) String() string {
 	return fmt.Sprintf("%v", []string(s))
 }
 
-// Row defines an input data row.
-type Row []Column
-
-// Source is an interface that defines data input sources.
-type Source interface {
-	Columns() []ColumnSelector
-	Get() ([]Row, error)
-}
-
-// Table creates a tabulation table for the data source.
-func Table(source Source, style tabulate.Style) *tabulate.Tabulate {
+// Tabulate creates a tabulation table for the data source.
+func Tabulate(source Source, style tabulate.Style) *tabulate.Tabulate {
 	tab := tabulate.New(style)
 	for _, col := range source.Columns() {
 		if col.IsPublic() {

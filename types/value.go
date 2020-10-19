@@ -17,6 +17,7 @@ var (
 	_ Value = IntValue(0)
 	_ Value = FloatValue(0.0)
 	_ Value = StringValue("")
+	_ Value = TableValue{}
 
 	// Null value specifies a non-existing value.
 	Null Value = NullValue{}
@@ -106,7 +107,11 @@ func (v StringValue) Bool() (bool, error) {
 
 // Int implements the Value.Int().
 func (v StringValue) Int() (int64, error) {
-	return strconv.ParseInt(string(v), 10, 64)
+	val, err := strconv.ParseInt(string(v), 10, 64)
+	if err != nil {
+		panic("StringValue.Int")
+	}
+	return val, err
 }
 
 // Float implements the Value.Float().
@@ -116,6 +121,35 @@ func (v StringValue) Float() (float64, error) {
 
 func (v StringValue) String() string {
 	return string(v)
+}
+
+// TableValue implements table values for sources.
+type TableValue struct {
+	Source Source
+}
+
+// Bool implements the Value.Bool().
+func (v TableValue) Bool() (bool, error) {
+	return false, fmt.Errorf("table used as bool")
+}
+
+// Int implements the Value.Int().
+func (v TableValue) Int() (int64, error) {
+	rows, err := v.Source.Get()
+	if err != nil {
+		return 0, err
+	}
+	return int64(len(rows)), nil
+}
+
+// Float implements the Value.Float().
+func (v TableValue) Float() (float64, error) {
+	return 0, fmt.Errorf("table used as float")
+}
+
+func (v TableValue) String() string {
+	// XXX source names
+	return "table"
 }
 
 // NullValue implements non-existing value.

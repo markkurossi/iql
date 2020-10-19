@@ -9,11 +9,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
-	"github.com/markkurossi/iql/data"
 	"github.com/markkurossi/iql/query"
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
@@ -28,24 +29,28 @@ func main() {
 			os.Exit(1)
 		}
 		parser := query.NewParser(f, arg)
-		q, err := parser.Parse()
-		if err != nil {
-			fmt.Printf("%s\n", err)
-			os.Exit(1)
-		}
-		rows, err := q.Get()
-		if err != nil {
-			fmt.Printf("Query failed: %v\n", err)
-			os.Exit(1)
-		}
-		tab := data.Table(q, tabulate.Unicode)
-		for _, columns := range rows {
-			row := tab.Row()
-			for _, col := range columns {
-				row.Column(col.String())
+		for {
+			q, err := parser.Parse()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				fmt.Printf("%s\n", err)
+				os.Exit(1)
 			}
+			rows, err := q.Get()
+			if err != nil {
+				fmt.Printf("Query failed: %v\n", err)
+				os.Exit(1)
+			}
+			tab := types.Tabulate(q, tabulate.Unicode)
+			for _, columns := range rows {
+				row := tab.Row()
+				for _, col := range columns {
+					row.Column(col.String())
+				}
+			}
+			tab.Print(os.Stdout)
 		}
-
-		tab.Print(os.Stdout)
 	}
 }

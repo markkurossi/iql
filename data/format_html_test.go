@@ -10,25 +10,26 @@ import (
 	"os"
 	"testing"
 
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
 func TestHTMLCorrect(t *testing.T) {
-	source, err := New("test.html", "tbody > tr", []ColumnSelector{
+	source, err := New("test.html", "tbody > tr", []types.ColumnSelector{
 		{
-			Name: Reference{
+			Name: types.Reference{
 				Column: ".stock",
 			},
 			As: "Stock",
 		},
 		{
-			Name: Reference{
+			Name: types.Reference{
 				Column: ".price",
 			},
 			As: "Price",
 		},
 		{
-			Name: Reference{
+			Name: types.Reference{
 				Column: ".share",
 			},
 			As: "Share",
@@ -41,7 +42,7 @@ func TestHTMLCorrect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("html.Get() failed: %s", err)
 	}
-	tab := Table(source, tabulate.Unicode)
+	tab := types.Tabulate(source, tabulate.Unicode)
 	for _, columns := range rows {
 		row := tab.Row()
 		for _, col := range columns {

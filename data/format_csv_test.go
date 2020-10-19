@@ -10,19 +10,20 @@ import (
 	"os"
 	"testing"
 
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
 func TestCVSCorrect(t *testing.T) {
-	source, err := New("test.csv", "", []ColumnSelector{
+	source, err := New("test.csv", "", []types.ColumnSelector{
 		{
-			Name: Reference{
+			Name: types.Reference{
 				Column: "0",
 			},
 			As: "Share",
 		},
 		{
-			Name: Reference{
+			Name: types.Reference{
 				Column: "1",
 			},
 			As: "Count",
@@ -35,7 +36,7 @@ func TestCVSCorrect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("csv.Get() failed: %s", err)
 	}
-	tab := Table(source, tabulate.Unicode)
+	tab := types.Tabulate(source, tabulate.Unicode)
 	for _, columns := range rows {
 		row := tab.Row()
 		for _, col := range columns {

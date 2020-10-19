@@ -11,17 +11,19 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+
+	"github.com/markkurossi/iql/types"
 )
 
 // CSV implements a data source from comma-separated values (CSV).
 type CSV struct {
-	columns []ColumnSelector
-	rows    []Row
+	columns []types.ColumnSelector
+	rows    []types.Row
 }
 
 // NewCSV creates a new CSV data source from the input.
-func NewCSV(input io.ReadCloser, filter string, columns []ColumnSelector) (
-	Source, error) {
+func NewCSV(input io.ReadCloser, filter string,
+	columns []types.ColumnSelector) (types.Source, error) {
 
 	defer input.Close()
 
@@ -41,10 +43,10 @@ func NewCSV(input io.ReadCloser, filter string, columns []ColumnSelector) (
 		indices = append(indices, i)
 	}
 
-	var rows []Row
+	var rows []types.Row
 
 	for _, record := range records {
-		var row Row
+		var row types.Row
 		for i := range columns {
 			idx := indices[i]
 			var val string
@@ -63,7 +65,7 @@ func NewCSV(input io.ReadCloser, filter string, columns []ColumnSelector) (
 				val = record[idx]
 			}
 			columns[i].ResolveType(val)
-			row = append(row, StringColumn(val))
+			row = append(row, types.StringColumn(val))
 		}
 		rows = append(rows, row)
 	}
@@ -75,11 +77,11 @@ func NewCSV(input io.ReadCloser, filter string, columns []ColumnSelector) (
 }
 
 // Columns implements the Source.Columns().
-func (c *CSV) Columns() []ColumnSelector {
+func (c *CSV) Columns() []types.ColumnSelector {
 	return c.columns
 }
 
 // Get implements the Source.Get().
-func (c *CSV) Get() ([]Row, error) {
+func (c *CSV) Get() ([]types.Row, error) {
 	return c.rows, nil
 }

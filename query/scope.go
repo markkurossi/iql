@@ -38,11 +38,17 @@ func (scope *Scope) Get(name string) *Binding {
 }
 
 // Declare declares the name with type.
-func (scope *Scope) Declare(name string, t types.Type) {
+func (scope *Scope) Declare(name string, t types.Type) error {
+	b := scope.Get(name)
+	if b != nil {
+		return fmt.Errorf("identifier '%s' already declared", name)
+	}
 	scope.Symbols[name] = &Binding{
 		Type:  t,
 		Value: types.Null,
 	}
+
+	return nil
 }
 
 // Set sets the binding for the name.

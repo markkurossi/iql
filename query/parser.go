@@ -168,7 +168,7 @@ func (p *Parser) parseSet() error {
 func (p *Parser) parseSelect() (*Query, error) {
 	q := NewQuery(p.global)
 
-	// Columns.
+	// Columns
 	for {
 		col, err := p.parseColumn()
 		if err != nil {
@@ -186,8 +186,35 @@ func (p *Parser) parseSelect() (*Query, error) {
 		}
 	}
 
-	// From
+	// Into
 	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type == TSymInto {
+		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != TIdentifier {
+			return nil, p.errUnexpected(t)
+		}
+		err = q.Global.Declare(t.StrVal, types.Table)
+		if err != nil {
+			return nil, err
+		}
+		err = q.Global.Set(t.StrVal, types.TableValue{
+			Source: q,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		p.lexer.unget(t)
+	}
+
+	// From
+	t, err = p.get()
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +300,7 @@ func (p *Parser) parseColumn() (*ColumnSelector, error) {
 }
 
 func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
-	var source data.Source
+	var source types.Source
 	var as string
 
 	t, err := p.get()
@@ -298,13 +325,21 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 			if b == nil {
 				return nil, p.errf(t.From, "unknown identifier '%s'", t.StrVal)
 			}
-			if b.Type != types.String {
-				return nil, p.errf(t.From, "invalid source type: %s", b.Type)
-			}
 			if b.Value == types.Null {
 				return nil, p.errf(t.From, "identifier '%s' unset", t.StrVal)
 			}
-			url = b.Value.String()
+			if b.Type == types.String {
+				url = b.Value.String()
+			} else if b.Type == types.Table {
+				table, ok := b.Value.(types.TableValue)
+				if !ok {
+					return nil, p.errf(t.From,
+						"invalid table value for identifier '%s'", t.StrVal)
+				}
+				source, err = NewSource(table.Source)
+			} else {
+				return nil, p.errf(t.From, "invalid source type: %s", b.Type)
+			}
 
 		case TString:
 			url = t.StrVal
@@ -321,9 +356,11 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 			return nil, err
 		}
 
-		source, err = data.New(url, filter, columnsFor(q.Select, as))
-		if err != nil {
-			return nil, err
+		if source == nil {
+			source, err = data.New(url, filter, columnsFor(q.Select, as))
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -333,14 +370,14 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 	}, nil
 }
 
-func columnsFor(columns []ColumnSelector, source string) []data.ColumnSelector {
-	var result []data.ColumnSelector
+func columnsFor(columns []ColumnSelector, source string) []types.ColumnSelector {
+	var result []types.ColumnSelector
 
 	for _, col := range columns {
 		switch c := col.Expr.(type) {
 		case *Reference:
 			if c.Source == source {
-				result = append(result, data.ColumnSelector{
+				result = append(result, types.ColumnSelector{
 					Name: c.Reference,
 					As:   col.As,
 				})
@@ -567,7 +604,7 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 			column = t.StrVal
 		}
 		return &Reference{
-			Reference: data.Reference{
+			Reference: types.Reference{
 				Source: source,
 				Column: column,
 			},

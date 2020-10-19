@@ -11,13 +11,12 @@ import (
 	"os"
 	"unicode"
 
-	"github.com/markkurossi/iql/data"
 	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
 var (
-	_ data.Source = &Query{}
+	_ types.Source = &Query{}
 )
 
 // Query implements an SQL query. It also implements data.Source so
@@ -26,12 +25,13 @@ var (
 type Query struct {
 	Select        []ColumnSelector
 	From          []SourceSelector
+	Into          *Binding
 	Where         Expr
 	Global        *Scope
-	selectColumns []data.ColumnSelector
+	selectColumns []types.ColumnSelector
 	fromColumns   map[string]columnIndex
 	evaluated     bool
-	result        []data.Row
+	result        []types.Row
 }
 
 // NewQuery creates a new query object.
@@ -68,28 +68,36 @@ func (col ColumnSelector) String() string {
 
 // SourceSelector defines an input source with an optional name alias.
 type SourceSelector struct {
-	Source data.Source
+	Source types.Source
 	As     string
 }
 
 // Columns implements the Source.Columns().
-func (sql *Query) Columns() []data.ColumnSelector {
+func (sql *Query) Columns() []types.ColumnSelector {
 	return sql.selectColumns
 }
 
 // Get implements the Source.Get().
-func (sql *Query) Get() ([]data.Row, error) {
+func (sql *Query) Get() ([]types.Row, error) {
 	if sql.evaluated {
 		return sql.result, nil
 	}
 
 	// Create column info.
 	for _, col := range sql.Select {
-		sql.selectColumns = append(sql.selectColumns, data.ColumnSelector{
-			Name: data.Reference{
+		// Promote expressions to aliases unless explicit aliases are
+		// defined.
+		var as string
+		if len(col.As) > 0 {
+			as = col.As
+		} else {
+			as = col.Expr.String()
+		}
+		sql.selectColumns = append(sql.selectColumns, types.ColumnSelector{
+			Name: types.Reference{
 				Column: col.Expr.String(),
 			},
-			As: col.As,
+			As: as,
 		})
 	}
 
@@ -118,12 +126,12 @@ func (sql *Query) Get() ([]data.Row, error) {
 		}
 
 		// Collect column names.
-		for columnIdx, column := range from.Source.Columns() {
+		for columnIdx, col := range from.Source.Columns() {
 			var key string
 			if len(from.As) > 0 {
-				key = fmt.Sprintf("%s.%s", from.As, column.As)
+				key = fmt.Sprintf("%s.%s", from.As, col.As)
 			} else {
-				key = column.As
+				key = col.As
 			}
 			sql.fromColumns[key] = columnIndex{
 				source: sourceIdx,
@@ -152,7 +160,7 @@ func (sql *Query) Get() ([]data.Row, error) {
 		}
 	}
 
-	var matches [][]data.Row
+	var matches [][]types.Row
 	err := sql.eval(0, nil, nil, &matches)
 	if err != nil {
 		return nil, err
@@ -160,13 +168,13 @@ func (sql *Query) Get() ([]data.Row, error) {
 
 	// Select result columns.
 
-	var columns [][]data.ColumnSelector
+	var columns [][]types.ColumnSelector
 	for _, sel := range sql.From {
 		columns = append(columns, sel.Source.Columns())
 	}
 
 	for _, match := range matches {
-		var row data.Row
+		var row types.Row
 		for i, sel := range sql.Select {
 			if sel.IsPublic() {
 				val, err := sel.Expr.Eval(match, columns, matches)
@@ -174,10 +182,10 @@ func (sql *Query) Get() ([]data.Row, error) {
 					return nil, err
 				}
 				if val == types.Null {
-					row = append(row, data.NullColumn{})
+					row = append(row, types.NullColumn{})
 				} else {
 					str := val.String()
-					row = append(row, data.StringColumn(str))
+					row = append(row, types.StringColumn(str))
 					sql.selectColumns[i].ResolveType(str)
 				}
 			}
@@ -192,8 +200,8 @@ func (sql *Query) Get() ([]data.Row, error) {
 	return sql.result, nil
 }
 
-func (sql *Query) eval(idx int, data []data.Row,
-	columns [][]data.ColumnSelector, result *[][]data.Row) error {
+func (sql *Query) eval(idx int, data []types.Row,
+	columns [][]types.ColumnSelector, result *[][]types.Row) error {
 
 	if idx >= len(sql.From) {
 		match := true
@@ -229,7 +237,7 @@ func (sql *Query) eval(idx int, data []data.Row,
 	return nil
 }
 
-func (sql *Query) resolveName(name data.Reference, public bool) (
+func (sql *Query) resolveName(name types.Reference, public bool) (
 	*Reference, error) {
 
 	if name.IsAbsolute() {
@@ -247,7 +255,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 	var match *Reference
 
 	for _, from := range sql.From {
-		key := data.Reference{
+		key := types.Reference{
 			Source: from.As,
 			Column: name.Column,
 		}
@@ -271,7 +279,7 @@ func (sql *Query) resolveName(name data.Reference, public bool) (
 	b := sql.Global.Get(name.Column)
 	if b != nil {
 		return &Reference{
-			Reference: data.Reference{
+			Reference: types.Reference{
 				Column: name.Column,
 			},
 			binding: b,

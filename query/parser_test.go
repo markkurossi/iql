@@ -8,10 +8,11 @@ package query
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"testing"
 
-	"github.com/markkurossi/iql/data"
+	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
 )
 
@@ -87,28 +88,57 @@ from (
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
      );`,
+
+	`
+select Year,
+       Value,
+       Year * Value as Sum
+into data
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     );
+select Year, Sum from data;`,
+
+	// 1,4.1
+	// 2,4.2
+	// 3,4.3
+	// 4,4.4
+	`
+SELECT
+        "0" AS Ints,
+        "1" AS Floats,
+        Ints + Floats AS Sum1,
+        Floats + Ints AS Sum2
+FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
 }
 
 func TestParser(t *testing.T) {
 	for _, input := range parserTests {
 		parser := NewParser(bytes.NewReader([]byte(input)), "{data}")
-		q, err := parser.Parse()
-		if err != nil {
-			t.Fatalf("Parse failed: %v", err)
-		}
-
-		rows, err := q.Get()
-		if err != nil {
-			t.Fatalf("q.Get failed: %v", err)
-		}
-		tab := data.Table(q, tabulate.Unicode)
-		for _, columns := range rows {
-			row := tab.Row()
-			for _, col := range columns {
-				row.Column(col.String())
+		for {
+			q, err := parser.Parse()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				t.Fatalf("Parse failed: %v", err)
 			}
-		}
 
-		tab.Print(os.Stdout)
+			rows, err := q.Get()
+			if err != nil {
+				t.Fatalf("q.Get failed: %v", err)
+			}
+			tab := types.Tabulate(q, tabulate.Unicode)
+			for _, columns := range rows {
+				row := tab.Row()
+				for _, col := range columns {
+					row.Column(col.String())
+				}
+			}
+
+			tab.Print(os.Stdout)
+		}
 	}
 }

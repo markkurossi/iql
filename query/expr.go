@@ -9,7 +9,6 @@ package query
 import (
 	"fmt"
 
-	"github.com/markkurossi/iql/data"
 	"github.com/markkurossi/iql/types"
 )
 
@@ -24,7 +23,7 @@ var (
 // Expr implements expressions.
 type Expr interface {
 	Bind(sql *Query) error
-	Eval(row []data.Row, columns [][]data.ColumnSelector, rows [][]data.Row) (
+	Eval(row []types.Row, columns [][]types.ColumnSelector, rows [][]types.Row) (
 		types.Value, error)
 	IsIdempotent() bool
 	String() string
@@ -75,8 +74,8 @@ func (f *Function) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (f *Function) Eval(row []data.Row, columns [][]data.ColumnSelector,
-	rows [][]data.Row) (types.Value, error) {
+func (f *Function) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
 
 	if len(f.Arguments) != 1 {
 		return nil, fmt.Errorf("%s: expected one argument, got %d",
@@ -231,8 +230,8 @@ func (b *Binary) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
-	rows [][]data.Row) (types.Value, error) {
+func (b *Binary) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
 
 	left, err := b.Left.Eval(row, columns, rows)
 	if err != nil {
@@ -379,6 +378,10 @@ func (b *Binary) Eval(row []data.Row, columns [][]data.ColumnSelector,
 			return types.FloatValue(l * r), nil
 		case BinDiv:
 			return types.FloatValue(l / r), nil
+		case BinAdd:
+			return types.FloatValue(l + r), nil
+		case BinSub:
+			return types.FloatValue(l - r), nil
 		default:
 			return nil, fmt.Errorf("unknown float binary expression: %s %s %s",
 				left, b.Type, right)
@@ -433,8 +436,8 @@ func (and *And) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (and *And) Eval(row []data.Row, columns [][]data.ColumnSelector,
-	rows [][]data.Row) (types.Value, error) {
+func (and *And) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
 
 	left, err := and.Left.Eval(row, columns, rows)
 	if err != nil {
@@ -479,8 +482,8 @@ func (c *Constant) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (c *Constant) Eval(row []data.Row, columns [][]data.ColumnSelector,
-	rows [][]data.Row) (types.Value, error) {
+func (c *Constant) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
 
 	return c.Value, nil
 }
@@ -496,7 +499,7 @@ func (c *Constant) String() string {
 
 // Reference implements column reference expressions.
 type Reference struct {
-	data.Reference
+	types.Reference
 	index   columnIndex
 	binding *Binding
 	public  bool
@@ -504,7 +507,7 @@ type Reference struct {
 
 // NewReference creates a new reference for the argument name.
 func NewReference(name string) (*Reference, error) {
-	r, err := data.NewReference(name)
+	r, err := types.NewReference(name)
 	if err != nil {
 		return nil, err
 	}
@@ -529,12 +532,13 @@ func (ref *Reference) Bind(sql *Query) error {
 		return err
 	}
 	ref.index = r.index
+
 	return nil
 }
 
 // Eval implements the Expr.Eval().
-func (ref *Reference) Eval(row []data.Row, columns [][]data.ColumnSelector,
-	rows [][]data.Row) (types.Value, error) {
+func (ref *Reference) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
 
 	col := row[ref.index.source][ref.index.column]
 	t := columns[ref.index.source][ref.index.column].Type
