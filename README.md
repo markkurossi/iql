@@ -138,7 +138,7 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
  - [ ] Aggregate:
    - [X] Idempotent selectors expressions resulting single row
    - [ ] Value cache
- - [ ] Evaluate all queries from input stream
+ - [X] Evaluate all queries from input stream
  - [ ] HTTP resource cache
 
 # Query language
