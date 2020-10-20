@@ -141,6 +141,17 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
  - [ ] JSON data format
  - [ ] IQL option to skip CVS header line
 
-# Query language
+# Query Language Documentation
 
-<img align="center" src="iql.svg">
+The IQL follows SQL in all constructs where possible. The full syntax
+is defined in the [iql.iso-ebnf](iql.iso-ebnf) file and it is also
+available as [SVG](iql.svg) and [HTML](iql.html) versions.
+
+## Built-in Functions
+
+ - AVG(Expression): returns the average value of all the values. The
+   NULL values are ignored.
+ - COUNT(Expression): returns the count of all the values. The NULL
+   values are ignored
+ - SUM(Expression): returns the sum of all the values. The NULL values
+   are ignored.

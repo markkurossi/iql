@@ -31,6 +31,15 @@ func NewParser(input io.Reader, source string) *Parser {
 	}
 }
 
+// SetString defines the global string variable with value.
+func (p *Parser) SetString(name, value string) error {
+	b := p.global.Get(name)
+	if b == nil {
+		p.global.Declare(name, types.String)
+	}
+	return p.global.Set(name, types.StringValue(value))
+}
+
 func (p *Parser) get() (*Token, error) {
 	t, err := p.lexer.get()
 	if err != nil {
