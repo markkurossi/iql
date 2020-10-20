@@ -88,6 +88,13 @@ from (
                "1" AS Value
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
      );`,
+	`
+select COUNT(Year) as Count
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     );`,
 
 	`
 select Year,
