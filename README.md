@@ -15,7 +15,7 @@ site](https://markkurossi.com/iql/examples/) and we use that location
 for these examples.
 
 The [store.html](https://markkurossi.com/iql/examples/store.html) file
-contains 3 data sources, encoded has HTML tables. The "customers"
+contains 2 data sources, encoded has HTML tables. The "customers"
 table contain information about store customers:
 
 
@@ -62,16 +62,15 @@ WHERE products.ID <> null;
 └────┴───────────────────────────────────────────────────┴───────┘
 ```
 
-The "orders" table defines the orders:
+The [orders.csv](https://markkurossi.com/iql/examples/orders.csv) file
+contains order information, encoded as comma-separted values (CSV):
 
 ```sql
-SELECT orders.'.id'           AS ID,
-       orders.':nth-child(2)' AS Customer,
-       orders.':nth-child(3)' AS Product,
-       orders.':nth-child(4)' AS Count
-FROM 'https://markkurossi.com/iql/examples/store.html'
-     FILTER 'table:nth-of-type(3) tr' AS orders
-WHERE ID <> null;
+SELECT orders.'0' AS ID,
+       orders.'1' AS Customer,
+       orders.'2' AS Product,
+       orders.'3' AS Count
+FROM 'https://markkurossi.com/iql/examples/orders.csv' AS orders;
 ```
 
 ```
@@ -90,6 +89,9 @@ compute values over the columns:
 ```sql
 DECLARE storeurl VARCHAR;
 SET storeurl = 'https://markkurossi.com/iql/examples/store.html';
+
+DECLARE ordersurl VARCHAR;
+SET ordersurl = 'https://markkurossi.com/iql/examples/orders.csv';
 
 SELECT customers.Name                AS Name,
        customers.Address             AS Address,
@@ -111,13 +113,12 @@ FROM (
         WHERE ID <> null
      ) AS products,
      (
-        SELECT o.'.id'           AS ID,
-               o.':nth-child(2)' AS Customer,
-               o.':nth-child(3)' AS Product,
-               o.':nth-child(4)' AS Count
-        FROM storeurl FILTER 'table:nth-of-type(3) tr' AS o
-        WHERE ID <> null
-     ) as orders
+       SELECT o.'0' AS ID,
+       	      o.'1' AS Customer,
+       	      o.'2' AS Product,
+       	      o.'3' AS Count
+       FROM ordersurl AS o
+     ) AS orders
 WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 ```
 
@@ -144,36 +145,3 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 # Query language
 
 <img align="center" src="iql.svg">
-
-```sql
-SELECT ref.Name, ref.Price, ref.Weigth, portfolio.Weigth AS Portfolio
-FROM
-    (
-        SELECT '.name'     AS Name,
-               '.avgprice' AS Price,
-               '.share'    AS Weight,
-               '.link'     AS link
-        FROM ',reference.html' FILTER 'tbody > tr'
-        WHERE link <> ''
-    ) AS ref,
-    (
-        SELECT '0' AS Name,
-               '1' AS Weigth
-        FROM ',portfolio.csv'
-    ) AS portfolio,
-WHERE ref.Name = portfolio.Name;
-```
-
-```sql
-SELECT ind.'.name'         	      		AS Name,
-       ind.':nth-child(5)' 	      		AS Price,
-       ind.'.share'    	   	      		AS Weigth,
-       ind.a     	   	      		AS link,
-       portfolio.'0'   	   	      		AS name,
-       portfolio.'1'   	   	      		AS Count,
-       Count * Price	   	      		AS Invested,
-       Count * Price / SUM(Count * Price) * 100 AS "My Weight"
-FROM ',reference.html' FILTER 'tbody > tr' AS ind,
-     ',portfolio.csv' AS portfolio
-WHERE ind.link <> '' AND ind.Name = portfolio.name;
-```

@@ -1,8 +1,7 @@
 /* -*- sql -*- */
 
-SELECT orders.'.id'           AS ID,
-       orders.':nth-child(2)' AS Customer,
-       orders.':nth-child(3)' AS Product,
-       orders.':nth-child(4)' AS Count
-FROM 'store.html' FILTER 'table:nth-of-type(3) tr' AS orders
-WHERE ID <> null;
+SELECT orders.'0' AS ID,
+       orders.'1' AS Customer,
+       orders.'2' AS Product,
+       orders.'3' AS Count
+FROM 'orders.csv' AS orders;

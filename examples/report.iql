@@ -3,6 +3,9 @@
 DECLARE storeurl VARCHAR;
 SET storeurl = 'https://markkurossi.com/iql/examples/store.html';
 
+DECLARE ordersurl VARCHAR;
+SET ordersurl = 'https://markkurossi.com/iql/examples/orders.csv';
+
 SELECT customers.Name                AS Name,
        customers.Address             AS Address,
        products.Name                 AS Product,
@@ -23,11 +26,10 @@ FROM (
         WHERE ID <> null
      ) AS products,
      (
-        SELECT o.'.id'           AS ID,
-               o.':nth-child(2)' AS Customer,
-               o.':nth-child(3)' AS Product,
-               o.':nth-child(4)' AS Count
-        FROM storeurl FILTER 'table:nth-of-type(3) tr' AS o
-        WHERE ID <> null
-     ) as orders
+       SELECT o.'0' AS ID,
+       	      o.'1' AS Customer,
+       	      o.'2' AS Product,
+       	      o.'3' AS Count
+       FROM ordersurl AS o
+     ) AS orders
 WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
