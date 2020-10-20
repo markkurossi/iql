@@ -134,13 +134,11 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 
 # TODO
 
- - [X] Statements are terminated by ';' so EOF is an error
- - [X] Query language documentation
  - [ ] Aggregate:
    - [X] Idempotent selectors expressions resulting single row
    - [ ] Value cache
- - [X] Evaluate all queries from input stream
  - [ ] HTTP resource cache
+ - [ ] JSON data format
 
 # Query language
 
