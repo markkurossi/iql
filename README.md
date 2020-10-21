@@ -148,8 +148,8 @@ package for the HTML processing. This means that the filter and column
 selectors are CSS selectors, implemented by the
 [cascadia](https://github.com/andybalholm/cascadia) library. The input
 document processing is done as follows:
- - the **FILTER** selector selects input rows
- - the **SELECT** selectors select columns from input rows
+ - the `FILTER` selector selects input rows
+ - the `SELECT` selectors select columns from input rows
 
 ### CSV
 
@@ -157,9 +157,9 @@ The CSV data source extracts input from comma-separated values (CSV)
 data.  The data source uses Go's CSV encoding package for decoding the
 data. The `FILTER` parameter can be used to specify CSV processing
 options:
- - **skip**=*count*: skip the first *count* input lines
- - **comma**=*rune*: use *rune* to separate columns
- - **comment**=*rune*: skip lines starting with *rune*
+ - `skip`=*count*: skip the first *count* input lines
+ - `comma`=*rune*: use *rune* to separate columns
+ - `comment`=*rune*: skip lines starting with *rune*
 
 ## Built-in Functions
 
