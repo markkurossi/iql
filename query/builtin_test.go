@@ -32,6 +32,17 @@ var builtInData = `1970,100,100.5
 var builtInTests = []BuiltInTest{
 	{
 		q: `
+select AVG(Year)
+from (
+      select "0" as Year,
+             "1" as IVal,
+             "2" as FVal
+      from data
+     );`,
+		v: "1972",
+	},
+	{
+		q: `
 select COUNT(Year)
 from (
       select "0" as Year,
@@ -43,14 +54,25 @@ from (
 	},
 	{
 		q: `
-select AVG(Year)
+select MAX(Year)
 from (
       select "0" as Year,
              "1" as IVal,
              "2" as FVal
       from data
      );`,
-		v: "1972",
+		v: "1974",
+	},
+	{
+		q: `
+select MIN(Year)
+from (
+      select "0" as Year,
+             "1" as IVal,
+             "2" as FVal
+      from data
+     );`,
+		v: "1970",
 	},
 	{
 		q: `

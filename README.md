@@ -163,10 +163,14 @@ options:
 
 ## Built-in Functions
 
- - AVG(Expression): returns the average value of all the values. The
+ - AVG(*expression*): returns the average value of all the values. The
    NULL values are ignored.
- - COUNT(Expression): returns the count of all the values. The NULL
+ - COUNT(*expression*): returns the count of all the values. The NULL
    values are ignored
+ - MAX(*expression*): returns the maximum value of all the values. The
+   NULL values are ignored.
+ - MIN(*expression*): returns the minimum value of all the values. The
+   NULL values are ignored.
  - SUM(Expression): returns the sum of all the values. The NULL values
    are ignored.
 

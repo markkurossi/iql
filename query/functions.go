@@ -29,16 +29,20 @@ type FunctionType int
 
 // Function types.
 const (
-	FuncSum FunctionType = iota
-	FuncAvg
+	FuncAvg FunctionType = iota
 	FuncCount
+	FuncMax
+	FuncMin
+	FuncSum
 	FuncComposite
 )
 
 var functionTypes = map[FunctionType]string{
-	FuncSum:       "SUM",
 	FuncAvg:       "AVG",
 	FuncCount:     "COUNT",
+	FuncMax:       "MAX",
+	FuncMin:       "MIN",
+	FuncSum:       "SUM",
 	FuncComposite: "{composite}",
 }
 
@@ -51,12 +55,6 @@ func (t FunctionType) String() string {
 }
 
 var builtIns = map[string]*Function{
-	"SUM": {
-		Type:       FuncSum,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: true,
-	},
 	"AVG": {
 		Type:       FuncAvg,
 		MinArgs:    1,
@@ -65,6 +63,24 @@ var builtIns = map[string]*Function{
 	},
 	"COUNT": {
 		Type:       FuncCount,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: true,
+	},
+	"MAX": {
+		Type:       FuncMax,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: true,
+	},
+	"MIN": {
+		Type:       FuncMin,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: true,
+	},
+	"SUM": {
+		Type:       FuncSum,
 		MinArgs:    1,
 		MaxArgs:    1,
 		Idempotent: true,
@@ -95,42 +111,9 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 			f, len(args), f.MaxArgs)
 	}
 
+	seen := make(map[types.Type]bool)
+
 	switch f.Type {
-	case FuncSum:
-		var intSum int64
-		var floatSum float64
-
-		for _, sumRow := range rows {
-			val, err := args[0].Eval(sumRow, columns, nil)
-			if err != nil {
-				return nil, err
-			}
-			switch v := val.(type) {
-			case types.NullValue:
-
-			case types.IntValue:
-				add, err := v.Int()
-				if err != nil {
-					return nil, err
-				}
-				intSum += add
-
-			case types.FloatValue:
-				add, err := v.Float()
-				if err != nil {
-					return nil, err
-				}
-				floatSum += add
-
-			default:
-				return nil, fmt.Errorf("SUM over %T", val)
-			}
-		}
-		if floatSum != 0 {
-			return types.FloatValue(floatSum), nil
-		}
-		return types.IntValue(intSum), nil
-
 	case FuncAvg:
 		var intSum int64
 		var floatSum float64
@@ -150,6 +133,7 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 					return nil, err
 
 				}
+				seen[types.Int] = true
 				intSum += add
 				count++
 
@@ -158,6 +142,7 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 				if err != nil {
 					return nil, err
 				}
+				seen[types.Float] = true
 				floatSum += add
 				count++
 
@@ -165,10 +150,10 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 				return nil, fmt.Errorf("AVG over %T", val)
 			}
 		}
-		if count == 0 {
+		if count == 0 || len(seen) != 1 {
 			return types.Null, nil
 		}
-		if floatSum != 0 {
+		if seen[types.Float] {
 			return types.FloatValue(floatSum / float64(count)), nil
 		}
 		return types.IntValue(intSum / int64(count)), nil
@@ -186,6 +171,143 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 			}
 		}
 		return types.IntValue(count), nil
+
+	case FuncMax:
+		var intMax int64
+		var floatMax float64
+
+		for _, sumRow := range rows {
+			val, err := args[0].Eval(sumRow, columns, nil)
+			if err != nil {
+				return nil, err
+			}
+			switch v := val.(type) {
+			case types.NullValue:
+
+			case types.IntValue:
+				ival, err := v.Int()
+				if err != nil {
+					return nil, err
+				}
+				if !seen[types.Int] || ival > intMax {
+					intMax = ival
+				}
+				seen[types.Int] = true
+
+			case types.FloatValue:
+				fval, err := v.Float()
+				if err != nil {
+					return nil, err
+				}
+				if !seen[types.Float] || fval > floatMax {
+					floatMax = fval
+				}
+				seen[types.Float] = true
+
+			default:
+				return nil, fmt.Errorf("MAX over %T", val)
+			}
+		}
+		if seen[types.Float] && seen[types.Int] {
+			var r float64
+			if float64(intMax) > floatMax {
+				r = float64(intMax)
+			} else {
+				r = floatMax
+			}
+			return types.FloatValue(r), nil
+		} else if seen[types.Float] {
+			return types.FloatValue(floatMax), nil
+		}
+		return types.IntValue(intMax), nil
+
+	case FuncMin:
+		var intMin int64
+		var floatMin float64
+
+		for _, sumRow := range rows {
+			val, err := args[0].Eval(sumRow, columns, nil)
+			if err != nil {
+				return nil, err
+			}
+			switch v := val.(type) {
+			case types.NullValue:
+
+			case types.IntValue:
+				ival, err := v.Int()
+				if err != nil {
+					return nil, err
+				}
+				if !seen[types.Int] || ival < intMin {
+					intMin = ival
+				}
+				seen[types.Int] = true
+
+			case types.FloatValue:
+				fval, err := v.Float()
+				if err != nil {
+					return nil, err
+				}
+				if !seen[types.Float] || fval < floatMin {
+					floatMin = fval
+				}
+				seen[types.Float] = true
+
+			default:
+				return nil, fmt.Errorf("MIN over %T", val)
+			}
+		}
+		if seen[types.Float] && seen[types.Int] {
+			var r float64
+			if float64(intMin) < floatMin {
+				r = float64(intMin)
+			} else {
+				r = floatMin
+			}
+			return types.FloatValue(r), nil
+		} else if seen[types.Float] {
+			return types.FloatValue(floatMin), nil
+		}
+		return types.IntValue(intMin), nil
+
+	case FuncSum:
+		var intSum int64
+		var floatSum float64
+
+		for _, sumRow := range rows {
+			val, err := args[0].Eval(sumRow, columns, nil)
+			if err != nil {
+				return nil, err
+			}
+			switch v := val.(type) {
+			case types.NullValue:
+
+			case types.IntValue:
+				add, err := v.Int()
+				if err != nil {
+					return nil, err
+				}
+				seen[types.Int] = true
+				intSum += add
+
+			case types.FloatValue:
+				add, err := v.Float()
+				if err != nil {
+					return nil, err
+				}
+				seen[types.Float] = true
+				floatSum += add
+
+			default:
+				return nil, fmt.Errorf("SUM over %T", val)
+			}
+		}
+		if seen[types.Float] && seen[types.Int] {
+			return types.FloatValue(floatSum + float64(intSum)), nil
+		} else if seen[types.Float] {
+			return types.FloatValue(floatSum), nil
+		}
+		return types.IntValue(intSum), nil
 
 	default:
 		return nil, fmt.Errorf("unknown function: %v", f.Type)
