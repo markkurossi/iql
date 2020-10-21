@@ -170,6 +170,25 @@ options:
  - SUM(Expression): returns the sum of all the values. The NULL values
    are ignored.
 
+For example, if you input file is as follows:
+
+```csv
+Year;Value;Delta
+# lines beginning with # character are ignored
+1970;100;0
+1971;101;1
+1972;200;99
+```
+
+The fields can be processing with the following IQL code:
+
+```sql
+SELECT data.'0' AS Year,
+       data.'1' AS Value,
+       data.'2' AS Delta
+FROM 'data.csv' FILTER 'skip=1 comma=; comment=#' AS data;
+```
+
 # TODO
 
  - [ ] Aggregate:
