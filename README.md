@@ -189,6 +189,16 @@ SELECT data.'0' AS Year,
 FROM 'data.csv' FILTER 'skip=1 comma=; comment=#' AS data;
 ```
 
+```
+┏━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃ Year ┃ Value ┃ Delta ┃
+┡━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 1970 │   100 │     0 │
+│ 1971 │   101 │     1 │
+│ 1972 │   200 │    99 │
+└──────┴───────┴───────┘
+```
+
 # TODO
 
  - [ ] Aggregate:
