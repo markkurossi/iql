@@ -161,19 +161,6 @@ options:
  - `comma`=*rune*: use *rune* to separate columns
  - `comment`=*rune*: skip lines starting with *rune*
 
-## Built-in Functions
-
- - AVG(*expression*): returns the average value of all the values. The
-   NULL values are ignored.
- - COUNT(*expression*): returns the count of all the values. The NULL
-   values are ignored
- - MAX(*expression*): returns the maximum value of all the values. The
-   NULL values are ignored.
- - MIN(*expression*): returns the minimum value of all the values. The
-   NULL values are ignored.
- - SUM(Expression): returns the sum of all the values. The NULL values
-   are ignored.
-
 For example, if you input file is as follows:
 
 ```csv
@@ -202,6 +189,19 @@ FROM 'data.csv' FILTER 'skip=1 comma=; comment=#' AS data;
 │ 1972 │   200 │    99 │
 └──────┴───────┴───────┘
 ```
+
+## Built-in Functions
+
+ - AVG(*expression*): returns the average value of all the values. The
+   NULL values are ignored.
+ - COUNT(*expression*): returns the count of all the values. The NULL
+   values are ignored
+ - MAX(*expression*): returns the maximum value of all the values. The
+   NULL values are ignored.
+ - MIN(*expression*): returns the minimum value of all the values. The
+   NULL values are ignored.
+ - SUM(Expression): returns the sum of all the values. The NULL values
+   are ignored.
 
 # TODO
 
