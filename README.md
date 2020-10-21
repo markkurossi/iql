@@ -132,20 +132,34 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 └──────────────────┴──────────────────────────────────────────┴───────────────────────────────────────────────────┴───────┴───────┘
 ```
 
-# TODO
-
- - [ ] Aggregate:
-   - [X] Idempotent selectors expressions resulting single row
-   - [ ] Value cache
- - [ ] HTTP resource cache
- - [ ] JSON data format
- - [ ] IQL option to skip CVS header line
-
 # Query Language Documentation
 
 The IQL follows SQL in all constructs where possible. The full syntax
 is defined in the [iql.iso-ebnf](iql.iso-ebnf) file and it is also
 available as [SVG](iql.svg) and [HTML](iql.html) versions.
+
+## Data Sources
+
+### HTML
+
+The HTML data source extracts input from HTML documents. The data
+source uses the [goquery](https://github.com/PuerkitoBio/goquery)
+package for the HTML processing. This means that the filter and column
+selectors are CSS selectors, implemented by the
+[cascadia](https://github.com/andybalholm/cascadia) library. The input
+document processing is done as follows:
+ - the **FILTER** selector selects input rows
+ - the **SELECT** selectors select columns from input rows
+
+### CSV
+
+The CSV data source extracts input from comma-separated values (CSV)
+data.  The data source uses Go's CSV encoding package for decoding the
+data. The `FILTER` parameter can be used to specify CSV processing
+options:
+ - **skip**=*count*: skip the first *count* input lines
+ - **comma**=*rune*: use *rune* to separate columns
+ - **comment**=*rune*: skip lines starting with *rune*
 
 ## Built-in Functions
 
@@ -155,3 +169,10 @@ available as [SVG](iql.svg) and [HTML](iql.html) versions.
    values are ignored
  - SUM(Expression): returns the sum of all the values. The NULL values
    are ignored.
+
+# TODO
+
+ - [ ] Aggregate:
+   - [ ] Value cache
+ - [ ] HTTP resource cache
+ - [ ] JSON data format
