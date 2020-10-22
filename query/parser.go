@@ -611,6 +611,20 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 	var val types.Value
 
 	switch t.Type {
+	case '(':
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != ')' {
+			return nil, p.errUnexpected(t)
+		}
+		return expr, nil
+
 	case TIdentifier:
 		var source, column string
 

@@ -1,9 +1,9 @@
 Program = { TopLevelClause, ';'};
 
-TopLevelClause = (VariableDecl
+TopLevelClause = ( VariableDecl
 	         | VariableInit
 		 | PrintStmt
-		 | SelectClause);
+		 | SelectClause );
 
 
 VariableDecl = 'DECLARE', Identifier, Type;
@@ -37,7 +37,8 @@ MultiplicativeExpr = UnaryExpr, {('*' | '/'), UnaryExpr};
 
 UnaryExpr = PostfixExpr;
 
-PostfixExpr = SimpleReference
+PostfixExpr = '(', Expr, ')'
+	    | SimpleReference
 	    | QualifiedReference
 	    | FunctionCall
 	    | Bool
