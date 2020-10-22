@@ -200,6 +200,8 @@ FROM 'data.csv' FILTER 'skip=1 comma=; comment=#' AS data;
    NULL values are ignored.
  - MIN(*expression*): returns the minimum value of all the values. The
    NULL values are ignored.
+ - NULLIF(*expr*, *value*): returns NULL if the *expr* and *value* are
+   equal and the value of *expr* otherwise.
  - SUM(Expression): returns the sum of all the values. The NULL values
    are ignored.
 
