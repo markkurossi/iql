@@ -33,7 +33,8 @@ type TokenType int
 const (
 	TIdentifier TokenType = iota + 256
 	TString
-	TInteger
+	TInt
+	TFloat
 	TNull
 	TSymSelect
 	TSymInto
@@ -59,7 +60,8 @@ const (
 var tokenTypes = map[TokenType]string{
 	TIdentifier: "identifier",
 	TString:     "string",
-	TInteger:    "integer",
+	TInt:        "int",
+	TFloat:      "float",
 	TNull:       "NULL",
 	TSymSelect:  "SELECT",
 	TSymInto:    "INTO",
@@ -111,11 +113,12 @@ var symbols = map[string]TokenType{
 
 // Token implements an input token.
 type Token struct {
-	Type   TokenType
-	From   Point
-	To     Point
-	StrVal string
-	IntVal int64
+	Type     TokenType
+	From     Point
+	To       Point
+	StrVal   string
+	IntVal   int64
+	FloatVal float64
 }
 
 func (t *Token) String() string {
@@ -124,8 +127,10 @@ func (t *Token) String() string {
 		return t.StrVal
 	case TString:
 		return fmt.Sprintf("'%s'", t.StrVal)
-	case TInteger:
+	case TInt:
 		return fmt.Sprintf("%d", t.IntVal)
+	case TFloat:
+		return fmt.Sprintf("%f", t.FloatVal)
 	default:
 		return t.Type.String()
 	}
@@ -376,6 +381,14 @@ lexer:
 					i64, err = l.readHexLiteral([]rune{'0', r})
 				case '0', '1', '2', '3', '4', '5', '6', '7':
 					i64, err = l.readOctalLiteral([]rune{'0', r})
+				case '.':
+					f64, err := l.readFloatLiteral([]rune{'0', r})
+					if err != nil {
+						return nil, err
+					}
+					token := l.token(TFloat)
+					token.FloatVal = f64
+					return token, nil
 				default:
 					l.UnreadRune()
 				}
@@ -383,7 +396,7 @@ lexer:
 					return nil, err
 				}
 			}
-			token := l.token(TInteger)
+			token := l.token(TInt)
 			token.IntVal = i64
 			return token, nil
 
@@ -425,6 +438,14 @@ lexer:
 					}
 					if unicode.IsDigit(r) {
 						val = append(val, r)
+					} else if r == '.' {
+						f64, err := l.readFloatLiteral(append(val, r))
+						if err != nil {
+							return nil, err
+						}
+						token := l.token(TFloat)
+						token.FloatVal = f64
+						return token, nil
 					} else {
 						l.UnreadRune()
 						break
@@ -434,7 +455,7 @@ lexer:
 				if err != nil {
 					return nil, err
 				}
-				token := l.token(TInteger)
+				token := l.token(TInt)
 				token.IntVal = i64
 				return token, nil
 			}
@@ -503,6 +524,25 @@ func (l *lexer) readHexLiteral(val []rune) (int64, error) {
 		}
 	}
 	return strconv.ParseInt(string(val), 0, 64)
+}
+
+func (l *lexer) readFloatLiteral(val []rune) (float64, error) {
+	for {
+		r, _, err := l.ReadRune()
+		if err != nil {
+			if err != io.EOF {
+				return 0, err
+			}
+			break
+		}
+		if unicode.IsDigit(r) {
+			val = append(val, r)
+		} else {
+			l.UnreadRune()
+			break
+		}
+	}
+	return strconv.ParseFloat(string(val), 64)
 }
 
 func (l *lexer) unget(t *Token) {

@@ -31,6 +31,30 @@ type Value interface {
 	String() string
 }
 
+// Equal tests if the argument values are equal.
+func Equal(value1, value2 Value) (bool, error) {
+	switch v1 := value1.(type) {
+	case BoolValue:
+		v2, ok := value2.(BoolValue)
+		return ok && v1 == v2, nil
+
+	case IntValue:
+		v2, ok := value2.(IntValue)
+		return ok && v1 == v2, nil
+
+	case FloatValue:
+		v2, ok := value2.(FloatValue)
+		return ok && v1 == v2, nil
+
+	case StringValue:
+		v2, ok := value2.(StringValue)
+		return ok && v1 == v2, nil
+
+	default:
+		return false, fmt.Errorf("types.Equal: invalid type: %T", value1)
+	}
+}
+
 // BoolValue implements boolean values.
 type BoolValue bool
 

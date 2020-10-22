@@ -643,7 +643,7 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 				source = t.StrVal
 				column = n.StrVal
 
-			case TInteger:
+			case TInt:
 				source = t.StrVal
 				column = fmt.Sprintf("%d", n.IntVal)
 
@@ -663,8 +663,10 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 
 	case TString:
 		val = types.StringValue(t.StrVal)
-	case TInteger:
+	case TInt:
 		val = types.IntValue(t.IntVal)
+	case TFloat:
+		val = types.FloatValue(t.FloatVal)
 	case TNull:
 		val = types.Null
 	default:

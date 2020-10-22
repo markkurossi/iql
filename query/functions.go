@@ -33,6 +33,7 @@ const (
 	FuncCount
 	FuncMax
 	FuncMin
+	FuncNullIf
 	FuncSum
 	FuncComposite
 )
@@ -42,6 +43,7 @@ var functionTypes = map[FunctionType]string{
 	FuncCount:     "COUNT",
 	FuncMax:       "MAX",
 	FuncMin:       "MIN",
+	FuncNullIf:    "NULLIF,",
 	FuncSum:       "SUM",
 	FuncComposite: "{composite}",
 }
@@ -78,6 +80,12 @@ var builtIns = map[string]*Function{
 		MinArgs:    1,
 		MaxArgs:    1,
 		Idempotent: true,
+	},
+	"NULLIF": {
+		Type:       FuncNullIf,
+		MinArgs:    2,
+		MaxArgs:    2,
+		Idempotent: false,
 	},
 	"SUM": {
 		Type:       FuncSum,
@@ -269,6 +277,24 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 			return types.FloatValue(floatMin), nil
 		}
 		return types.IntValue(intMin), nil
+
+	case FuncNullIf:
+		val, err := args[0].Eval(row, columns, rows)
+		if err != nil {
+			return nil, err
+		}
+		cmp, err := args[1].Eval(row, columns, rows)
+		if err != nil {
+			return nil, err
+		}
+		ok, err := types.Equal(val, cmp)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return types.Null, nil
+		}
+		return val, nil
 
 	case FuncSum:
 		var intSum int64

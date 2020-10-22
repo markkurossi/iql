@@ -85,6 +85,26 @@ from (
      );`,
 		v: "9860",
 	},
+	{
+		q: `
+SELECT NULLIF(4, 4);`,
+		v: "NULL",
+	},
+	{
+		q: `
+SELECT NULLIF(5, 4);`,
+		v: "5",
+	},
+	{
+		q: `
+SELECT 5 / NULLIF(0.0, 0.0);`,
+		v: "NULL",
+	},
+	{
+		q: `
+SELECT 5 / NULLIF(5.0, 0.0);`,
+		v: "1.00",
+	},
 }
 
 func TestBuiltIn(t *testing.T) {

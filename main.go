@@ -47,7 +47,12 @@ func main() {
 			for _, columns := range rows {
 				row := tab.Row()
 				for _, col := range columns {
-					row.Column(col.String())
+					_, ok := col.(types.NullColumn)
+					if ok {
+						row.Column("")
+					} else {
+						row.Column(col.String())
+					}
 				}
 			}
 			tab.Print(os.Stdout)
