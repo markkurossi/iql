@@ -108,6 +108,8 @@ from (
      );
 select Year, Sum from data;`,
 
+	`PRINT 'Type coercion tests:';`,
+
 	// 1,4.1
 	// 2,4.2
 	// 3,4.3

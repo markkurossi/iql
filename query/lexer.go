@@ -43,6 +43,7 @@ const (
 	TSymAs
 	TSymFilter
 	TSymDeclare
+	TSymPrint
 	TSymSet
 	TSymBoolean
 	TSymInteger
@@ -67,6 +68,7 @@ var tokenTypes = map[TokenType]string{
 	TSymAs:      "AS",
 	TSymFilter:  "FILTER",
 	TSymDeclare: "DECLARE",
+	TSymPrint:   "PRINT",
 	TSymSet:     "SET",
 	TSymBoolean: "BOOLEAN",
 	TSymInteger: "INTEGER",
@@ -97,6 +99,7 @@ var symbols = map[string]TokenType{
 	"AS":      TSymAs,
 	"FILTER":  TSymFilter,
 	"DECLARE": TSymDeclare,
+	"PRINT":   TSymPrint,
 	"SET":     TSymSet,
 	"BOOLEAN": TSymBoolean,
 	"INTEGER": TSymInteger,

@@ -1,10 +1,15 @@
 Program = { TopLevelClause, ';'};
 
-TopLevelClause = (VariableDecl | VariableInit | SelectClause);
+TopLevelClause = (VariableDecl
+	         | VariableInit
+		 | PrintStmt
+		 | SelectClause);
 
 
 VariableDecl = 'DECLARE', Identifier, Type;
 VariableInit = 'SET', Identifier, '=', Expr;
+
+PrintStmt = 'PRINT', Expr;
 
 SelectClause = 'SELECT', SelectColumns,
 	       [ 'INTO', Identifier ],

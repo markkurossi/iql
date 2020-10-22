@@ -73,6 +73,12 @@ func (p *Parser) Parse() (*Query, error) {
 				return nil, err
 			}
 
+		case TSymPrint:
+			err = p.parsePrint()
+			if err != nil {
+				return nil, err
+			}
+
 		case TSymSelect:
 			return p.parseSelect()
 
@@ -172,6 +178,26 @@ func (p *Parser) parseSet() error {
 	}
 
 	return p.global.Set(name, v)
+}
+
+func (p *Parser) parsePrint() error {
+	expr, err := p.parseExpr()
+	if err != nil {
+		return err
+	}
+	t, err := p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != ';' {
+		return p.errUnexpected(t)
+	}
+	v, err := expr.Eval(nil, nil, nil)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", v)
+	return nil
 }
 
 func (p *Parser) parseSelect() (*Query, error) {
