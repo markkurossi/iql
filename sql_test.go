@@ -138,16 +138,9 @@ func TestJoin(t *testing.T) {
 			},
 		},
 	}
-	rows, err := q.Get()
+	tab, err := types.Tabulate(q, tabulate.Unicode)
 	if err != nil {
-		t.Fatalf("query.Get() failed: %s", err)
-	}
-	tab := types.Tabulate(q, tabulate.Unicode)
-	for _, columns := range rows {
-		row := tab.Row()
-		for _, col := range columns {
-			row.Column(col.String())
-		}
+		t.Fatalf("Query failed: %s", err)
 	}
 	tab.Print(os.Stdout)
 }

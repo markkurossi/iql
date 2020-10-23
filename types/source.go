@@ -277,10 +277,25 @@ func (s StringsColumn) String() string {
 }
 
 // Tabulate creates a tabulation table for the data source.
-func Tabulate(source Source, style tabulate.Style) *tabulate.Tabulate {
+func Tabulate(source Source, style tabulate.Style) (*tabulate.Tabulate, error) {
+	rows, err := source.Get()
+	if err != nil {
+		return nil, err
+	}
 	tab := tabulate.New(style)
 	for _, col := range source.Columns() {
 		tab.Header(col.String()).SetAlign(col.Type.Align())
 	}
-	return tab
+	for _, columns := range rows {
+		row := tab.Row()
+		for _, col := range columns {
+			_, ok := col.(NullColumn)
+			if ok {
+				row.Column("")
+			} else {
+				row.Column(col.String())
+			}
+		}
+	}
+	return tab, nil
 }

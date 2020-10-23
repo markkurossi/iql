@@ -147,18 +147,10 @@ func TestParser(t *testing.T) {
 				t.Fatalf("Parse failed: %v\nInput:\n%s\n", err, input)
 			}
 
-			rows, err := q.Get()
+			tab, err := types.Tabulate(q, tabulate.Unicode)
 			if err != nil {
 				t.Fatalf("q.Get failed: %v\nInput:\n%s\n", err, input)
 			}
-			tab := types.Tabulate(q, tabulate.Unicode)
-			for _, columns := range rows {
-				row := tab.Row()
-				for _, col := range columns {
-					row.Column(col.String())
-				}
-			}
-
 			tab.Print(os.Stdout)
 		}
 	}

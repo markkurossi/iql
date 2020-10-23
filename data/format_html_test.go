@@ -38,16 +38,9 @@ func TestHTMLCorrect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New failed: %s", err)
 	}
-	rows, err := source.Get()
+	tab, err := types.Tabulate(source, tabulate.Unicode)
 	if err != nil {
 		t.Fatalf("html.Get() failed: %s", err)
-	}
-	tab := types.Tabulate(source, tabulate.Unicode)
-	for _, columns := range rows {
-		row := tab.Row()
-		for _, col := range columns {
-			row.Column(col.String())
-		}
 	}
 	tab.Print(os.Stdout)
 }

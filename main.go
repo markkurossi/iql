@@ -38,22 +38,10 @@ func main() {
 				fmt.Printf("%s\n", err)
 				os.Exit(1)
 			}
-			rows, err := q.Get()
+			tab, err := types.Tabulate(q, tabulate.Unicode)
 			if err != nil {
 				fmt.Printf("Query failed: %v\n", err)
 				os.Exit(1)
-			}
-			tab := types.Tabulate(q, tabulate.Unicode)
-			for _, columns := range rows {
-				row := tab.Row()
-				for _, col := range columns {
-					_, ok := col.(types.NullColumn)
-					if ok {
-						row.Column("")
-					} else {
-						row.Column(col.String())
-					}
-				}
 			}
 			tab.Print(os.Stdout)
 		}

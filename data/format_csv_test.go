@@ -43,12 +43,9 @@ func TestCSVCorrect(t *testing.T) {
 	if len(rows[0]) != 2 {
 		t.Errorf("%s: unexpected number of columns", name)
 	}
-	tab := types.Tabulate(source, tabulate.Unicode)
-	for _, columns := range rows {
-		row := tab.Row()
-		for _, col := range columns {
-			row.Column(col.String())
-		}
+	tab, err := types.Tabulate(source, tabulate.Unicode)
+	if err != nil {
+		t.Errorf("%s: tabulate failed: %s", name, err)
 	}
 	tab.Print(os.Stdout)
 }
@@ -78,16 +75,9 @@ func TestCSVOptions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewCSV failed: %s", err)
 	}
-	rows, err := source.Get()
+	tab, err := types.Tabulate(source, tabulate.Unicode)
 	if err != nil {
 		t.Fatalf("csv.Get() failed: %s", err)
-	}
-	tab := types.Tabulate(source, tabulate.Unicode)
-	for _, columns := range rows {
-		row := tab.Row()
-		for _, col := range columns {
-			row.Column(col.String())
-		}
 	}
 	tab.Print(os.Stdout)
 }

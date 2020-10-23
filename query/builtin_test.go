@@ -154,13 +154,9 @@ func TestBuiltIn(t *testing.T) {
 
 func printResult(q types.Source, rows []types.Row) {
 
-	tab := types.Tabulate(q, tabulate.Unicode)
-	for _, columns := range rows {
-		row := tab.Row()
-		for _, col := range columns {
-			row.Column(col.String())
-		}
+	tab, err := types.Tabulate(q, tabulate.Unicode)
+	if err != nil {
+		return
 	}
-
 	tab.Print(os.Stdout)
 }
