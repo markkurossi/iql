@@ -160,6 +160,7 @@ options:
  - `skip`=*count*: skip the first *count* input lines
  - `comma`=*rune*: use *rune* to separate columns
  - `comment`=*rune*: skip lines starting with *rune*
+ - `trim-leading-space`: trim leading space from columns
 
 For example, if you input file is as follows:
 
