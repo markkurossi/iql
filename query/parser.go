@@ -372,6 +372,9 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 						"invalid table value for identifier '%s'", t.StrVal)
 				}
 				source = table.Source
+				// Use the symbol name as the default alias. The 'AS'
+				// below can override this.
+				as = t.StrVal
 			} else {
 				return nil, p.errf(t.From, "invalid source type: %s", b.Type)
 			}
@@ -386,9 +389,12 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 		if err != nil {
 			return nil, err
 		}
-		as, err = p.parseKeyword(TSymAs)
+		alias, err := p.parseKeyword(TSymAs)
 		if err != nil {
 			return nil, err
+		}
+		if len(alias) > 0 {
+			as = alias
 		}
 
 		if source == nil {

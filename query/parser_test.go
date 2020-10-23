@@ -107,6 +107,18 @@ from (
         from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
      );
 select Year, Sum from data;`,
+	`
+select Year,
+       Value,
+       Year * Value as Sum
+into data
+from (
+        select "0" AS Year,
+               "1" AS Value
+        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+     );
+
+select data.Year, data.Sum from data;`,
 
 	`PRINT 'Type coercion tests:';`,
 
@@ -132,12 +144,12 @@ func TestParser(t *testing.T) {
 				if err == io.EOF {
 					break
 				}
-				t.Fatalf("Parse failed: %v", err)
+				t.Fatalf("Parse failed: %v\nInput:\n%s\n", err, input)
 			}
 
 			rows, err := q.Get()
 			if err != nil {
-				t.Fatalf("q.Get failed: %v", err)
+				t.Fatalf("q.Get failed: %v\nInput:\n%s\n", err, input)
 			}
 			tab := types.Tabulate(q, tabulate.Unicode)
 			for _, columns := range rows {
