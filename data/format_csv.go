@@ -40,33 +40,44 @@ func NewCSV(input io.ReadCloser, filter string,
 			continue
 		}
 		parts := strings.Split(option, "=")
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("csv: invalid filter option: %s", option)
-		}
-		switch parts[0] {
-		case "skip":
-			skip, err = strconv.Atoi(parts[1])
-			if err != nil {
-				return nil, fmt.Errorf("csv: invalid skip count: %s", parts[1])
+		switch len(parts) {
+		case 1:
+			switch parts[0] {
+			case "trim-leading-space":
+				reader.TrimLeadingSpace = true
 			}
 
-		case "comma":
-			runes := []rune(parts[1])
-			if len(runes) != 1 {
-				return nil, fmt.Errorf("csv: comma must be rune: %s", parts[1])
-			}
-			reader.Comma = runes[0]
+		case 2:
+			switch parts[0] {
+			case "skip":
+				skip, err = strconv.Atoi(parts[1])
+				if err != nil {
+					return nil, fmt.Errorf("csv: invalid skip count: %s",
+						parts[1])
+				}
 
-		case "comment":
-			runes := []rune(parts[1])
-			if len(runes) != 1 {
-				return nil, fmt.Errorf("csv: comment must be rune: %s",
-					parts[1])
+			case "comma":
+				runes := []rune(parts[1])
+				if len(runes) != 1 {
+					return nil, fmt.Errorf("csv: comma must be rune: %s",
+						parts[1])
+				}
+				reader.Comma = runes[0]
+
+			case "comment":
+				runes := []rune(parts[1])
+				if len(runes) != 1 {
+					return nil, fmt.Errorf("csv: comment must be rune: %s",
+						parts[1])
+				}
+				reader.Comment = runes[0]
+
+			default:
+				return nil, fmt.Errorf("csv: unknown option: %s", parts[0])
 			}
-			reader.Comment = runes[0]
 
 		default:
-			return nil, fmt.Errorf("csv: unknown option: %s", parts[0])
+			return nil, fmt.Errorf("csv: invalid filter option: %s", option)
 		}
 	}
 

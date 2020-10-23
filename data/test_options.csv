@@ -1,5 +1,5 @@
-Year;Value;Delta
+Year; Value; Delta
 # lines beginning with # character are ignored
-1970;100;0
-1971;101;1
-1972;200;99
+1970; 100;   0
+1971; 101;   1
+1972; 200;   99
