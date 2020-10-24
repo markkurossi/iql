@@ -11,13 +11,18 @@ VariableInit = 'SET', Identifier, '=', Expr;
 
 PrintStmt = 'PRINT', Expr;
 
-SelectClause = 'SELECT', SelectColumns,
-	       [ 'INTO', Identifier ],
-	       [ 'FROM', FromClause, { ',', FromClause } ],
-	       [ 'WHERE', Expr ];
+SelectClause = Select,
+	       [ Into ],
+	       [ From ],
+	       [ Where ];
 
+Select = 'SELECT', SelectColumns;
 SelectColumns = SelectColumn, {',', SelectColumn};
 SelectColumn = Expr, [ AsClause ];
+
+Into  = 'INTO', Identifier;
+From  = 'FROM', FromClause, { ',', FromClause };
+Where = 'WHERE', Expr;
 
 FromClause = (String, [ 'FILTER', String ] | '(', SelectClause, ')'),
 	     'AS', Identifier;

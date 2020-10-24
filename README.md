@@ -138,6 +138,8 @@ The IQL follows SQL in all constructs where possible. The full syntax
 is defined in the [iql.iso-ebnf](iql.iso-ebnf) file and it is also
 available as [SVG](iql.svg) and [HTML](iql.html) versions.
 
+![IQL Grammar](iql.svg)
+
 ## Data Sources
 
 ### HTML
