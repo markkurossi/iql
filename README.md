@@ -239,3 +239,4 @@ This query gives the same result as the previous example:
    - [ ] Value cache
  - [ ] HTTP resource cache
  - [ ] JSON data format
+ - [ ] YAML data format
