@@ -163,6 +163,8 @@ options:
  - `comma`=*rune*: use *rune* to separate columns
  - `comment`=*rune*: skip lines starting with *rune*
  - `trim-leading-space`: trim leading space from columns
+ - `headers`: the first line of the CSV data is a header line and its
+   names are used to map select columns into CSV record columns
 
 For example, if you input file is as follows:
 
@@ -184,6 +186,27 @@ FROM 'test_options.csv'
      FILTER 'skip=1 comma=; comment=# trim-leading-space'
      AS data;
 ```
+
+```
+┏━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃ Year ┃ Value ┃ Delta ┃
+┡━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 1970 │   100 │     0 │
+│ 1971 │   101 │     1 │
+│ 1972 │   200 │    99 │
+└──────┴───────┴───────┘
+```
+
+Since our sample CSV file did have a header row, we can also use it to
+name the data columns:
+
+```sql
+SELECT Year, Value, Delta
+FROM 'test_options.csv'
+     FILTER 'headers comma=; comment=# trim-leading-space';
+```
+
+This query gives the same result as the previous example:
 
 ```
 ┏━━━━━━┳━━━━━━━┳━━━━━━━┓

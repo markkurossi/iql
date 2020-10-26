@@ -120,6 +120,20 @@ from (
 
 select data.Year, data.Sum from data;`,
 
+	// Region,Unit,Count
+	// a,1,200
+	// a,2,100
+	// a,2,50
+	// b,1,50
+	// b,2,50
+	// b,3,100
+	// c,1,10
+	// c,1,7
+	`
+SELECT Region, Unit
+FROM 'data:text/csv;base64,UmVnaW9uLFVuaXQsQ291bnQKYSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     FILTER 'headers';`,
+
 	`PRINT 'Type coercion tests:';`,
 
 	// 1,4.1

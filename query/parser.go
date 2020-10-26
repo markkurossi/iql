@@ -441,7 +441,9 @@ func columnsFor(columns []ColumnSelector,
 				// We passed the source specific selectors down to the
 				// source and from now on, we are referencing the
 				// fields with their alias names.
-				c.Column = col.As
+				if len(col.As) > 0 {
+					c.Column = col.As
+				}
 			}
 		}
 	}

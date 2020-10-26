@@ -131,11 +131,18 @@ func (sql *Query) Get() ([]types.Row, error) {
 
 		// Collect column names.
 		for columnIdx, col := range from.Source.Columns() {
+			var columnName string
+			if len(col.As) > 0 {
+				columnName = col.As
+			} else {
+				columnName = col.Name.Column
+			}
+
 			var key string
 			if len(from.As) > 0 {
-				key = fmt.Sprintf("%s.%s", from.As, col.As)
+				key = fmt.Sprintf("%s.%s", from.As, columnName)
 			} else {
-				key = col.As
+				key = columnName
 			}
 			sql.fromColumns[key] = columnIndex{
 				source: sourceIdx,

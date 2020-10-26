@@ -6,3 +6,7 @@ SELECT data.'0' AS Year,
 FROM 'test_options.csv'
      FILTER 'skip=1 comma=; comment=# trim-leading-space'
      AS data;
+
+SELECT Year, Value, Delta
+FROM 'test_options.csv'
+     FILTER 'headers comma=; comment=# trim-leading-space';

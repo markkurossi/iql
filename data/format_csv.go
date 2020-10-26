@@ -34,6 +34,7 @@ func NewCSV(input io.ReadCloser, filter string,
 
 	var err error
 	var skip int
+	var headers bool
 
 	for _, option := range strings.Split(filter, " ") {
 		if len(option) == 0 {
@@ -45,6 +46,12 @@ func NewCSV(input io.ReadCloser, filter string,
 			switch parts[0] {
 			case "trim-leading-space":
 				reader.TrimLeadingSpace = true
+
+			case "headers":
+				headers = true
+
+			default:
+				return nil, fmt.Errorf("csv: invalid filter flag: %s", parts[0])
 			}
 
 		case 2:
@@ -92,12 +99,30 @@ func NewCSV(input io.ReadCloser, filter string,
 
 	var indices []int
 
-	for _, col := range columns {
-		i, err := strconv.Atoi(col.Name.Column)
-		if err != nil {
-			return nil, err
+	if headers {
+		// Mapping from column names to column indices.
+		names := make(map[string]int)
+		for idx, col := range records[0] {
+			names[col] = idx
 		}
-		indices = append(indices, i)
+		records = records[1:]
+
+		for _, col := range columns {
+			i, ok := names[col.Name.Column]
+			if !ok {
+				return nil, fmt.Errorf("cvs: unknown column: %s",
+					col.Name.Column)
+			}
+			indices = append(indices, i)
+		}
+	} else {
+		for _, col := range columns {
+			i, err := strconv.Atoi(col.Name.Column)
+			if err != nil {
+				return nil, err
+			}
+			indices = append(indices, i)
+		}
 	}
 
 	var rows []types.Row
