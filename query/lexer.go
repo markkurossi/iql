@@ -41,7 +41,9 @@ const (
 	TSymInfo
 	TSymFrom
 	TSymWhere
+	TSymGroup
 	TSymAs
+	TSymBy
 	TSymFilter
 	TSymDeclare
 	TSymPrint
@@ -67,7 +69,9 @@ var tokenTypes = map[TokenType]string{
 	TSymInto:    "INTO",
 	TSymFrom:    "FROM",
 	TSymWhere:   "WHERE",
+	TSymGroup:   "GROUP",
 	TSymAs:      "AS",
+	TSymBy:      "BY",
 	TSymFilter:  "FILTER",
 	TSymDeclare: "DECLARE",
 	TSymPrint:   "PRINT",
@@ -98,7 +102,9 @@ var symbols = map[string]TokenType{
 	"INTO":    TSymInto,
 	"FROM":    TSymFrom,
 	"WHERE":   TSymWhere,
+	"GROUP":   TSymGroup,
 	"AS":      TSymAs,
+	"BY":      TSymBy,
 	"FILTER":  TSymFilter,
 	"DECLARE": TSymDeclare,
 	"PRINT":   TSymPrint,

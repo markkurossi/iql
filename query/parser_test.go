@@ -133,6 +133,39 @@ SELECT
         Ints + Floats AS Sum1,
         Floats + Ints AS Sum2
 FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
+
+	`PRINT 'GROUP BY tests:';`,
+
+	// a,1,200
+	// a,2,100
+	// a,2,50
+	// b,1,50
+	// b,2,50
+	// b,3,100
+	// c,1,10
+	// c,1,7
+	`
+SELECT Name,
+       COUNT(Unit) as Count,
+       AVG(Count) as Avg
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     )
+GROUP BY Name;`,
+	`
+SELECT Name,
+       Unit,
+       AVG(Count) as Avg
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     )
+GROUP BY Name, Unit;`,
 }
 
 func TestParser(t *testing.T) {
@@ -151,7 +184,9 @@ func TestParser(t *testing.T) {
 			if err != nil {
 				t.Fatalf("q.Get failed: %v\nInput:\n%s\n", err, input)
 			}
-			tab.Print(os.Stdout)
+			if true {
+				tab.Print(os.Stdout)
+			}
 		}
 	}
 }

@@ -288,6 +288,20 @@ func (p *Parser) parseSelect() (*Query, error) {
 		p.lexer.unget(t)
 	}
 
+	// Group by
+	t, err = p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type == TSymGroup {
+		q.GroupBy, err = p.parseGroupBy()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		p.lexer.unget(t)
+	}
+
 	// Terminator.
 	var expected TokenType
 	if p.nesting == 1 {
@@ -454,6 +468,30 @@ func (p *Parser) parseKeyword(keyword TokenType) (string, error) {
 		return "", p.errUnexpected(t)
 	}
 	return t.StrVal, nil
+}
+
+func (p *Parser) parseGroupBy() ([]Expr, error) {
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type != TSymBy {
+		return nil, p.errUnexpected(t)
+	}
+	var result []Expr
+	for {
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, expr)
+
+		t, err = p.get()
+		if t.Type != ',' {
+			p.lexer.unget(t)
+			return result, nil
+		}
+	}
 }
 
 func (p *Parser) parseExpr() (Expr, error) {

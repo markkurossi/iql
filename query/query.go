@@ -27,6 +27,7 @@ type Query struct {
 	From          []SourceSelector
 	Into          *Binding
 	Where         Expr
+	GroupBy       []Expr
 	Global        *Scope
 	fromColumns   map[string]columnIndex
 	evaluated     bool
@@ -143,7 +144,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 		}
 	}
 
-	// Bind select expressions.
+	// Bind SELECT expressions.
 	var idempotent = true
 	for _, sel := range sql.Select {
 		err := sel.Expr.Bind(sql)
@@ -155,9 +156,17 @@ func (sql *Query) Get() ([]types.Row, error) {
 		}
 	}
 
-	// Bind Where expressions.
+	// Bind WHERE expressions.
 	if sql.Where != nil {
 		err := sql.Where.Bind(sql)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Bind GROUP BY expressions.
+	for _, group := range sql.GroupBy {
+		err := group.Bind(sql)
 		if err != nil {
 			return nil, err
 		}
@@ -169,36 +178,52 @@ func (sql *Query) Get() ([]types.Row, error) {
 		return nil, err
 	}
 
-	// Select result columns.
-
 	var columns [][]types.ColumnSelector
 	for _, sel := range sql.From {
 		columns = append(columns, sel.Source.Columns())
 	}
 
+	// Group by.
+	grouping := NewGrouping()
 	for _, match := range matches {
-		var row types.Row
-		var i int
-		for _, sel := range sql.Select {
-			if !sel.IsPublic() {
-				continue
-			}
-			val, err := sel.Expr.Eval(match, columns, matches)
+		var key []types.Value
+		for _, group := range sql.GroupBy {
+			val, err := group.Eval(match, columns, nil)
 			if err != nil {
 				return nil, err
 			}
-			if val == types.Null {
-				row = append(row, types.NullColumn{})
-			} else {
-				str := val.String()
-				row = append(row, types.StringColumn(str))
-				sql.resultColumns[i].ResolveType(str)
-			}
-			i++
+			key = append(key, val)
 		}
-		sql.result = append(sql.result, row)
-		if idempotent {
-			break
+		grouping.Add(key, match)
+	}
+
+	// Select result columns.
+	for _, group := range grouping.Get() {
+		for _, match := range group {
+			var row types.Row
+			var i int
+			for _, sel := range sql.Select {
+				if !sel.IsPublic() {
+					continue
+				}
+				val, err := sel.Expr.Eval(match, columns, group)
+				if err != nil {
+					return nil, err
+				}
+				if val == types.Null {
+					row = append(row, types.NullColumn{})
+				} else {
+					str := val.String()
+					row = append(row, types.StringColumn(str))
+					sql.resultColumns[i].ResolveType(str)
+				}
+				i++
+			}
+			sql.result = append(sql.result, row)
+			// Idempotent and GROUP BY return one result per group.
+			if idempotent || len(sql.GroupBy) > 0 {
+				break
+			}
 		}
 	}
 	sql.evaluated = true
