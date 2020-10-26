@@ -711,6 +711,8 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 		val = types.IntValue(t.IntVal)
 	case TFloat:
 		val = types.FloatValue(t.FloatVal)
+	case TBool:
+		val = types.BoolValue(t.BoolVal)
 	case TNull:
 		val = types.Null
 	default:

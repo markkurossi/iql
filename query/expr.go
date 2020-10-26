@@ -286,6 +286,8 @@ func (b *Binary) Eval(row []types.Row, columns [][]types.ColumnSelector,
 			return types.BoolValue(l < r), nil
 		case BinGt:
 			return types.BoolValue(l > r), nil
+		case BinAdd:
+			return types.StringValue(l + r), nil
 		default:
 			return nil, fmt.Errorf("unknown string binary expression: %s %s %s",
 				left, b.Type, right)
@@ -390,6 +392,7 @@ type Reference struct {
 	index   columnIndex
 	binding *Binding
 	public  bool
+	bound   bool
 }
 
 // NewReference creates a new reference for the argument name.
@@ -419,6 +422,7 @@ func (ref *Reference) Bind(sql *Query) error {
 		return err
 	}
 	ref.index = r.index
+	ref.bound = true
 
 	return nil
 }
@@ -426,6 +430,10 @@ func (ref *Reference) Bind(sql *Query) error {
 // Eval implements the Expr.Eval().
 func (ref *Reference) Eval(row []types.Row, columns [][]types.ColumnSelector,
 	rows [][]types.Row) (types.Value, error) {
+
+	if !ref.bound {
+		return nil, fmt.Errorf("unbound identifier '%s'", ref.Reference)
+	}
 
 	col := row[ref.index.source][ref.index.column]
 	t := columns[ref.index.source][ref.index.column].Type

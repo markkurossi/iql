@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/markkurossi/iql/types"
 )
 
 // Point specifies a position in the parser input data.
@@ -35,6 +37,7 @@ const (
 	TString
 	TInt
 	TFloat
+	TBool
 	TNull
 	TSymSelect
 	TSymInto
@@ -125,6 +128,7 @@ type Token struct {
 	StrVal   string
 	IntVal   int64
 	FloatVal float64
+	BoolVal  bool
 }
 
 func (t *Token) String() string {
@@ -427,6 +431,12 @@ lexer:
 				sym, ok := symbols[strings.ToUpper(identifier)]
 				if ok {
 					return l.token(sym), nil
+				}
+				bval, ok := types.ParseBoolean(identifier)
+				if ok {
+					token := l.token(TBool)
+					token.BoolVal = bval
+					return token, nil
 				}
 				token := l.token(TIdentifier)
 				token.StrVal = identifier

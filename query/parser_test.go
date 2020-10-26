@@ -134,6 +134,8 @@ SELECT
         Floats + Ints AS Sum2
 FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
 
+	`PRINT 'Hello: ' + 1 + ', ' + 1.2 + ', ' + false;`,
+
 	`PRINT 'GROUP BY tests:';`,
 
 	// a,1,200

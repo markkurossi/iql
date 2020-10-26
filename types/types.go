@@ -8,6 +8,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/markkurossi/tabulate"
 )
@@ -29,6 +30,18 @@ const (
 	True  = "true"
 	False = "false"
 )
+
+// ParseBoolean parses the boolean literal value.
+func ParseBoolean(val string) (bool, bool) {
+	switch strings.ToLower(val) {
+	case True:
+		return true, true
+	case False:
+		return false, true
+	default:
+		return false, false
+	}
+}
 
 var types = map[Type]string{
 	Bool:   "boolean",
