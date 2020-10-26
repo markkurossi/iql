@@ -216,4 +216,3 @@ FROM 'test_options.csv'
    - [ ] Value cache
  - [ ] HTTP resource cache
  - [ ] JSON data format
- - [ ] CSV headers as column names

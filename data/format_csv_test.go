@@ -51,7 +51,8 @@ func TestCSVCorrect(t *testing.T) {
 }
 
 func TestCSVOptions(t *testing.T) {
-	source, err := New("test_options.csv", "skip=1 comma=;  comment=# ",
+	source, err := New("test_options.csv",
+		"skip=1 comma=;  comment=# trim-leading-space",
 		[]types.ColumnSelector{
 			{
 				Name: types.Reference{
