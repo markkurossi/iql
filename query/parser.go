@@ -487,6 +487,9 @@ func (p *Parser) parseGroupBy() ([]Expr, error) {
 		result = append(result, expr)
 
 		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
 		if t.Type != ',' {
 			p.lexer.unget(t)
 			return result, nil
