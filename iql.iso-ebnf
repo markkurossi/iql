@@ -14,7 +14,8 @@ PrintStmt = 'PRINT', Expr;
 SelectClause = Select,
 	       [ Into ],
 	       [ From ],
-	       [ Where ];
+	       [ Where ],
+	       [ Group ];
 
 Select = 'SELECT', SelectColumns;
 SelectColumns = SelectColumn, {',', SelectColumn};
@@ -23,6 +24,7 @@ SelectColumn = Expr, [ AsClause ];
 Into  = 'INTO', Identifier;
 From  = 'FROM', FromClause, { ',', FromClause };
 Where = 'WHERE', Expr;
+Group = 'GROUP', 'BY', Expr, {',', Expr};
 
 FromClause = (String, [ 'FILTER', String ] | '(', SelectClause, ')'),
 	     'AS', Identifier;
