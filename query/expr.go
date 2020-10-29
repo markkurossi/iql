@@ -18,6 +18,7 @@ var (
 	_ Expr = &And{}
 	_ Expr = &Constant{}
 	_ Expr = &Reference{}
+	_ Expr = &Cast{}
 )
 
 // Expr implements expressions.
@@ -457,4 +458,62 @@ func (ref *Reference) IsIdempotent() bool {
 		return true
 	}
 	return false
+}
+
+// Cast implements type cast expressions.
+type Cast struct {
+	Expr Expr
+	Type types.Type
+}
+
+// Bind implements the Expr.Bind().
+func (c *Cast) Bind(sql *Query) error {
+	return c.Expr.Bind(sql)
+}
+
+// Eval implements the Expr.Eval().
+func (c *Cast) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
+
+	val, err := c.Expr.Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	switch c.Type {
+	case types.Bool:
+		v, err := val.Bool()
+		if err != nil {
+			return nil, err
+		}
+		return types.BoolValue(v), nil
+
+	case types.Int:
+		v, err := val.Int()
+		if err != nil {
+			return nil, err
+		}
+		return types.IntValue(v), nil
+
+	case types.Float:
+		v, err := val.Float()
+		if err != nil {
+			return nil, err
+		}
+		return types.FloatValue(v), nil
+
+	case types.String:
+		return types.StringValue(val.String()), nil
+
+	default:
+		return nil, fmt.Errorf("CAST(%s AS %s) not supported", c.Expr, c.Type)
+	}
+}
+
+// IsIdempotent implements the Expr.IsIdempotent().
+func (c *Cast) IsIdempotent() bool {
+	return c.Expr.IsIdempotent()
+}
+
+func (c *Cast) String() string {
+	return fmt.Sprintf("CAST(%s AS %s)", c.Expr, c.Type)
 }

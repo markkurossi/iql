@@ -48,6 +48,7 @@ PostfixExpr = '(', Expr, ')'
 	    | SimpleReference
 	    | QualifiedReference
 	    | FunctionCall
+	    | Cast
 	    | Bool
 	    | integer
 	    | real
@@ -56,9 +57,11 @@ PostfixExpr = '(', Expr, ')'
 
 SimpleReference = Identifier;
 QualifiedReference = Identifier, '.', Identifier;
-FunctionCall = Identifier, '(', {Arguments}, ')';
 
+FunctionCall = Identifier, '(', {Arguments}, ')';
 Arguments = Expr, {',', Expr};
+
+Cast = 'CAST', '(', Expr, 'AS', Type, ')';
 
 AsClause = 'AS', Identifier;
 

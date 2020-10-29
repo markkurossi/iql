@@ -48,6 +48,17 @@ func (p *Parser) get() (*Token, error) {
 	return t, nil
 }
 
+func (p *Parser) need(tt TokenType) (*Token, error) {
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type != tt {
+		return nil, p.errUnexpected(t)
+	}
+	return t, nil
+}
+
 // Parse parses the next query from the parser's input.
 func (p *Parser) Parse() (*Query, error) {
 	p.nesting++
@@ -680,7 +691,8 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 		n, err := p.get()
 		if err != nil {
 			return nil, err
-		} else if n.Type == '(' {
+		}
+		if n.Type == '(' {
 			return p.parseFunc(t)
 		} else if n.Type == '.' {
 			n, err := p.get()
@@ -708,6 +720,32 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 				Source: source,
 				Column: column,
 			},
+		}, nil
+
+	case TSymCast:
+		_, err = p.need('(')
+		if err != nil {
+			return nil, err
+		}
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		_, err = p.need(TSymAs)
+		if err != nil {
+			return nil, err
+		}
+		castType, err := p.parseType()
+		if err != nil {
+			return nil, err
+		}
+		_, err = p.need(')')
+		if err != nil {
+			return nil, err
+		}
+		return &Cast{
+			Expr: expr,
+			Type: castType,
 		}, nil
 
 	case TString:

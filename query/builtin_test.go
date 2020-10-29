@@ -105,6 +105,52 @@ SELECT 5 / NULLIF(0.0, 0.0);`,
 SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: "1.00",
 	},
+
+	// CAST tests.
+	{
+		q: `SELECT CAST(false AS BOOLEAN);`,
+		v: "false",
+	},
+	{
+		q: `SELECT CAST(false AS VARCHAR);`,
+		v: "false",
+	},
+	{
+		q: `SELECT CAST(5 AS INTEGER);`,
+		v: "5",
+	},
+	{
+		q: `SELECT CAST(5 AS REAL);`,
+		v: "5.00",
+	},
+	{
+		q: `SELECT CAST(5 AS VARCHAR);`,
+		v: "5",
+	},
+	{
+		q: `SELECT CAST(5.0 AS INTEGER);`,
+		v: "5",
+	},
+	{
+		q: `SELECT CAST(5.0 AS REAL);`,
+		v: "5.00",
+	},
+	{
+		q: `SELECT CAST(5.0 AS VARCHAR);`,
+		v: "5.00",
+	},
+	{
+		q: `SELECT CAST('5' AS INTEGER);`,
+		v: "5",
+	},
+	{
+		q: `SELECT CAST('5' AS REAL);`,
+		v: "5.00",
+	},
+	{
+		q: `SELECT CAST('5' AS VARCHAR);`,
+		v: "5",
+	},
 }
 
 func TestBuiltIn(t *testing.T) {

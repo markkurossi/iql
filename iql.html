@@ -565,7 +565,7 @@
 
  <section>
   <h2><a name='PostfixExpr'>PostfixExpr:</a></h2>
-  <svg height='245' width='270'>
+  <svg height='275' width='270'>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M260.5 14 v12 m 4 0 v-12' class='station'/>
     <rect x='70' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
@@ -588,25 +588,31 @@
     <rect x='80' y='100' height='20' width='110' rx='0' ry='0' class='rule'/>
     <text x='135' y='115' text-anchor='middle' class='rule'>FunctionCall</text>
     </a>
-    <a href='#Bool'>
+    <a href='#Cast'>
     <rect x='110' y='130' height='20' width='50' rx='0' ry='0' class='rule'/>
-    <text x='135' y='145' text-anchor='middle' class='rule'>Bool</text>
+    <text x='135' y='145' text-anchor='middle' class='rule'>Cast</text>
     </a>
-    <rect x='100' y='160' height='20' width='70' rx='0' ry='0' class='rule'/>
-    <text x='135' y='175' text-anchor='middle' class='rule'>integer</text>
-    <rect x='110' y='190' height='20' width='50' rx='0' ry='0' class='rule'/>
-    <text x='135' y='205' text-anchor='middle' class='rule'>real</text>
+    <a href='#Bool'>
+    <rect x='110' y='160' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='135' y='175' text-anchor='middle' class='rule'>Bool</text>
+    </a>
+    <rect x='100' y='190' height='20' width='70' rx='0' ry='0' class='rule'/>
+    <text x='135' y='205' text-anchor='middle' class='rule'>integer</text>
+    <rect x='110' y='220' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='135' y='235' text-anchor='middle' class='rule'>real</text>
     <a href='#String'>
-    <rect x='100' y='220' height='20' width='70' rx='0' ry='0' class='rule'/>
-    <text x='135' y='235' text-anchor='middle' class='rule'>String</text>
+    <rect x='100' y='250' height='20' width='70' rx='0' ry='0' class='rule'/>
+    <text x='135' y='265' text-anchor='middle' class='rule'>String</text>
     </a>
-    <path d='M230 30 v190'/>
-    <path d='M170 230 h50 q10 0 10 -10'/>
-    <path d='M40 220 q0 10 10 10 h50'/>
-    <path d='M160 200 h60 q10 0 10 -10'/>
-    <path d='M40 190 q0 10 10 10 h60'/>
-    <path d='M170 170 h50 q10 0 10 -10'/>
-    <path d='M40 160 q0 10 10 10 h50'/>
+    <path d='M230 30 v220'/>
+    <path d='M170 260 h50 q10 0 10 -10'/>
+    <path d='M40 250 q0 10 10 10 h50'/>
+    <path d='M160 230 h60 q10 0 10 -10'/>
+    <path d='M40 220 q0 10 10 10 h60'/>
+    <path d='M170 200 h50 q10 0 10 -10'/>
+    <path d='M40 190 q0 10 10 10 h50'/>
+    <path d='M160 170 h60 q10 0 10 -10'/>
+    <path d='M40 160 q0 10 10 10 h60'/>
     <path d='M160 140 h60 q10 0 10 -10'/>
     <path d='M40 130 q0 10 10 10 h60'/>
     <path d='M190 110 h30 q10 0 10 -10'/>
@@ -619,7 +625,7 @@
     <path d='M200 20 h60'/>
     <path d='M160 20 h20'/>
     <path d='M90 20 h20'/>
-    <path d='M30 20 q10 0 10 10 v190'/>
+    <path d='M30 20 q10 0 10 10 v220'/>
     <path d='M10 20 h60'/>
   </svg>
  </section>
@@ -705,6 +711,37 @@
     <path d='M110 20 h50'/>
     <path d='M40 30 q0 -10 10 -10'/>
     <path d='M10 20 h50'/>
+  </svg>
+ </section>
+
+ <section>
+  <h2><a name='Cast'>Cast:</a></h2>
+  <svg height='35' width='380'>
+    <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
+    <path d='M370.5 14 v12 m 4 0 v-12' class='station'/>
+    <rect x='30' y='10' height='20' width='50' rx='8' ry='8' class='literal'/>
+    <text x='55' y='25' text-anchor='middle' class='literal'>CAST</text>
+    <rect x='100' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='110' y='25' text-anchor='middle' class='literal'>(</text>
+    <a href='#Expr'>
+    <rect x='140' y='10' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='165' y='25' text-anchor='middle' class='rule'>Expr</text>
+    </a>
+    <rect x='210' y='10' height='20' width='30' rx='8' ry='8' class='literal'/>
+    <text x='225' y='25' text-anchor='middle' class='literal'>AS</text>
+    <a href='#Type'>
+    <rect x='260' y='10' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='285' y='25' text-anchor='middle' class='rule'>Type</text>
+    </a>
+    <rect x='330' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='340' y='25' text-anchor='middle' class='literal'>)</text>
+    <path d='M310 20 h20'/>
+    <path d='M240 20 h20'/>
+    <path d='M190 20 h20'/>
+    <path d='M120 20 h20'/>
+    <path d='M80 20 h20'/>
+    <path d='M350 20 h20'/>
+    <path d='M10 20 h20'/>
   </svg>
  </section>
 

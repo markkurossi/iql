@@ -55,6 +55,7 @@ const (
 	TSymInteger
 	TSymReal
 	TSymVarchar
+	TSymCast
 	TAnd
 	TOr
 	TNeq
@@ -83,6 +84,7 @@ var tokenTypes = map[TokenType]string{
 	TSymInteger: "INTEGER",
 	TSymReal:    "REAL",
 	TSymVarchar: "VARCHAR",
+	TSymCast:    "CAST",
 	TAnd:        "AND",
 	TOr:         "OR",
 	TNeq:        "<>",
@@ -116,6 +118,7 @@ var symbols = map[string]TokenType{
 	"INTEGER": TSymInteger,
 	"REAL":    TSymReal,
 	"VARCHAR": TSymVarchar,
+	"CAST":    TSymCast,
 	"AND":     TAnd,
 	"OR":      TOr,
 }
