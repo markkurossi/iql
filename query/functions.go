@@ -8,6 +8,8 @@ package query
 
 import (
 	"fmt"
+	"strings"
+	"unicode"
 
 	"github.com/markkurossi/iql/types"
 )
@@ -77,6 +79,34 @@ var builtIns = []Function{
 		Impl:       builtInLeft,
 		MinArgs:    2,
 		MaxArgs:    2,
+		Idempotent: false,
+	},
+	{
+		Name:       "LEN",
+		Impl:       builtInLen,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "LOWER",
+		Impl:       builtInLower,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "LTRIM",
+		Impl:       builtInLTrim,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "RTRIM",
+		Impl:       builtInRTrim,
+		MinArgs:    1,
+		MaxArgs:    1,
 		Idempotent: false,
 	},
 }
@@ -343,6 +373,52 @@ func builtInLeft(args []Expr, row []types.Row,
 		idx = len(str)
 	}
 	return types.StringValue(str[:idx]), nil
+}
+
+func builtInLen(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	return types.IntValue(len([]rune(val.String()))), nil
+}
+
+func builtInLower(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringValue(strings.ToLower(val.String())), nil
+}
+
+func builtInLTrim(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringValue(strings.TrimLeftFunc(val.String(),
+		func(r rune) bool {
+			return unicode.IsSpace(r)
+		})), nil
+}
+
+func builtInRTrim(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringValue(strings.TrimRightFunc(val.String(),
+		func(r rune) bool {
+			return unicode.IsSpace(r)
+		})), nil
 }
 
 var builtInsByName map[string]*Function

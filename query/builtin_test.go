@@ -157,6 +157,22 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		q: `SELECT LEFT('Hello, world!', 6);`,
 		v: "Hello,",
 	},
+	{
+		q: `SELECT LEN('Hello, world!');`,
+		v: "13",
+	},
+	{
+		q: `SELECT LOWER('Hello, world!');`,
+		v: "hello, world!",
+	},
+	{
+		q: `SELECT LTRIM('  Hello, World!  ');`,
+		v: "Hello, World!  ",
+	},
+	{
+		q: `SELECT RTRIM('  Hello, World!  ');`,
+		v: "  Hello, World!",
+	},
 }
 
 func TestBuiltIn(t *testing.T) {
@@ -195,7 +211,7 @@ func TestBuiltIn(t *testing.T) {
 			}
 			result := rows[0][0].String()
 			if result != input.v {
-				t.Errorf("%s: failed: got %s, expected %s\n",
+				t.Errorf("%s: failed: got '%s', expected '%s'\n",
 					name, result, input.v)
 				printResult(q, rows)
 

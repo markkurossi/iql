@@ -239,6 +239,14 @@ This query gives the same result as the previous example:
 
  - LEFT(*expression*, *count*): returns the *count* leftmost
    characters from the string *expression*.
+ - LEN(*expression*): returns the number of Unicode code points in the
+   string representation of *expression*.
+ - LOWER(*expression*): returns the lowercase representation of the
+   *expression*.
+ - LTRIM(*expression*): remove the leading whitespace from the
+   string representation of *expression*.
+ - RTRIM(*expression*): remove the trailing whitespace from the
+   string representation of *expression*.
 
 # TODO
 
