@@ -220,6 +220,8 @@ This query gives the same result as the previous example:
 
 ## Built-in Functions
 
+### Aggregate Functions
+
  - AVG(*expression*): returns the average value of all the values. The
    NULL values are ignored.
  - COUNT(*expression*): returns the count of all the values. The NULL
@@ -233,8 +235,15 @@ This query gives the same result as the previous example:
  - SUM(Expression): returns the sum of all the values. The NULL values
    are ignored.
 
+### String Functions
+
+ - LEFT(*expression*, *count*): returns the *count* leftmost
+   characters from the string *expression*.
+
 # TODO
 
+ - [ ] Rethink builtin function handling: no need to define them as
+       symbols.
  - [ ] Aggregate:
    - [ ] Value cache
  - [ ] HTTP resource cache
