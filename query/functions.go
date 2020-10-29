@@ -31,6 +31,7 @@ type FunctionType int
 const (
 	FuncAvg FunctionType = iota
 	FuncCount
+	FuncLeft
 	FuncMax
 	FuncMin
 	FuncNullIf
@@ -41,6 +42,7 @@ const (
 var functionTypes = map[FunctionType]string{
 	FuncAvg:       "AVG",
 	FuncCount:     "COUNT",
+	FuncLeft:      "LEFT",
 	FuncMax:       "MAX",
 	FuncMin:       "MIN",
 	FuncNullIf:    "NULLIF,",
@@ -68,6 +70,12 @@ var builtIns = map[string]*Function{
 		MinArgs:    1,
 		MaxArgs:    1,
 		Idempotent: true,
+	},
+	"LEFT": {
+		Type:       FuncLeft,
+		MinArgs:    2,
+		MaxArgs:    2,
+		Idempotent: false,
 	},
 	"MAX": {
 		Type:       FuncMax,
@@ -179,6 +187,26 @@ func (f *Function) Eval(args []Expr, row []types.Row,
 			}
 		}
 		return types.IntValue(count), nil
+
+	case FuncLeft:
+		strVal, err := args[0].Eval(row, columns, rows)
+		if err != nil {
+			return nil, err
+		}
+		idxVal, err := args[1].Eval(row, columns, rows)
+		if err != nil {
+			return nil, err
+		}
+		str := strVal.String()
+		idx64, err := idxVal.Int()
+		if err != nil {
+			return nil, err
+		}
+		idx := int(idx64)
+		if idx > len(str) {
+			idx = len(str)
+		}
+		return types.StringValue(str[:idx]), nil
 
 	case FuncMax:
 		var intMax int64

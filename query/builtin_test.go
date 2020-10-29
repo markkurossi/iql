@@ -151,6 +151,12 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		q: `SELECT CAST('5' AS VARCHAR);`,
 		v: "5",
 	},
+
+	// String functions.
+	{
+		q: `SELECT LEFT('Hello, world!', 6);`,
+		v: "Hello,",
+	},
 }
 
 func TestBuiltIn(t *testing.T) {
