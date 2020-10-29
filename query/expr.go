@@ -32,8 +32,9 @@ type Expr interface {
 
 // Call implements function call expressions.
 type Call struct {
-	Function  *Function
+	Name      string
 	Arguments []Expr
+	Function  *Function
 }
 
 // Bind implements the Expr.Bind().
@@ -44,6 +45,13 @@ func (call *Call) Bind(sql *Query) error {
 			return err
 		}
 	}
+
+	// Resolve function.
+	call.Function = builtIn(call.Name)
+	if call.Function == nil {
+		return fmt.Errorf("undefined function: %s", call.Name)
+	}
+
 	return nil
 }
 
@@ -51,7 +59,16 @@ func (call *Call) Bind(sql *Query) error {
 func (call *Call) Eval(row []types.Row, columns [][]types.ColumnSelector,
 	rows [][]types.Row) (types.Value, error) {
 
-	return call.Function.Eval(call.Arguments, row, columns, rows)
+	if len(call.Arguments) < call.Function.MinArgs {
+		return nil, fmt.Errorf("%s: too few arguments: got %d, expected %d",
+			call.Name, len(call.Arguments), call.Function.MinArgs)
+	}
+	if len(call.Arguments) > call.Function.MaxArgs {
+		return nil, fmt.Errorf("%s: too many arguments: got %d, expected %d",
+			call.Name, len(call.Arguments), call.Function.MaxArgs)
+	}
+
+	return call.Function.Impl(call.Arguments, row, columns, rows)
 }
 
 // IsIdempotent implements the Expr.IsIdempotent().

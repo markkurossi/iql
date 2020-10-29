@@ -795,12 +795,8 @@ func (p *Parser) parseFunc(name *Token) (Expr, error) {
 			p.lexer.unget(t)
 		}
 	}
-	f := builtIn(strings.ToUpper(name.StrVal))
-	if f == nil {
-		return nil, p.errf(name.From, "unknown function: %s", name.StrVal)
-	}
 	return &Call{
-		Function:  f,
+		Name:      strings.ToUpper(name.StrVal),
 		Arguments: args,
 	}, nil
 }

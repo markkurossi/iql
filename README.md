@@ -242,8 +242,6 @@ This query gives the same result as the previous example:
 
 # TODO
 
- - [ ] Rethink builtin function handling: no need to define them as
-       symbols.
  - [ ] Aggregate:
    - [ ] Value cache
  - [ ] HTTP resource cache
