@@ -748,6 +748,9 @@ func (p *Parser) parseExprPostfix() (Expr, error) {
 			Type: castType,
 		}, nil
 
+	case TSymCase:
+		return p.parseCase()
+
 	case TString:
 		val = types.StringValue(t.StrVal)
 	case TInt:
@@ -799,6 +802,74 @@ func (p *Parser) parseFunc(name *Token) (Expr, error) {
 		Name:      strings.ToUpper(name.StrVal),
 		Arguments: args,
 	}, nil
+}
+
+func (p *Parser) parseCase() (Expr, error) {
+	caseExpr := new(Case)
+
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type != TSymWhen {
+		p.lexer.unget(t)
+		caseExpr.Input, err = p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		_, err = p.need(TSymWhen)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Parse when branches.
+	for {
+		when, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		_, err = p.need(TSymThen)
+		if err != nil {
+			return nil, err
+		}
+		then, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		caseExpr.Branches = append(caseExpr.Branches, Branch{
+			When: when,
+			Then: then,
+		})
+		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != TSymWhen {
+			p.lexer.unget(t)
+			break
+		}
+	}
+
+	t, err = p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type == TSymElse {
+		caseExpr.Else, err = p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
+	}
+	if t.Type != TSymEnd {
+		return nil, p.errUnexpected(t)
+	}
+
+	return caseExpr, nil
 }
 
 func (p *Parser) errUnexpected(t *Token) error {

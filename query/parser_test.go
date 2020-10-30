@@ -318,6 +318,56 @@ FROM (
      )
 GROUP BY Name, Unit;`,
 	},
+	{
+		q: `
+SELECT Name, Unit, Count,
+       CASE
+            WHEN Count >= 100 THEN 'Buy'
+            WHEN Count >= 50 THEN  'Add'
+            ELSE 'Hold'
+       END AS Action
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     );`,
+		v: [][]string{
+			{"a", "1", "200", "Buy"},
+			{"a", "2", "100", "Buy"},
+			{"a", "2", "50", "Add"},
+			{"b", "1", "50", "Add"},
+			{"b", "2", "50", "Add"},
+			{"b", "3", "100", "Buy"},
+			{"c", "1", "10", "Hold"},
+			{"c", "1", "7", "Hold"},
+		},
+	},
+	{
+		q: `
+SELECT Name, Unit,
+       CASE Unit
+            WHEN 1 THEN 'R&D'
+            WHEN 2 THEN 'Sales'
+            ELSE 'HR'
+       END AS Action
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     );`,
+		v: [][]string{
+			{"a", "1", "R&D"},
+			{"a", "2", "Sales"},
+			{"a", "2", "Sales"},
+			{"b", "1", "R&D"},
+			{"b", "2", "Sales"},
+			{"b", "3", "HR"},
+			{"c", "1", "R&D"},
+			{"c", "1", "R&D"},
+		},
+	},
 }
 
 func TestParser(t *testing.T) {

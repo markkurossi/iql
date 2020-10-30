@@ -56,6 +56,11 @@ const (
 	TSymReal
 	TSymVarchar
 	TSymCast
+	TSymCase
+	TSymWhen
+	TSymThen
+	TSymElse
+	TSymEnd
 	TAnd
 	TOr
 	TNeq
@@ -85,6 +90,11 @@ var tokenTypes = map[TokenType]string{
 	TSymReal:    "REAL",
 	TSymVarchar: "VARCHAR",
 	TSymCast:    "CAST",
+	TSymCase:    "CASE",
+	TSymWhen:    "WHEN",
+	TSymThen:    "THEN",
+	TSymElse:    "ELSE",
+	TSymEnd:     "END",
 	TAnd:        "AND",
 	TOr:         "OR",
 	TNeq:        "<>",
@@ -119,6 +129,11 @@ var symbols = map[string]TokenType{
 	"REAL":    TSymReal,
 	"VARCHAR": TSymVarchar,
 	"CAST":    TSymCast,
+	"CASE":    TSymCase,
+	"WHEN":    TSymWhen,
+	"THEN":    TSymThen,
+	"ELSE":    TSymElse,
+	"END":     TSymEnd,
 	"AND":     TAnd,
 	"OR":      TOr,
 }

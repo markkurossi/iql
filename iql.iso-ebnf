@@ -48,6 +48,7 @@ PostfixExpr = '(', Expr, ')'
 	    | SimpleReference
 	    | QualifiedReference
 	    | FunctionCall
+	    | Case
 	    | Cast
 	    | Bool
 	    | integer
@@ -60,6 +61,9 @@ QualifiedReference = Identifier, '.', Identifier;
 
 FunctionCall = Identifier, '(', {Arguments}, ')';
 Arguments = Expr, {',', Expr};
+
+Case = 'CASE', [ Expr ], Branch, { Branch }, [ 'ELSE', Expr ], 'END';
+Branch =  'WHEN', Expr, 'THEN', Expr;
 
 Cast = 'CAST', '(', Expr, 'AS', Type, ')';
 

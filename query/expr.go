@@ -19,6 +19,7 @@ var (
 	_ Expr = &Constant{}
 	_ Expr = &Reference{}
 	_ Expr = &Cast{}
+	_ Expr = &Case{}
 )
 
 // Expr implements expressions.
@@ -537,4 +538,101 @@ func (c *Cast) IsIdempotent() bool {
 
 func (c *Cast) String() string {
 	return fmt.Sprintf("CAST(%s AS %s)", c.Expr, c.Type)
+}
+
+// Case implements case expressions.
+type Case struct {
+	Input    Expr
+	Branches []Branch
+	Else     Expr
+}
+
+// Branch implements a case branch.
+type Branch struct {
+	When Expr
+	Then Expr
+}
+
+// Bind implements the Expr.Bind().
+func (c *Case) Bind(sql *Query) error {
+	if c.Input != nil {
+		if err := c.Input.Bind(sql); err != nil {
+			return err
+		}
+	}
+	for _, b := range c.Branches {
+		if err := b.When.Bind(sql); err != nil {
+			return err
+		}
+		if err := b.Then.Bind(sql); err != nil {
+			return err
+		}
+	}
+	if c.Else != nil {
+		return c.Else.Bind(sql)
+	}
+	return nil
+}
+
+// Eval implements the Expr.Eval().
+func (c *Case) Eval(row []types.Row, columns [][]types.ColumnSelector,
+	rows [][]types.Row) (types.Value, error) {
+
+	var input types.Value
+	var err error
+
+	if c.Input != nil {
+		input, err = c.Input.Eval(row, columns, rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, b := range c.Branches {
+		val, err := b.When.Eval(row, columns, rows)
+		if err != nil {
+			return nil, err
+		}
+		var bval bool
+
+		if input != nil {
+			bval, err = types.Equal(input, val)
+		} else {
+			bval, err = val.Bool()
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		if bval {
+			return b.Then.Eval(row, columns, rows)
+		}
+	}
+	if c.Else != nil {
+		return c.Else.Eval(row, columns, rows)
+	}
+	return types.Null, nil
+}
+
+// IsIdempotent implements the Expr.IsIdempotent().
+func (c *Case) IsIdempotent() bool {
+	if c.Input != nil && !c.Input.IsIdempotent() {
+		return false
+	}
+	for _, b := range c.Branches {
+		if !b.When.IsIdempotent() {
+			return false
+		}
+		if !b.Then.IsIdempotent() {
+			return false
+		}
+	}
+	if c.Else != nil && !c.Else.IsIdempotent() {
+		return false
+	}
+	return true
+}
+
+func (c *Case) String() string {
+	return fmt.Sprintf("CASE %s %v ELSE %s END", c.Input, c.Branches, c.Else)
 }
