@@ -170,8 +170,26 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: "Hello, World!  ",
 	},
 	{
+		q: `SELECT NCHAR(64);`,
+		v: "@",
+	},
+	{
 		q: `SELECT RTRIM('  Hello, World!  ');`,
 		v: "  Hello, World!",
+	},
+	{
+		q: `SELECT TRIM('  Hello, World!  ');`,
+		v: "Hello, World!",
+	},
+	{
+		q: `DECLARE nstring VARCHAR;
+SET nstring = 'Åkergatan 24';
+SELECT NCHAR(UNICODE(nstring));`,
+		v: "Å",
+	},
+	{
+		q: `SELECT UPPER('Hello, world!');`,
+		v: "HELLO, WORLD!",
 	},
 }
 

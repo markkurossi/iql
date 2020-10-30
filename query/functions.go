@@ -103,8 +103,36 @@ var builtIns = []Function{
 		Idempotent: false,
 	},
 	{
+		Name:       "NCHAR",
+		Impl:       builtInNChar,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
 		Name:       "RTRIM",
 		Impl:       builtInRTrim,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "TRIM",
+		Impl:       builtInTrim,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "UNICODE",
+		Impl:       builtInUnicode,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "UPPER",
+		Impl:       builtInUpper,
 		MinArgs:    1,
 		MaxArgs:    1,
 		Idempotent: false,
@@ -408,6 +436,23 @@ func builtInLTrim(args []Expr, row []types.Row,
 		})), nil
 }
 
+func builtInNChar(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	i, err := val.Int()
+	if err != nil {
+		return nil, err
+	}
+	if i < 0 {
+		return types.Null, nil
+	}
+	return types.StringValue(string(rune(i))), nil
+}
+
 func builtInRTrim(args []Expr, row []types.Row,
 	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
 
@@ -419,6 +464,40 @@ func builtInRTrim(args []Expr, row []types.Row,
 		func(r rune) bool {
 			return unicode.IsSpace(r)
 		})), nil
+}
+
+func builtInTrim(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringValue(strings.TrimSpace(val.String())), nil
+}
+
+func builtInUnicode(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	str := val.String()
+	if len(str) == 0 {
+		return types.Null, nil
+	}
+	return types.IntValue([]rune(str)[0]), nil
+}
+
+func builtInUpper(args []Expr, row []types.Row,
+	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+
+	val, err := args[0].Eval(row, columns, rows)
+	if err != nil {
+		return nil, err
+	}
+	return types.StringValue(strings.ToUpper(val.String())), nil
 }
 
 var builtInsByName map[string]*Function

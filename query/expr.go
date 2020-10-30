@@ -440,6 +440,7 @@ func (ref *Reference) Bind(sql *Query) error {
 		return err
 	}
 	ref.index = r.index
+	ref.binding = r.binding
 	ref.bound = true
 
 	return nil
@@ -451,6 +452,9 @@ func (ref *Reference) Eval(row []types.Row, columns [][]types.ColumnSelector,
 
 	if !ref.bound {
 		return nil, fmt.Errorf("unbound identifier '%s'", ref.Reference)
+	}
+	if ref.binding != nil {
+		return ref.binding.Value, nil
 	}
 
 	col := row[ref.index.source][ref.index.column]

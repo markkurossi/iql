@@ -245,8 +245,16 @@ This query gives the same result as the previous example:
    *expression*.
  - LTRIM(*expression*): remove the leading whitespace from the
    string representation of *expression*.
+ - NCHAR(*expression*): returns the Unicode character with the integer
+   code *expression*
+ - TRIM(*expression*): remove the leading and trailing whitespace
+   from the string representation of *expression*.
  - RTRIM(*expression*): remove the trailing whitespace from the
    string representation of *expression*.
+ - UNICODE(*expression*): returns the integer value of the first
+   Unicode character of the string *expression*
+ - UPPER(*expression*): returns the uppercase representation of the
+   *expression*.
 
 # TODO
 
