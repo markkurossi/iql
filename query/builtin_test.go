@@ -18,9 +18,10 @@ import (
 	"github.com/markkurossi/tabulate"
 )
 
-type BuiltInTest struct {
-	q string
-	v string
+type IQLTest struct {
+	q    string
+	v    [][]string
+	rest [][][]string
 }
 
 var builtInData = `1970,100,100.5
@@ -29,7 +30,7 @@ var builtInData = `1970,100,100.5
 1973,400,400.5
 1974,500,500.5`
 
-var builtInTests = []BuiltInTest{
+var builtInTests = []IQLTest{
 	{
 		q: `
 select AVG(Year)
@@ -39,7 +40,7 @@ from (
              "2" as FVal
       from data
      );`,
-		v: "1972",
+		v: [][]string{{"1972"}},
 	},
 	{
 		q: `
@@ -50,7 +51,7 @@ from (
              "2" as FVal
       from data
      );`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `
@@ -61,7 +62,7 @@ from (
              "2" as FVal
       from data
      );`,
-		v: "1974",
+		v: [][]string{{"1974"}},
 	},
 	{
 		q: `
@@ -72,7 +73,7 @@ from (
              "2" as FVal
       from data
      );`,
-		v: "1970",
+		v: [][]string{{"1970"}},
 	},
 	{
 		q: `
@@ -83,113 +84,113 @@ from (
              "2" as FVal
       from data
      );`,
-		v: "9860",
+		v: [][]string{{"9860"}},
 	},
 	{
 		q: `
 SELECT NULLIF(4, 4);`,
-		v: "NULL",
+		v: [][]string{{"NULL"}},
 	},
 	{
 		q: `
 SELECT NULLIF(5, 4);`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `
 SELECT 5 / NULLIF(0.0, 0.0);`,
-		v: "NULL",
+		v: [][]string{{"NULL"}},
 	},
 	{
 		q: `
 SELECT 5 / NULLIF(5.0, 0.0);`,
-		v: "1.00",
+		v: [][]string{{"1.00"}},
 	},
 
 	// CAST tests.
 	{
 		q: `SELECT CAST(false AS BOOLEAN);`,
-		v: "false",
+		v: [][]string{{"false"}},
 	},
 	{
 		q: `SELECT CAST(false AS VARCHAR);`,
-		v: "false",
+		v: [][]string{{"false"}},
 	},
 	{
 		q: `SELECT CAST(5 AS INTEGER);`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST(5 AS REAL);`,
-		v: "5.00",
+		v: [][]string{{"5.00"}},
 	},
 	{
 		q: `SELECT CAST(5 AS VARCHAR);`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST(5.0 AS INTEGER);`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST(5.0 AS REAL);`,
-		v: "5.00",
+		v: [][]string{{"5.00"}},
 	},
 	{
 		q: `SELECT CAST(5.0 AS VARCHAR);`,
-		v: "5.00",
+		v: [][]string{{"5.00"}},
 	},
 	{
 		q: `SELECT CAST('5' AS INTEGER);`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST('5' AS REAL);`,
-		v: "5.00",
+		v: [][]string{{"5.00"}},
 	},
 	{
 		q: `SELECT CAST('5' AS VARCHAR);`,
-		v: "5",
+		v: [][]string{{"5"}},
 	},
 
 	// String functions.
 	{
 		q: `SELECT LEFT('Hello, world!', 6);`,
-		v: "Hello,",
+		v: [][]string{{"Hello,"}},
 	},
 	{
 		q: `SELECT LEN('Hello, world!');`,
-		v: "13",
+		v: [][]string{{"13"}},
 	},
 	{
 		q: `SELECT LOWER('Hello, world!');`,
-		v: "hello, world!",
+		v: [][]string{{"hello, world!"}},
 	},
 	{
 		q: `SELECT LTRIM('  Hello, World!  ');`,
-		v: "Hello, World!  ",
+		v: [][]string{{"Hello, World!  "}},
 	},
 	{
 		q: `SELECT NCHAR(64);`,
-		v: "@",
+		v: [][]string{{"@"}},
 	},
 	{
 		q: `SELECT RTRIM('  Hello, World!  ');`,
-		v: "  Hello, World!",
+		v: [][]string{{"  Hello, World!"}},
 	},
 	{
 		q: `SELECT TRIM('  Hello, World!  ');`,
-		v: "Hello, World!",
+		v: [][]string{{"Hello, World!"}},
 	},
 	{
 		q: `DECLARE nstring VARCHAR;
 SET nstring = 'Åkergatan 24';
-SELECT NCHAR(UNICODE(nstring));`,
-		v: "Å",
+SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
+		v: [][]string{{"197", "Å"}},
 	},
 	{
 		q: `SELECT UPPER('Hello, world!');`,
-		v: "HELLO, WORLD!",
+		v: [][]string{{"HELLO, WORLD!"}},
 	},
 }
 
@@ -197,8 +198,8 @@ func TestBuiltIn(t *testing.T) {
 	data := fmt.Sprintf("data:text/csv;base64,%s",
 		base64.StdEncoding.EncodeToString([]byte(builtInData)))
 
-	for idx, input := range builtInTests {
-		name := fmt.Sprintf("Test %d", idx)
+	for testID, input := range builtInTests {
+		name := fmt.Sprintf("Test %d", testID)
 		parser := NewParser(bytes.NewReader([]byte(input.q)), name)
 
 		parser.SetString("data", data)
@@ -211,35 +212,41 @@ func TestBuiltIn(t *testing.T) {
 				}
 				t.Fatalf("%s: parse failed: %v", name, err)
 			}
+			verifyResult(t, name, q, input.v)
+		}
+	}
+}
 
-			rows, err := q.Get()
-			if err != nil {
-				t.Errorf("%s: q.Get failed: %v", name, err)
-				continue
-			}
-			if len(rows) != 1 {
-				t.Errorf("%s: unexpected number of result rows", name)
+func verifyResult(t *testing.T, name string, q types.Source, v [][]string) {
+	rows, err := q.Get()
+	if err != nil {
+		t.Errorf("%s: q.Get failed: %v", name, err)
+		return
+	}
+	if len(rows) != len(v) {
+		t.Errorf("%s: got %d rows, expected %d", name, len(rows), len(v))
+		printResult(q, rows)
+		return
+	}
+	for rowID, row := range rows {
+		if len(row) != len(v[rowID]) {
+			t.Fatalf("%s: row %d: got %d columns, expected %d",
+				name, rowID, len(row), len(v[rowID]))
+			printResult(q, rows)
+			continue
+		}
+		for colID, col := range row {
+			result := col.String()
+			if result != v[rowID][colID] {
+				t.Errorf("%s: %d.%d: got '%s', expected '%s'",
+					name, rowID, colID, result, v[rowID][colID])
 				printResult(q, rows)
-				continue
-			}
-			if len(rows[0]) != 1 {
-				t.Fatalf("%s: unexpected number of result columns", name)
-				printResult(q, rows)
-				continue
-			}
-			result := rows[0][0].String()
-			if result != input.v {
-				t.Errorf("%s: failed: got '%s', expected '%s'\n",
-					name, result, input.v)
-				printResult(q, rows)
-
 			}
 		}
 	}
 }
 
 func printResult(q types.Source, rows []types.Row) {
-
 	tab, err := types.Tabulate(q, tabulate.Unicode)
 	if err != nil {
 		return
