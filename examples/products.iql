@@ -1,7 +1,18 @@
 /* -*- sql -*- */
 
-SELECT products.'.id'    AS ID,
-       products.'.name'  AS Name,
-       products.'.price' AS Price
-FROM 'store.html' FILTER 'table:nth-of-type(2) tr' AS products
-WHERE products.ID <> null;
+DECLARE maxLength INTEGER;
+SET maxLength = 46;
+
+SELECT ID,
+       CASE
+            WHEN LEN(Name) > maxLength THEN LEFT(Name, maxLength-3) + '...'
+	    ELSE Name
+       END AS Name,
+       Price
+FROM (
+      SELECT products.'.id'    AS ID,
+             products.'.name'  AS Name,
+             products.'.price' AS Price
+      FROM 'store.html' FILTER 'table:nth-of-type(2) tr' AS products
+      WHERE products.ID <> null
+     );

@@ -397,10 +397,12 @@ func builtInLeft(args []Expr, row []types.Row,
 		return nil, err
 	}
 	idx := int(idx64)
-	if idx > len(str) {
-		idx = len(str)
+	runes := []rune(str)
+
+	if idx > len(runes) {
+		idx = len(runes)
 	}
-	return types.StringValue(str[:idx]), nil
+	return types.StringValue(string(runes[:idx])), nil
 }
 
 func builtInLen(args []Expr, row []types.Row,
