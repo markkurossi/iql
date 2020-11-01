@@ -144,9 +144,9 @@
 
  <section>
   <h2><a name='SelectClause'>SelectClause:</a></h2>
-  <svg height='55' width='690'>
+  <svg height='55' width='840'>
     <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
-    <path d='M680.5 34 v12 m 4 0 v-12' class='station'/>
+    <path d='M830.5 34 v12 m 4 0 v-12' class='station'/>
     <a href='#Select'>
     <rect x='30' y='30' height='20' width='70' rx='0' ry='0' class='rule'/>
     <text x='65' y='45' text-anchor='middle' class='rule'>Select</text>
@@ -171,9 +171,19 @@
     <rect x='560' y='30' height='20' width='70' rx='0' ry='0' class='rule'/>
     <text x='595' y='45' text-anchor='middle' class='rule'>Group</text>
     </a>
+    <path d='M747 10 l-4 3 v-6 z' class='arrow'/>
+    <a href='#Order'>
+    <rect x='710' y='30' height='20' width='70' rx='0' ry='0' class='rule'/>
+    <text x='745' y='45' text-anchor='middle' class='rule'>Order</text>
+    </a>
+    <path d='M690 20 v10'/>
+    <path d='M800 30 q0 10 10 10'/>
+    <path d='M780 40 h50'/>
+    <path d='M680 40 q10 0 10 -10'/>
+    <path d='M690 20 q0 -10 10 -10 h90 q10 0 10 10 v10'/>
     <path d='M540 20 v10'/>
     <path d='M650 30 q0 10 10 10'/>
-    <path d='M630 40 h50'/>
+    <path d='M630 40 h80'/>
     <path d='M530 40 q10 0 10 -10'/>
     <path d='M540 20 q0 -10 10 -10 h90 q10 0 10 10 v10'/>
     <path d='M390 20 v10'/>
@@ -341,6 +351,32 @@
  </section>
 
  <section>
+  <h2><a name='Order'>Order:</a></h2>
+  <svg height='65' width='360'>
+    <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
+    <path d='M350.5 14 v12 m 4 0 v-12' class='station'/>
+    <rect x='30' y='10' height='20' width='60' rx='8' ry='8' class='literal'/>
+    <text x='60' y='25' text-anchor='middle' class='literal'>ORDER</text>
+    <rect x='110' y='10' height='20' width='30' rx='8' ry='8' class='literal'/>
+    <text x='125' y='25' text-anchor='middle' class='literal'>BY</text>
+    <a href='#OrderClause'>
+    <rect x='190' y='10' height='20' width='110' rx='0' ry='0' class='rule'/>
+    <text x='245' y='25' text-anchor='middle' class='rule'>OrderClause</text>
+    </a>
+    <rect x='235' y='40' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='245' y='55' text-anchor='middle' class='literal'>,</text>
+    <path d='M170 30 v10 q0 10 10 10 h55'/>
+    <path d='M255 50 h55 q10 0 10 -10'/>
+    <path d='M310 20 q10 0 10 10 v10'/>
+    <path d='M300 20 h50'/>
+    <path d='M170 30 q0 -10 10 -10'/>
+    <path d='M140 20 h50'/>
+    <path d='M90 20 h20'/>
+    <path d='M10 20 h20'/>
+  </svg>
+ </section>
+
+ <section>
   <h2><a name='FromClause'>FromClause:</a></h2>
   <svg height='85' width='590'>
     <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
@@ -387,6 +423,35 @@
     <path d='M30 40 q10 0 10 10 v10'/>
     <path d='M560 40 h20'/>
     <path d='M10 40 h50'/>
+  </svg>
+ </section>
+
+ <section>
+  <h2><a name='OrderClause'>OrderClause:</a></h2>
+  <svg height='85' width='240'>
+    <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
+    <path d='M230.5 34 v12 m 4 0 v-12' class='station'/>
+    <a href='#Expr'>
+    <rect x='30' y='30' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='55' y='45' text-anchor='middle' class='rule'>Expr</text>
+    </a>
+    <path d='M157 10 l-4 3 v-6 z' class='arrow'/>
+    <rect x='135' y='30' height='20' width='40' rx='8' ry='8' class='literal'/>
+    <text x='155' y='45' text-anchor='middle' class='literal'>ASC</text>
+    <rect x='130' y='60' height='20' width='50' rx='8' ry='8' class='literal'/>
+    <text x='155' y='75' text-anchor='middle' class='literal'>DESC</text>
+    <path d='M200 50 v10'/>
+    <path d='M110 20 v10'/>
+    <path d='M180 70 h10 q10 0 10 -10'/>
+    <path d='M110 60 q0 10 10 10 h10'/>
+    <path d='M200 30 q0 10 10 10'/>
+    <path d='M200 50 q0 -10 10 -10'/>
+    <path d='M175 40 h55'/>
+    <path d='M100 40 q10 0 10 10 v10'/>
+    <path d='M100 40 q10 0 10 -10'/>
+    <path d='M110 20 q0 -10 10 -10 h70 q10 0 10 10 v10'/>
+    <path d='M80 40 h55'/>
+    <path d='M10 40 h20'/>
   </svg>
  </section>
 

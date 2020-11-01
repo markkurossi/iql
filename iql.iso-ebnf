@@ -15,7 +15,8 @@ SelectClause = Select,
 	       [ Into ],
 	       [ From ],
 	       [ Where ],
-	       [ Group ];
+	       [ Group ],
+	       [ Order ];
 
 Select = 'SELECT', SelectColumns;
 SelectColumns = SelectColumn, {',', SelectColumn};
@@ -25,9 +26,12 @@ Into  = 'INTO', Identifier;
 From  = 'FROM', FromClause, { ',', FromClause };
 Where = 'WHERE', Expr;
 Group = 'GROUP', 'BY', Expr, {',', Expr};
+Order = 'ORDER', 'BY', OrderClause, { ',', OrderClause };
 
 FromClause = (String, [ 'FILTER', String ] | '(', SelectClause, ')'),
 	     'AS', Identifier;
+
+OrderClause = Expr, [('ASC' | 'DESC')];
 
 Expr = LogicalAndExpr, {'OR', LogicalAndExpr};
 
