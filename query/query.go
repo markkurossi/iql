@@ -273,7 +273,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 		return len(o1) < len(o2)
 	})
 	if sortErr != nil {
-		return nil, err
+		return nil, sortErr
 	}
 
 	for _, match := range matches {

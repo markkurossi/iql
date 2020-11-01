@@ -59,6 +59,16 @@ func Equal(value1, value2 Value) (bool, error) {
 // Compare compares two values. It returns -1, 0, 1 if the value 1 is
 // smaller, equal, or greater than the value 2 respectively.
 func Compare(value1, value2 Value) (int, error) {
+	_, n1 := value1.(NullValue)
+	_, n2 := value2.(NullValue)
+	if n1 && n2 {
+		return 0, nil
+	} else if n1 {
+		return -1, nil
+	} else if n2 {
+		return 1, nil
+	}
+
 	switch v1 := value1.(type) {
 	case BoolValue:
 		v2, ok := value2.(BoolValue)

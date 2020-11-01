@@ -475,6 +475,56 @@ ORDER BY Name DESC, Unit DESC, Count;`,
 			{"a", "1", "200"},
 		},
 	},
+
+	// Ints,Floats,Strings
+	// 1,4.2,foo
+	// 12,42.7,bar
+	// 7,3.1415,zappa
+	// ,2.75,x
+	// 8,,y
+	// 12,1.234,
+	{
+		q: `
+SELECT Ints, Floats, Strings
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
+ORDER BY Ints;`,
+		v: [][]string{
+			{"NULL", "2.75", "x"},
+			{"1", "4.20", "foo"},
+			{"7", "3.14", "zappa"},
+			{"8", "NULL", "y"},
+			{"12", "42.70", "bar"},
+			{"12", "1.23", ""},
+		},
+	},
+	{
+		q: `
+SELECT Ints, Floats, Strings
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
+ORDER BY Floats;`,
+		v: [][]string{
+			{"8", "NULL", "y"},
+			{"12", "1.23", ""},
+			{"NULL", "2.75", "x"},
+			{"7", "3.14", "zappa"},
+			{"1", "4.20", "foo"},
+			{"12", "42.70", "bar"},
+		},
+	},
+	{
+		q: `
+SELECT Ints, Floats, Strings
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
+ORDER BY Strings;`,
+		v: [][]string{
+			{"12", "1.23", ""},
+			{"12", "42.70", "bar"},
+			{"1", "4.20", "foo"},
+			{"NULL", "2.75", "x"},
+			{"8", "NULL", "y"},
+			{"7", "3.14", "zappa"},
+		},
+	},
 }
 
 func TestParser(t *testing.T) {
@@ -501,7 +551,7 @@ func TestParser(t *testing.T) {
 			if len(results) == 0 {
 				tab, err := types.Tabulate(q, tabulate.Unicode)
 				if err != nil {
-					t.Fatalf("q.Get failed: %v\nInput:\n%s\n", err, input)
+					t.Fatalf("q.Get failed: %v\nInput:\n%s\n", err, input.q)
 				}
 				if true {
 					tab.Print(os.Stdout)
