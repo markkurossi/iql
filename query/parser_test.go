@@ -525,6 +525,21 @@ ORDER BY Strings;`,
 			{"7", "3.14", "zappa"},
 		},
 	},
+	{
+		q: `
+DECLARE data VARCHAR;
+SET data = 'data:text/csv;base64,' + BASE64ENC('Ints,Floats,Strings
+1,42.0,foo
+2,3.14,bar');
+
+SELECT Ints, Floats, Strings
+FROM data FILTER 'headers'
+ORDER BY Ints DESC;`,
+		v: [][]string{
+			{"2", "3.14", "bar"},
+			{"1", "42.00", "foo"},
+		},
+	},
 }
 
 func TestParser(t *testing.T) {
