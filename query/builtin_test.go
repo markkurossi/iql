@@ -155,6 +155,14 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 
 	// String functions.
 	{
+		q: `SELECT BASE64ENC('foo');`,
+		v: [][]string{{"Zm9v"}},
+	},
+	{
+		q: `SELECT BASE64DEC('Zm9v');`,
+		v: [][]string{{"foo"}},
+	},
+	{
 		q: `SELECT LEFT('Hello, world!', 6);`,
 		v: [][]string{{"Hello,"}},
 	},

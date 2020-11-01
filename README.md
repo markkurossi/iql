@@ -237,6 +237,10 @@ This query gives the same result as the previous example:
 
 ### String Functions
 
+ - BASE64ENC(*expression*): return the Base64 encoding of the string
+   *expression*
+ - BASE64DEC(*expression*): decodes the Base64 encoded string and
+   returns the resulting data, converted to string
  - LEFT(*expression*, *count*): returns the *count* leftmost
    characters from the string *expression*.
  - LEN(*expression*): returns the number of Unicode code points in the

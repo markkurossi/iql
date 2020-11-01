@@ -7,6 +7,7 @@
 package query
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"unicode"
@@ -74,6 +75,20 @@ var builtIns = []Function{
 
 	// String functions.
 	{
+		Name:       "BASE64ENC",
+		Impl:       builtInBase64Enc,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
+		Name:       "BASE64DEC",
+		Impl:       builtInBase64Dec,
+		MinArgs:    1,
+		MaxArgs:    1,
+		Idempotent: false,
+	},
+	{
 		Name:       "LEFT",
 		Impl:       builtInLeft,
 		MinArgs:    2,
@@ -139,7 +154,6 @@ var builtIns = []Function{
 }
 
 func builtInAvg(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	seen := make(map[types.Type]bool)
 
 	var intSum int64
@@ -187,7 +201,6 @@ func builtInAvg(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInCount(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	var count int
 	for _, countRow := range rows {
 		val, err := args[0].Eval(countRow, nil)
@@ -203,7 +216,6 @@ func builtInCount(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInMax(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	seen := make(map[types.Type]bool)
 
 	var intMax int64
@@ -257,7 +269,6 @@ func builtInMax(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInMin(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	seen := make(map[types.Type]bool)
 
 	var intMin int64
@@ -311,7 +322,6 @@ func builtInMin(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInSum(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	seen := make(map[types.Type]bool)
 
 	var intSum int64
@@ -354,7 +364,6 @@ func builtInSum(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInNullIf(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -373,8 +382,28 @@ func builtInNullIf(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	return val, nil
 }
 
-func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+func builtInBase64Enc(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	str := base64.StdEncoding.EncodeToString([]byte(strVal.String()))
+	return types.StringValue(str), nil
+}
 
+func builtInBase64Dec(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := base64.StdEncoding.DecodeString(strVal.String())
+	if err != nil {
+		return nil, err
+	}
+	return types.StringValue(string(bytes)), nil
+}
+
+func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	strVal, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -398,7 +427,6 @@ func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInLen(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -407,7 +435,6 @@ func builtInLen(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInLower(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -416,7 +443,6 @@ func builtInLower(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInLTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -428,7 +454,6 @@ func builtInLTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInNChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -444,7 +469,6 @@ func builtInNChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInRTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -456,7 +480,6 @@ func builtInRTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -465,7 +488,6 @@ func builtInTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInUnicode(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
@@ -478,7 +500,6 @@ func builtInUnicode(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 }
 
 func builtInUpper(args []Expr, row *Row, rows []*Row) (types.Value, error) {
-
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
