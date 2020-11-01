@@ -26,16 +26,20 @@ func TestGrouping(t *testing.T) {
 		types.IntValue(1),
 		types.FloatValue(3.14),
 	}
-	row1 := []types.Row{
-		[]types.Column{
-			types.StringColumn("Column 1"),
-			types.StringColumn("Column 2"),
+	row1 := &Row{
+		Data: []types.Row{
+			[]types.Column{
+				types.StringColumn("Column 1"),
+				types.StringColumn("Column 2"),
+			},
 		},
 	}
-	row2 := []types.Row{
-		[]types.Column{
-			types.StringColumn("C1"),
-			types.StringColumn("C2"),
+	row2 := &Row{
+		Data: []types.Row{
+			[]types.Column{
+				types.StringColumn("C1"),
+				types.StringColumn("C2"),
+			},
 		},
 	}
 

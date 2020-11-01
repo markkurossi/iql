@@ -183,7 +183,7 @@ func (p *Parser) parseSet() error {
 	if err != nil {
 		return err
 	}
-	v, err := expr.Eval(nil, nil, nil)
+	v, err := expr.Eval(nil, nil)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (p *Parser) parsePrint() error {
 	if t.Type != ';' {
 		return p.errUnexpected(t)
 	}
-	v, err := expr.Eval(nil, nil, nil)
+	v, err := expr.Eval(nil, nil)
 	if err != nil {
 		return err
 	}
@@ -232,7 +232,7 @@ func (p *Parser) parseSelect() (*Query, error) {
 		}
 	}
 
-	// Into
+	// INTO
 	t, err := p.get()
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func (p *Parser) parseSelect() (*Query, error) {
 		p.lexer.unget(t)
 	}
 
-	// From
+	// FROM
 	t, err = p.get()
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func (p *Parser) parseSelect() (*Query, error) {
 		p.lexer.unget(t)
 	}
 
-	// Where
+	// WHERE
 	t, err = p.get()
 	if err != nil {
 		return nil, err
@@ -299,13 +299,27 @@ func (p *Parser) parseSelect() (*Query, error) {
 		p.lexer.unget(t)
 	}
 
-	// Group by
+	// GROUP BY
 	t, err = p.get()
 	if err != nil {
 		return nil, err
 	}
 	if t.Type == TSymGroup {
 		q.GroupBy, err = p.parseGroupBy()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		p.lexer.unget(t)
+	}
+
+	// ORDER BY
+	t, err = p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type == TSymOrder {
+		q.OrderBy, err = p.parseOrderBy()
 		if err != nil {
 			return nil, err
 		}
@@ -484,12 +498,9 @@ func (p *Parser) parseKeyword(keyword TokenType) (string, error) {
 }
 
 func (p *Parser) parseGroupBy() ([]Expr, error) {
-	t, err := p.get()
+	_, err := p.need(TSymBy)
 	if err != nil {
 		return nil, err
-	}
-	if t.Type != TSymBy {
-		return nil, p.errUnexpected(t)
 	}
 	var result []Expr
 	for {
@@ -498,6 +509,45 @@ func (p *Parser) parseGroupBy() ([]Expr, error) {
 			return nil, err
 		}
 		result = append(result, expr)
+
+		t, err := p.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type != ',' {
+			p.lexer.unget(t)
+			return result, nil
+		}
+	}
+}
+
+func (p *Parser) parseOrderBy() ([]Order, error) {
+	_, err := p.need(TSymBy)
+	if err != nil {
+		return nil, err
+	}
+	var result []Order
+	for {
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		t, err := p.get()
+		if err != nil {
+			return nil, err
+		}
+		var desc bool
+		if t.Type == TSymAsc {
+			desc = false
+		} else if t.Type == TSymDesc {
+			desc = true
+		} else {
+			p.lexer.unget(t)
+		}
+		result = append(result, Order{
+			Expr: expr,
+			Desc: desc,
+		})
 
 		t, err = p.get()
 		if err != nil {

@@ -22,11 +22,20 @@ var (
 	_ Expr = &Case{}
 )
 
+// Row implements a row that is evaluated against the query.
+type Row struct {
+	Data  []types.Row
+	Order []types.Value
+}
+
+func (r *Row) String() string {
+	return fmt.Sprintf("Row %v %v", r.Data, r.Order)
+}
+
 // Expr implements expressions.
 type Expr interface {
 	Bind(sql *Query) error
-	Eval(row []types.Row, columns [][]types.ColumnSelector,
-		rows [][]types.Row) (types.Value, error)
+	Eval(row *Row, rows []*Row) (types.Value, error)
 	IsIdempotent() bool
 	String() string
 }
@@ -57,8 +66,7 @@ func (call *Call) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (call *Call) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (call *Call) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 	if len(call.Arguments) < call.Function.MinArgs {
 		return nil, fmt.Errorf("%s: too few arguments: got %d, expected %d",
@@ -69,7 +77,7 @@ func (call *Call) Eval(row []types.Row, columns [][]types.ColumnSelector,
 			call.Name, len(call.Arguments), call.Function.MaxArgs)
 	}
 
-	return call.Function.Impl(call.Arguments, row, columns, rows)
+	return call.Function.Impl(call.Arguments, row, rows)
 }
 
 // IsIdempotent implements the Expr.IsIdempotent().
@@ -136,14 +144,13 @@ func (b *Binary) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (b *Binary) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 
-	left, err := b.Left.Eval(row, columns, rows)
+	left, err := b.Left.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
-	right, err := b.Right.Eval(row, columns, rows)
+	right, err := b.Right.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -344,10 +351,9 @@ func (and *And) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (and *And) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (and *And) Eval(row *Row, rows []*Row) (types.Value, error) {
 
-	left, err := and.Left.Eval(row, columns, rows)
+	left, err := and.Left.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +365,7 @@ func (and *And) Eval(row []types.Row, columns [][]types.ColumnSelector,
 		return types.BoolValue(false), nil
 	}
 
-	right, err := and.Right.Eval(row, columns, rows)
+	right, err := and.Right.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -390,8 +396,7 @@ func (c *Constant) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (c *Constant) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (c *Constant) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 	return c.Value, nil
 }
@@ -408,7 +413,7 @@ func (c *Constant) String() string {
 // Reference implements column reference expressions.
 type Reference struct {
 	types.Reference
-	index   columnIndex
+	index   ColumnIndex
 	binding *Binding
 	public  bool
 	bound   bool
@@ -425,13 +430,15 @@ func NewReference(name string) (*Reference, error) {
 	}, nil
 }
 
-type columnIndex struct {
-	source int
-	column int
+// ColumnIndex identifies a query Row index.
+type ColumnIndex struct {
+	Source int
+	Column int
+	Type   types.Type
 }
 
-func (idx columnIndex) String() string {
-	return fmt.Sprintf("%d.%d", idx.source, idx.column)
+func (idx ColumnIndex) String() string {
+	return fmt.Sprintf("%d.%d", idx.Source, idx.Column)
 }
 
 // Bind implements the Expr.Bind().
@@ -448,8 +455,7 @@ func (ref *Reference) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (ref *Reference) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (ref *Reference) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 	if !ref.bound {
 		return nil, fmt.Errorf("unbound identifier '%s'", ref.Reference)
@@ -458,10 +464,9 @@ func (ref *Reference) Eval(row []types.Row, columns [][]types.ColumnSelector,
 		return ref.binding.Value, nil
 	}
 
-	col := row[ref.index.source][ref.index.column]
-	t := columns[ref.index.source][ref.index.column].Type
+	col := row.Data[ref.index.Source][ref.index.Column]
 
-	switch t {
+	switch ref.index.Type {
 	case types.Bool:
 		return col.Bool()
 	case types.Int:
@@ -494,10 +499,9 @@ func (c *Cast) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (c *Cast) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (c *Cast) Eval(row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := c.Expr.Eval(row, columns, rows)
+	val, err := c.Expr.Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -575,21 +579,20 @@ func (c *Case) Bind(sql *Query) error {
 }
 
 // Eval implements the Expr.Eval().
-func (c *Case) Eval(row []types.Row, columns [][]types.ColumnSelector,
-	rows [][]types.Row) (types.Value, error) {
+func (c *Case) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 	var input types.Value
 	var err error
 
 	if c.Input != nil {
-		input, err = c.Input.Eval(row, columns, rows)
+		input, err = c.Input.Eval(row, rows)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for _, b := range c.Branches {
-		val, err := b.When.Eval(row, columns, rows)
+		val, err := b.When.Eval(row, rows)
 		if err != nil {
 			return nil, err
 		}
@@ -605,11 +608,11 @@ func (c *Case) Eval(row []types.Row, columns [][]types.ColumnSelector,
 		}
 
 		if bval {
-			return b.Then.Eval(row, columns, rows)
+			return b.Then.Eval(row, rows)
 		}
 	}
 	if c.Else != nil {
-		return c.Else.Eval(row, columns, rows)
+		return c.Else.Eval(row, rows)
 	}
 	return types.Null, nil
 }

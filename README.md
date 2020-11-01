@@ -258,6 +258,10 @@ This query gives the same result as the previous example:
 
 # TODO
 
+ - [ ] Queries:
+   - [ ] Push table specific AND-relation SELECT expressions down to
+         data source.
+   - [X] ORDER BY
  - [ ] Aggregate:
    - [ ] Value cache
  - [ ] HTTP resource cache

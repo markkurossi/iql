@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -52,6 +53,61 @@ func Equal(value1, value2 Value) (bool, error) {
 
 	default:
 		return false, fmt.Errorf("types.Equal: invalid type: %T", value1)
+	}
+}
+
+// Compare compares two values. It returns -1, 0, 1 if the value 1 is
+// smaller, equal, or greater than the value 2 respectively.
+func Compare(value1, value2 Value) (int, error) {
+	switch v1 := value1.(type) {
+	case BoolValue:
+		v2, ok := value2.(BoolValue)
+		if !ok {
+			return -1, nil
+		}
+		if v1 == v2 {
+			return 0, nil
+		}
+		if !v1 {
+			return -1, nil
+		}
+		return 1, nil
+
+	case IntValue:
+		v2, ok := value2.(IntValue)
+		if !ok {
+			return -1, nil
+		}
+		if v1 < v2 {
+			return -1, nil
+		}
+		if v1 > v2 {
+			return 1, nil
+		}
+		return 0, nil
+
+	case FloatValue:
+		v2, ok := value2.(FloatValue)
+		if !ok {
+			return -1, nil
+		}
+		if v1 < v2 {
+			return -1, nil
+		}
+		if v1 > v2 {
+			return 1, nil
+		}
+		return 0, nil
+
+	case StringValue:
+		v2, ok := value2.(StringValue)
+		if !ok {
+			return -1, nil
+		}
+		return strings.Compare(v1.String(), v2.String()), nil
+
+	default:
+		return -1, fmt.Errorf("types.Compare: invalid type: %T", value1)
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 // Grouping implements grouping for rows.
 type Grouping struct {
 	Children map[types.Value]*Grouping
-	Rows     [][]types.Row
+	Rows     []*Row
 }
 
 // NewGrouping creates a new grouping object.
@@ -24,7 +24,7 @@ func NewGrouping() *Grouping {
 }
 
 // Add adds a row with the grouping key.
-func (g *Grouping) Add(key []types.Value, row []types.Row) {
+func (g *Grouping) Add(key []types.Value, row *Row) {
 	if len(key) == 0 {
 		g.Rows = append(g.Rows, row)
 		return
@@ -39,11 +39,11 @@ func (g *Grouping) Add(key []types.Value, row []types.Row) {
 }
 
 // Get gets the row groups.
-func (g *Grouping) Get() [][][]types.Row {
+func (g *Grouping) Get() [][]*Row {
 	return g.get(nil)
 }
 
-func (g *Grouping) get(rows [][][]types.Row) [][][]types.Row {
+func (g *Grouping) get(rows [][]*Row) [][]*Row {
 	if len(g.Rows) > 0 {
 		rows = append(rows, g.Rows)
 	}

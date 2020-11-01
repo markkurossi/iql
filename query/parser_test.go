@@ -280,10 +280,9 @@ FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
 		q: `SELECT 'Hello: ' + 1 + ', ' + 1.2 + ', ' + false AS Message;`,
 		v: [][]string{{"Hello: 1, 1.20, false"}},
 	},
-	{
-		q: `PRINT 'GROUP BY tests:';`,
-	},
 
+	// GROUP BY tests:
+	//
 	// a,1,200
 	// a,2,100
 	// a,2,50
@@ -304,6 +303,11 @@ FROM (
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
      )
 GROUP BY Name;`,
+		v: [][]string{
+			{"a", "3", "116"},
+			{"b", "3", "66"},
+			{"c", "2", "8"},
+		},
 	},
 	{
 		q: `
@@ -317,6 +321,14 @@ FROM (
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
      )
 GROUP BY Name, Unit;`,
+		v: [][]string{
+			{"a", "1", "200"},
+			{"a", "2", "75"},
+			{"b", "1", "50"},
+			{"b", "2", "50"},
+			{"b", "3", "100"},
+			{"c", "1", "8"},
+		},
 	},
 	{
 		q: `
@@ -368,6 +380,101 @@ FROM (
 			{"c", "1", "R&D"},
 		},
 	},
+
+	// ORDER BY tests:
+	//
+	// a,1,200
+	// a,2,100
+	// a,2,50
+	// b,1,50
+	// b,2,50
+	// b,3,100
+	// c,1,10
+	// c,1,7
+	{
+		q: `
+SELECT Name, Unit, Count
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     )
+ORDER BY Name;`,
+		v: [][]string{
+			{"a", "1", "200"},
+			{"a", "2", "100"},
+			{"a", "2", "50"},
+			{"b", "1", "50"},
+			{"b", "2", "50"},
+			{"b", "3", "100"},
+			{"c", "1", "10"},
+			{"c", "1", "7"},
+		},
+	},
+	{
+		q: `
+SELECT Name, Unit, Count
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     )
+ORDER BY Name DESC;`,
+		v: [][]string{
+			{"c", "1", "10"},
+			{"c", "1", "7"},
+			{"b", "1", "50"},
+			{"b", "2", "50"},
+			{"b", "3", "100"},
+			{"a", "1", "200"},
+			{"a", "2", "100"},
+			{"a", "2", "50"},
+		},
+	},
+	{
+		q: `
+SELECT Name, Unit, Count
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     )
+ORDER BY Name DESC, Unit DESC;`,
+		v: [][]string{
+			{"c", "1", "10"},
+			{"c", "1", "7"},
+			{"b", "3", "100"},
+			{"b", "2", "50"},
+			{"b", "1", "50"},
+			{"a", "2", "100"},
+			{"a", "2", "50"},
+			{"a", "1", "200"},
+		},
+	},
+	{
+		q: `
+SELECT Name, Unit, Count
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+     )
+ORDER BY Name DESC, Unit DESC, Count;`,
+		v: [][]string{
+			{"c", "1", "7"},
+			{"c", "1", "10"},
+			{"b", "3", "100"},
+			{"b", "2", "50"},
+			{"b", "1", "50"},
+			{"a", "2", "50"},
+			{"a", "2", "100"},
+			{"a", "1", "200"},
+		},
+	},
 }
 
 func TestParser(t *testing.T) {
@@ -388,7 +495,7 @@ func TestParser(t *testing.T) {
 				if err == io.EOF {
 					break
 				}
-				t.Fatalf("Parse failed: %v\nInput:\n%s\n", err, input)
+				t.Fatalf("Parse failed: %v\nInput:\n%s\n", err, input.q)
 			}
 
 			if len(results) == 0 {

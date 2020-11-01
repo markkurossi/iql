@@ -24,8 +24,7 @@ type Function struct {
 }
 
 // FunctionImpl implements the built-in IQL functions.
-type FunctionImpl func(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error)
+type FunctionImpl func(args []Expr, row *Row, rows []*Row) (types.Value, error)
 
 var builtIns = []Function{
 	// Aggregate functions.
@@ -139,8 +138,7 @@ var builtIns = []Function{
 	},
 }
 
-func builtInAvg(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInAvg(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	seen := make(map[types.Type]bool)
 
@@ -149,7 +147,7 @@ func builtInAvg(args []Expr, row []types.Row,
 	var count int
 
 	for _, sumRow := range rows {
-		val, err := args[0].Eval(sumRow, columns, nil)
+		val, err := args[0].Eval(sumRow, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -188,12 +186,11 @@ func builtInAvg(args []Expr, row []types.Row,
 	return types.IntValue(intSum / int64(count)), nil
 }
 
-func builtInCount(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInCount(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	var count int
 	for _, countRow := range rows {
-		val, err := args[0].Eval(countRow, columns, nil)
+		val, err := args[0].Eval(countRow, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -205,8 +202,7 @@ func builtInCount(args []Expr, row []types.Row,
 	return types.IntValue(count), nil
 }
 
-func builtInMax(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInMax(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	seen := make(map[types.Type]bool)
 
@@ -214,7 +210,7 @@ func builtInMax(args []Expr, row []types.Row,
 	var floatMax float64
 
 	for _, sumRow := range rows {
-		val, err := args[0].Eval(sumRow, columns, nil)
+		val, err := args[0].Eval(sumRow, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -260,8 +256,7 @@ func builtInMax(args []Expr, row []types.Row,
 
 }
 
-func builtInMin(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInMin(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	seen := make(map[types.Type]bool)
 
@@ -269,7 +264,7 @@ func builtInMin(args []Expr, row []types.Row,
 	var floatMin float64
 
 	for _, sumRow := range rows {
-		val, err := args[0].Eval(sumRow, columns, nil)
+		val, err := args[0].Eval(sumRow, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -315,8 +310,7 @@ func builtInMin(args []Expr, row []types.Row,
 	return types.IntValue(intMin), nil
 }
 
-func builtInSum(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInSum(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	seen := make(map[types.Type]bool)
 
@@ -324,7 +318,7 @@ func builtInSum(args []Expr, row []types.Row,
 	var floatSum float64
 
 	for _, sumRow := range rows {
-		val, err := args[0].Eval(sumRow, columns, nil)
+		val, err := args[0].Eval(sumRow, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -359,14 +353,13 @@ func builtInSum(args []Expr, row []types.Row,
 	return types.IntValue(intSum), nil
 }
 
-func builtInNullIf(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInNullIf(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
-	cmp, err := args[1].Eval(row, columns, rows)
+	cmp, err := args[1].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -380,14 +373,13 @@ func builtInNullIf(args []Expr, row []types.Row,
 	return val, nil
 }
 
-func builtInLeft(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	strVal, err := args[0].Eval(row, columns, rows)
+	strVal, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
-	idxVal, err := args[1].Eval(row, columns, rows)
+	idxVal, err := args[1].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -405,30 +397,27 @@ func builtInLeft(args []Expr, row []types.Row,
 	return types.StringValue(string(runes[:idx])), nil
 }
 
-func builtInLen(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInLen(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
 	return types.IntValue(len([]rune(val.String()))), nil
 }
 
-func builtInLower(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInLower(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
 	return types.StringValue(strings.ToLower(val.String())), nil
 }
 
-func builtInLTrim(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInLTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -438,10 +427,9 @@ func builtInLTrim(args []Expr, row []types.Row,
 		})), nil
 }
 
-func builtInNChar(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInNChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -455,10 +443,9 @@ func builtInNChar(args []Expr, row []types.Row,
 	return types.StringValue(string(rune(i))), nil
 }
 
-func builtInRTrim(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInRTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -468,20 +455,18 @@ func builtInRTrim(args []Expr, row []types.Row,
 		})), nil
 }
 
-func builtInTrim(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
 	return types.StringValue(strings.TrimSpace(val.String())), nil
 }
 
-func builtInUnicode(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInUnicode(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -492,10 +477,9 @@ func builtInUnicode(args []Expr, row []types.Row,
 	return types.IntValue([]rune(str)[0]), nil
 }
 
-func builtInUpper(args []Expr, row []types.Row,
-	columns [][]types.ColumnSelector, rows [][]types.Row) (types.Value, error) {
+func builtInUpper(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
-	val, err := args[0].Eval(row, columns, rows)
+	val, err := args[0].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ package query
 import (
 	"fmt"
 	"os"
+	"sort"
 	"unicode"
 
 	"github.com/markkurossi/iql/types"
@@ -28,18 +29,25 @@ type Query struct {
 	Into          *Binding
 	Where         Expr
 	GroupBy       []Expr
+	OrderBy       []Order
 	Global        *Scope
-	fromColumns   map[string]columnIndex
+	fromColumns   map[string]ColumnIndex
 	evaluated     bool
 	resultColumns []types.ColumnSelector
 	result        []types.Row
+}
+
+// Order specifies column sorting order.
+type Order struct {
+	Expr Expr
+	Desc bool
 }
 
 // NewQuery creates a new query object.
 func NewQuery(global *Scope) *Query {
 	return &Query{
 		Global:      global,
-		fromColumns: make(map[string]columnIndex),
+		fromColumns: make(map[string]ColumnIndex),
 	}
 }
 
@@ -144,9 +152,10 @@ func (sql *Query) Get() ([]types.Row, error) {
 			} else {
 				key = columnName
 			}
-			sql.fromColumns[key] = columnIndex{
-				source: sourceIdx,
-				column: columnIdx,
+			sql.fromColumns[key] = ColumnIndex{
+				Source: sourceIdx,
+				Column: columnIdx,
+				Type:   col.Type,
 			}
 		}
 	}
@@ -154,40 +163,36 @@ func (sql *Query) Get() ([]types.Row, error) {
 	// Bind SELECT expressions.
 	var idempotent = true
 	for _, sel := range sql.Select {
-		err := sel.Expr.Bind(sql)
-		if err != nil {
+		if err := sel.Expr.Bind(sql); err != nil {
 			return nil, err
 		}
 		if !sel.Expr.IsIdempotent() {
 			idempotent = false
 		}
 	}
-
 	// Bind WHERE expressions.
 	if sql.Where != nil {
-		err := sql.Where.Bind(sql)
-		if err != nil {
+		if err := sql.Where.Bind(sql); err != nil {
 			return nil, err
 		}
 	}
-
 	// Bind GROUP BY expressions.
 	for _, group := range sql.GroupBy {
-		err := group.Bind(sql)
-		if err != nil {
+		if err := group.Bind(sql); err != nil {
+			return nil, err
+		}
+	}
+	// Bind ORDER BY expressions.
+	for _, order := range sql.OrderBy {
+		if err := order.Expr.Bind(sql); err != nil {
 			return nil, err
 		}
 	}
 
-	var matches [][]types.Row
-	err := sql.eval(0, nil, nil, &matches)
+	var matches []*Row
+	err := sql.eval(0, nil, &matches)
 	if err != nil {
 		return nil, err
-	}
-
-	var columns [][]types.ColumnSelector
-	for _, sel := range sql.From {
-		columns = append(columns, sel.Source.Columns())
 	}
 
 	// Group by.
@@ -195,7 +200,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 	for _, match := range matches {
 		var key []types.Value
 		for _, group := range sql.GroupBy {
-			val, err := group.Eval(match, columns, nil)
+			val, err := group.Eval(match, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -205,6 +210,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 	}
 
 	// Select result columns.
+	matches = nil
 	for _, group := range grouping.Get() {
 		for _, match := range group {
 			var row types.Row
@@ -213,7 +219,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 				if !sel.IsPublic() {
 					continue
 				}
-				val, err := sel.Expr.Eval(match, columns, group)
+				val, err := sel.Expr.Eval(match, group)
 				if err != nil {
 					return nil, err
 				}
@@ -226,25 +232,68 @@ func (sql *Query) Get() ([]types.Row, error) {
 				}
 				i++
 			}
-			sql.result = append(sql.result, row)
+			matches = append(matches, &Row{
+				Data:  []types.Row{row},
+				Order: match.Order,
+			})
 			// Idempotent and GROUP BY return one result per group.
 			if idempotent || len(sql.GroupBy) > 0 {
 				break
 			}
 		}
 	}
+
+	// Order results.
+	var sortErr error
+	sort.Slice(matches, func(i, j int) bool {
+		o1 := matches[i].Order
+		o2 := matches[j].Order
+		l := len(o1)
+		if len(o2) < l {
+			l = len(o2)
+		}
+		for idx := 0; idx < l; idx++ {
+			var desc bool
+			if idx < len(sql.OrderBy) {
+				desc = sql.OrderBy[idx].Desc
+			}
+			cmp, err := types.Compare(o1[idx], o2[idx])
+			if err != nil {
+				sortErr = err
+				return true
+			}
+			if cmp == 0 {
+				continue
+			}
+			if cmp < 0 {
+				return !desc
+			}
+			return desc
+		}
+		return len(o1) < len(o2)
+	})
+	if sortErr != nil {
+		return nil, err
+	}
+
+	for _, match := range matches {
+		sql.result = append(sql.result, match.Data[0])
+	}
+
 	sql.evaluated = true
 
 	return sql.result, nil
 }
 
-func (sql *Query) eval(idx int, data []types.Row,
-	columns [][]types.ColumnSelector, result *[][]types.Row) error {
+func (sql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
 
 	if idx >= len(sql.From) {
 		match := true
+		row := &Row{
+			Data: data,
+		}
 		if sql.Where != nil {
-			val, err := sql.Where.Eval(data, columns, nil)
+			val, err := sql.Where.Eval(row, nil)
 			if err != nil {
 				return err
 			}
@@ -254,7 +303,16 @@ func (sql *Query) eval(idx int, data []types.Row,
 			}
 		}
 		if match {
-			*result = append(*result, data)
+			// ORDER BY
+			for _, order := range sql.OrderBy {
+				v, err := order.Expr.Eval(row, nil)
+				if err != nil {
+					return err
+				}
+				row.Order = append(row.Order, v)
+			}
+			row.Order = append(row.Order, types.IntValue(len(*result)))
+			*result = append(*result, row)
 		}
 		return nil
 	}
@@ -263,11 +321,9 @@ func (sql *Query) eval(idx int, data []types.Row,
 	if err != nil {
 		return err
 	}
-	cols := sql.From[idx].Source.Columns()
-	columns = append(columns, cols)
 
 	for _, row := range rows {
-		err := sql.eval(idx+1, append(data, row), columns, result)
+		err := sql.eval(idx+1, append(data, row), result)
 		if err != nil {
 			return err
 		}
