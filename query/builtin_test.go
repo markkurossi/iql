@@ -104,7 +104,7 @@ SELECT 5 / NULLIF(0.0, 0.0);`,
 	{
 		q: `
 SELECT 5 / NULLIF(5.0, 0.0);`,
-		v: [][]string{{"1.00"}},
+		v: [][]string{{"1"}},
 	},
 
 	// CAST tests.
@@ -122,7 +122,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 	},
 	{
 		q: `SELECT CAST(5 AS REAL);`,
-		v: [][]string{{"5.00"}},
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST(5 AS VARCHAR);`,
@@ -134,11 +134,11 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 	},
 	{
 		q: `SELECT CAST(5.0 AS REAL);`,
-		v: [][]string{{"5.00"}},
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST(5.0 AS VARCHAR);`,
-		v: [][]string{{"5.00"}},
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST('5' AS INTEGER);`,
@@ -146,7 +146,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 	},
 	{
 		q: `SELECT CAST('5' AS REAL);`,
-		v: [][]string{{"5.00"}},
+		v: [][]string{{"5"}},
 	},
 	{
 		q: `SELECT CAST('5' AS VARCHAR);`,

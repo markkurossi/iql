@@ -19,13 +19,19 @@ var (
 	_ Value = FloatValue(0.0)
 	_ Value = StringValue("")
 	_ Value = TableValue{}
+	_ Value = &FormattedValue{}
 
 	// Null value specifies a non-existing value.
 	Null Value = NullValue{}
 )
 
+const (
+	defaultFloatFormat = "%g"
+)
+
 // Value implements expression values.
 type Value interface {
+	Type() Type
 	Bool() (bool, error)
 	Int() (int64, error)
 	Float() (float64, error)
@@ -124,6 +130,11 @@ func Compare(value1, value2 Value) (int, error) {
 // BoolValue implements boolean values.
 type BoolValue bool
 
+// Type implements the Value.Type().
+func (v BoolValue) Type() Type {
+	return Bool
+}
+
 // Bool implements the Value.Bool().
 func (v BoolValue) Bool() (bool, error) {
 	return bool(v), nil
@@ -145,6 +156,11 @@ func (v BoolValue) String() string {
 
 // IntValue implements integer values.
 type IntValue int64
+
+// Type implements the Value.Type().
+func (v IntValue) Type() Type {
+	return Int
+}
 
 // Bool implements the Value.Bool().
 func (v IntValue) Bool() (bool, error) {
@@ -168,6 +184,11 @@ func (v IntValue) String() string {
 // FloatValue implements floating point values.
 type FloatValue float64
 
+// Type implements the Value.Type().
+func (v FloatValue) Type() Type {
+	return Float
+}
+
 // Bool implements the Value.Bool().
 func (v FloatValue) Bool() (bool, error) {
 	return false, fmt.Errorf("int used as bool")
@@ -184,11 +205,16 @@ func (v FloatValue) Float() (float64, error) {
 }
 
 func (v FloatValue) String() string {
-	return fmt.Sprintf("%.2f", float64(v))
+	return fmt.Sprintf(defaultFloatFormat, float64(v))
 }
 
 // StringValue implements string values.
 type StringValue string
+
+// Type implements the Value.Type().
+func (v StringValue) Type() Type {
+	return String
+}
 
 // Bool implements the Value.Bool().
 func (v StringValue) Bool() (bool, error) {
@@ -216,6 +242,11 @@ func (v StringValue) String() string {
 // TableValue implements table values for sources.
 type TableValue struct {
 	Source Source
+}
+
+// Type implements the Value.Type().
+func (v TableValue) Type() Type {
+	return Table
 }
 
 // Bool implements the Value.Bool().
@@ -246,6 +277,11 @@ func (v TableValue) String() string {
 type NullValue struct {
 }
 
+// Type implements the Value.Type().
+func (v NullValue) Type() Type {
+	return Any
+}
+
 // Bool implements the Value.Bool().
 func (v NullValue) Bool() (bool, error) {
 	return false, errors.New("null used as bool")
@@ -263,4 +299,58 @@ func (v NullValue) Float() (float64, error) {
 
 func (v NullValue) String() string {
 	return "null"
+}
+
+// Format implements value formatting options.
+type Format struct {
+	Float string
+}
+
+// FormattedValue implements value by wrapping another value type with
+// formatting options.
+type FormattedValue struct {
+	value  Value
+	format *Format
+}
+
+// NewFormattedValue creates a new formatted value from the argument
+// value and format.
+func NewFormattedValue(v Value, f *Format) *FormattedValue {
+	return &FormattedValue{
+		value:  v,
+		format: f,
+	}
+}
+
+// Type implements the Value.Type().
+func (v *FormattedValue) Type() Type {
+	return v.value.Type()
+}
+
+// Bool implements the Value.Bool().
+func (v *FormattedValue) Bool() (bool, error) {
+	return v.value.Bool()
+}
+
+// Int implements the Value.Int().
+func (v *FormattedValue) Int() (int64, error) {
+	return v.value.Int()
+}
+
+// Float implements the Value.Float().
+func (v *FormattedValue) Float() (float64, error) {
+	return v.value.Float()
+}
+
+func (v *FormattedValue) String() string {
+	switch val := v.value.(type) {
+	case FloatValue:
+		format := v.format.Float
+		if len(format) == 0 {
+			format = defaultFloatFormat
+		}
+		return fmt.Sprintf(format, float64(val))
+	default:
+		return v.value.String()
+	}
 }

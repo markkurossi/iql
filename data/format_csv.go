@@ -146,7 +146,7 @@ func NewCSV(input io.ReadCloser, filter string,
 				}
 				val = record[idx]
 			}
-			columns[i].ResolveType(val)
+			columns[i].ResolveString(val)
 			row = append(row, types.StringColumn(val))
 		}
 		rows = append(rows, row)

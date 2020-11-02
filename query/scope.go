@@ -26,17 +26,6 @@ func NewScope(parent *Scope) *Scope {
 	}
 }
 
-// Get gets the name binding from the scope.
-func (scope *Scope) Get(name string) *Binding {
-	for s := scope; s != nil; s = s.Parent {
-		b, ok := s.Symbols[name]
-		if ok {
-			return b
-		}
-	}
-	return nil
-}
-
 // Declare declares the name with type.
 func (scope *Scope) Declare(name string, t types.Type) error {
 	b := scope.Get(name)
@@ -66,6 +55,17 @@ func (scope *Scope) Set(name string, v types.Value) error {
 		}
 	}
 	return fmt.Errorf("unknown identifier '%s'", name)
+}
+
+// Get gets the name binding from the scope.
+func (scope *Scope) Get(name string) *Binding {
+	for s := scope; s != nil; s = s.Parent {
+		b, ok := s.Symbols[name]
+		if ok {
+			return b
+		}
+	}
+	return nil
 }
 
 // Binding symbol binding.

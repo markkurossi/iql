@@ -51,7 +51,7 @@ func NewHTML(input io.ReadCloser, filter string,
 				})
 				row = append(row, types.StringsColumn(strings))
 			}
-			columns[i].ResolveType(row[i].String())
+			columns[i].ResolveString(row[i].String())
 		}
 		rows = append(rows, row)
 	})

@@ -16,9 +16,10 @@ import (
 )
 
 var (
+	_ Column = NullColumn{}
+	_ Column = ValueColumn{}
 	_ Column = StringColumn("")
 	_ Column = StringsColumn([]string{})
-	_ Column = NullColumn{}
 )
 
 // Source is an interface that defines data input sources.
@@ -44,11 +45,30 @@ func (col ColumnSelector) IsPublic() bool {
 	return len(runes) > 0 && unicode.IsUpper(runes[0])
 }
 
-// ResolveType resolves the column type based on the argument column
+// ResolveValue resolves the column type based on the argument column
 // value. This function must be called once for each value and it will
 // resolve the most specific column type that is able to represent all
-// values
-func (col *ColumnSelector) ResolveType(val string) {
+// values.
+func (col *ColumnSelector) ResolveValue(val Value) {
+	_, ok := val.(NullValue)
+	if ok {
+		return
+	}
+
+	t := val.Type()
+	if t > col.Type {
+		col.Type = t
+	}
+	if col.Type > String {
+		col.Type = String
+	}
+}
+
+// ResolveString resolves the column type based on the argument column
+// value. This function must be called once for each value and it will
+// resolve the most specific column type that is able to represent all
+// values.
+func (col *ColumnSelector) ResolveString(val string) {
 	// Skip empty values.
 	if len(val) == 0 {
 		return
@@ -131,10 +151,6 @@ func (ref Reference) String() string {
 
 // Column defines a data column.
 type Column interface {
-	// Count returns number of column elements.
-	Count() int
-	// Size returns the column size in characters.
-	Size() int
 	Bool() (Value, error)
 	Int() (Value, error)
 	Float() (Value, error)
@@ -143,16 +159,6 @@ type Column interface {
 
 // NullColumn implements a null-column.
 type NullColumn NullValue
-
-// Count implements the Column.Count().
-func (n NullColumn) Count() int {
-	return 0
-}
-
-// Size implements the Column.Size().
-func (n NullColumn) Size() int {
-	return 0
-}
 
 // Bool implements the Column.Bool().
 func (n NullColumn) Bool() (Value, error) {
@@ -173,18 +179,52 @@ func (n NullColumn) String() string {
 	return "NULL"
 }
 
+// ValueColumn implements column over Value.
+type ValueColumn struct {
+	v Value
+}
+
+// NewValueColumn returns a new ValueColum containing the argument
+// value.
+func NewValueColumn(v Value) *ValueColumn {
+	return &ValueColumn{
+		v: v,
+	}
+}
+
+// Bool implements the Column.Bool().
+func (c ValueColumn) Bool() (Value, error) {
+	val, err := c.v.Bool()
+	if err != nil {
+		return nil, err
+	}
+	return BoolValue(val), nil
+}
+
+// Int implements the Column.Int().
+func (c ValueColumn) Int() (Value, error) {
+	val, err := c.v.Int()
+	if err != nil {
+		return nil, err
+	}
+	return IntValue(val), nil
+}
+
+// Float implements the Column.Float().
+func (c ValueColumn) Float() (Value, error) {
+	val, err := c.v.Float()
+	if err != nil {
+		return nil, err
+	}
+	return FloatValue(val), nil
+}
+
+func (c ValueColumn) String() string {
+	return c.v.String()
+}
+
 // StringColumn implements a string column.
 type StringColumn string
-
-// Count implements the Column.Count().
-func (s StringColumn) Count() int {
-	return 1
-}
-
-// Size implements the Column.Size().
-func (s StringColumn) Size() int {
-	return len(s)
-}
 
 // Bool implements the Column.Bool().
 func (s StringColumn) Bool() (Value, error) {
@@ -231,22 +271,6 @@ func (s StringColumn) String() string {
 
 // StringsColumn implements a string array column.
 type StringsColumn []string
-
-// Count implements the Column.Count().
-func (s StringsColumn) Count() int {
-	return len(s)
-}
-
-// Size implements the Column.Size().
-func (s StringsColumn) Size() int {
-	var size int
-	for _, e := range s {
-		if len(e) > size {
-			size = len(e)
-		}
-	}
-	return size
-}
 
 // Bool implements the Column.Bool().
 func (s StringsColumn) Bool() (Value, error) {

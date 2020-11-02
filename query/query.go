@@ -211,6 +211,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 
 	// Select result columns.
 	matches = nil
+	format := Format(sql.Global)
 	for _, group := range grouping.Get() {
 		for _, match := range group {
 			var row types.Row
@@ -226,9 +227,11 @@ func (sql *Query) Get() ([]types.Row, error) {
 				if val == types.Null {
 					row = append(row, types.NullColumn{})
 				} else {
-					str := val.String()
-					row = append(row, types.StringColumn(str))
-					sql.resultColumns[i].ResolveType(str)
+					if format != nil {
+						val = types.NewFormattedValue(val, format)
+					}
+					row = append(row, types.NewValueColumn(val))
+					sql.resultColumns[i].ResolveValue(val)
 				}
 				i++
 			}

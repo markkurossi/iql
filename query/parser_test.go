@@ -270,15 +270,15 @@ SELECT
         Floats + Ints AS Sum2
 FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
 		v: [][]string{
-			{"1", "4.10", "5.10", "5.10"},
-			{"2", "4.20", "6.20", "6.20"},
-			{"3", "4.30", "7.30", "7.30"},
-			{"4", "4.40", "8.40", "8.40"},
+			{"1", "4.1", "5.1", "5.1"},
+			{"2", "4.2", "6.2", "6.2"},
+			{"3", "4.3", "7.3", "7.3"},
+			{"4", "4.4", "8.4", "8.4"},
 		},
 	},
 	{
 		q: `SELECT 'Hello: ' + 1 + ', ' + 1.2 + ', ' + false AS Message;`,
-		v: [][]string{{"Hello: 1, 1.20, false"}},
+		v: [][]string{{"Hello: 1, 1.2, false"}},
 	},
 
 	// GROUP BY tests:
@@ -490,11 +490,11 @@ FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiY
 ORDER BY Ints;`,
 		v: [][]string{
 			{"NULL", "2.75", "x"},
-			{"1", "4.20", "foo"},
-			{"7", "3.14", "zappa"},
+			{"1", "4.2", "foo"},
+			{"7", "3.1415", "zappa"},
 			{"8", "NULL", "y"},
-			{"12", "42.70", "bar"},
-			{"12", "1.23", ""},
+			{"12", "42.7", "bar"},
+			{"12", "1.234", ""},
 		},
 	},
 	{
@@ -504,11 +504,11 @@ FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiY
 ORDER BY Floats;`,
 		v: [][]string{
 			{"8", "NULL", "y"},
-			{"12", "1.23", ""},
+			{"12", "1.234", ""},
 			{"NULL", "2.75", "x"},
-			{"7", "3.14", "zappa"},
-			{"1", "4.20", "foo"},
-			{"12", "42.70", "bar"},
+			{"7", "3.1415", "zappa"},
+			{"1", "4.2", "foo"},
+			{"12", "42.7", "bar"},
 		},
 	},
 	{
@@ -517,12 +517,12 @@ SELECT Ints, Floats, Strings
 FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
 ORDER BY Strings;`,
 		v: [][]string{
-			{"12", "1.23", ""},
-			{"12", "42.70", "bar"},
-			{"1", "4.20", "foo"},
+			{"12", "1.234", ""},
+			{"12", "42.7", "bar"},
+			{"1", "4.2", "foo"},
 			{"NULL", "2.75", "x"},
 			{"8", "NULL", "y"},
-			{"7", "3.14", "zappa"},
+			{"7", "3.1415", "zappa"},
 		},
 	},
 	{
@@ -537,7 +537,15 @@ FROM data FILTER 'headers'
 ORDER BY Ints DESC;`,
 		v: [][]string{
 			{"2", "3.14", "bar"},
-			{"1", "42.00", "foo"},
+			{"1", "42", "foo"},
+		},
+	},
+	{
+		q: `
+SET REALFMT = '%.2f';
+SELECT 3.1415;`,
+		v: [][]string{
+			{"3.14"},
 		},
 	},
 }

@@ -23,6 +23,7 @@ const (
 	Float
 	String
 	Table
+	Any
 )
 
 // Literal values.

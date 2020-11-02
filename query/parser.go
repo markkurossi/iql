@@ -25,9 +25,11 @@ type Parser struct {
 
 // NewParser creates a new IQL parser.
 func NewParser(input io.Reader, source string) *Parser {
+	global := NewScope(nil)
+	InitSystemVariables(global)
 	return &Parser{
 		lexer:  newLexer(input, source),
-		global: NewScope(nil),
+		global: NewScope(global),
 	}
 }
 

@@ -58,7 +58,7 @@ WHERE products.ID <> null;
 ┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
 │  1 │ Structure and Interpretation of Computer Programs │ 14.95 │
 │  2 │ GNU Emacs Manual, For Version 21, 15th Edition    │  9.95 │
-│  3 │ ISO/IEC 9075-1:2016(en) SQL — Part 1 Framework    │  0.00 │
+│  3 │ ISO/IEC 9075-1:2016(en) SQL — Part 1 Framework    │       │
 └────┴───────────────────────────────────────────────────┴───────┘
 ```
 
@@ -127,8 +127,8 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 ┃ Name             ┃ Address                                  ┃ Product                                           ┃ Count ┃ Price ┃
 ┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━┩
 │ Alyssa P. Hacker │ 77 Massachusetts Ave Cambridge, MA 02139 │ GNU Emacs Manual, For Version 21, 15th Edition    │     1 │  9.95 │
-│ Eva Lu Ator      │ 353 Jane Stanford Way Stanford, CA 94305 │ Structure and Interpretation of Computer Programs │     2 │ 29.90 │
-│ Lem E. Tweakit   │ 1 Hacker Way Menlo Park, CA 94025        │ ISO/IEC 9075-1:2016(en) SQL — Part 1 Framework    │     5 │  0.00 │
+│ Eva Lu Ator      │ 353 Jane Stanford Way Stanford, CA 94305 │ Structure and Interpretation of Computer Programs │     2 │  29.9 │
+│ Lem E. Tweakit   │ 1 Hacker Way Menlo Park, CA 94025        │ ISO/IEC 9075-1:2016(en) SQL — Part 1 Framework    │     5 │       │
 └──────────────────┴──────────────────────────────────────────┴───────────────────────────────────────────────────┴───────┴───────┘
 ```
 
@@ -217,6 +217,11 @@ This query gives the same result as the previous example:
 │ 1972 │   200 │    99 │
 └──────┴───────┴───────┘
 ```
+
+## System Variables
+
+ - REALFMT VARCHAR: specifies the formatting option for real
+   numbers. The default value is `%g`.
 
 ## Built-in Functions
 
