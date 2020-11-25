@@ -267,7 +267,7 @@ This query gives the same result as the previous example:
 
 ### Date and Time Functions
 
- - DATEDIFF(*diff*, *from*, *to): returns the time difference between
+ - DATEDIFF(*diff*, *from*, *to*): returns the time difference between
    *from* and *to*. The *diff* specifies the units in which the
    difference is computed:
    - `year`, `yy`, `yyyy`: difference between date year parts
