@@ -200,6 +200,22 @@ SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
 		q: `SELECT UPPER('Hello, world!');`,
 		v: [][]string{{"HELLO, WORLD!"}},
 	},
+	{
+		q: `SELECT DATEDIFF(day, '2005-12-31 23:59:59.9999999',
+                                 '2006-01-01 00:00:00.0000000');`,
+		v: [][]string{{"1"}},
+	},
+	{
+		q: `SELECT DATEDIFF(year, '2005-12-31 23:59:59.9999999',
+                                  '2006-01-01 00:00:00.0000000');`,
+		v: [][]string{{"1"}},
+	},
+	{
+		q: `DECLARE now DATETIME;
+SET now = GETDATE();
+SELECT DATEDIFF(year, now, now);`,
+		v: [][]string{{"0"}},
+	},
 }
 
 func TestBuiltIn(t *testing.T) {

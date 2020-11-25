@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/markkurossi/iql/types"
@@ -21,6 +22,7 @@ type Function struct {
 	Impl       FunctionImpl
 	MinArgs    int
 	MaxArgs    int
+	FirstBound int
 	Idempotent bool
 }
 
@@ -149,6 +151,23 @@ var builtIns = []Function{
 		Impl:       builtInUpper,
 		MinArgs:    1,
 		MaxArgs:    1,
+		Idempotent: false,
+	},
+
+	// Datetime functions.
+	{
+		Name:       "DATEDIFF",
+		Impl:       builtInDateDiff,
+		MinArgs:    3,
+		MaxArgs:    3,
+		FirstBound: 1,
+		Idempotent: false,
+	},
+	{
+		Name:       "GETDATE",
+		Impl:       builtInGetDate,
+		MinArgs:    0,
+		MaxArgs:    0,
 		Idempotent: false,
 	},
 }
@@ -505,6 +524,41 @@ func builtInUpper(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return nil, err
 	}
 	return types.StringValue(strings.ToUpper(val.String())), nil
+}
+
+func builtInDateDiff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	fromVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	from, err := fromVal.Date()
+	if err != nil {
+		return nil, err
+	}
+	toVal, err := args[2].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	to, err := toVal.Date()
+	if err != nil {
+		return nil, err
+	}
+
+	switch strings.ToLower(args[0].String()) {
+	case "year", "yy", "yyyy":
+		return types.IntValue(to.Year() - from.Year()), nil
+
+	case "day", "dd", "d":
+		d := to.Truncate(time.Hour * 24).Sub(from.Truncate(time.Hour * 24))
+		return types.IntValue(int(d.Hours() / 24)), nil
+
+	default:
+		return nil, fmt.Errorf("invalid datepart: %s", args[0])
+	}
+}
+
+func builtInGetDate(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	return types.DateValue(time.Now()), nil
 }
 
 var builtInsByName map[string]*Function

@@ -145,6 +145,8 @@ func (p *Parser) parseType() (types.Type, error) {
 		return types.Int, nil
 	case TSymReal:
 		return types.Float, nil
+	case TSymDatetime:
+		return types.Date, nil
 	case TSymVarchar:
 		return types.String, nil
 	default:

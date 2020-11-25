@@ -11,12 +11,14 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
 	_ Value = BoolValue(false)
 	_ Value = IntValue(0)
 	_ Value = FloatValue(0.0)
+	_ Value = DateValue(time.Unix(0, 0))
 	_ Value = StringValue("")
 	_ Value = TableValue{}
 	_ Value = &FormattedValue{}
@@ -32,6 +34,7 @@ const (
 // Value implements expression values.
 type Value interface {
 	Type() Type
+	Date() (time.Time, error)
 	Bool() (bool, error)
 	Int() (int64, error)
 	Float() (float64, error)
@@ -52,6 +55,10 @@ func Equal(value1, value2 Value) (bool, error) {
 	case FloatValue:
 		v2, ok := value2.(FloatValue)
 		return ok && v1 == v2, nil
+
+	case DateValue:
+		v2, ok := value2.(DateValue)
+		return ok && v1.Equal(v2), nil
 
 	case StringValue:
 		v2, ok := value2.(StringValue)
@@ -115,6 +122,19 @@ func Compare(value1, value2 Value) (int, error) {
 		}
 		return 0, nil
 
+	case DateValue:
+		v2, ok := value2.(DateValue)
+		if !ok {
+			return -1, nil
+		}
+		if v1.Equal(v2) {
+			return 0, nil
+		}
+		if v1.Before(v2) {
+			return -1, nil
+		}
+		return 1, nil
+
 	case StringValue:
 		v2, ok := value2.(StringValue)
 		if !ok {
@@ -133,6 +153,11 @@ type BoolValue bool
 // Type implements the Value.Type().
 func (v BoolValue) Type() Type {
 	return Bool
+}
+
+// Date implements the Value.Date().
+func (v BoolValue) Date() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("bool used as date")
 }
 
 // Bool implements the Value.Bool().
@@ -162,6 +187,11 @@ func (v IntValue) Type() Type {
 	return Int
 }
 
+// Date implements the Value.Date().
+func (v IntValue) Date() (time.Time, error) {
+	return time.Unix(0, int64(v)), nil
+}
+
 // Bool implements the Value.Bool().
 func (v IntValue) Bool() (bool, error) {
 	return false, fmt.Errorf("int used as bool")
@@ -189,9 +219,14 @@ func (v FloatValue) Type() Type {
 	return Float
 }
 
+// Date implements the Value.Date().
+func (v FloatValue) Date() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("float used as date")
+}
+
 // Bool implements the Value.Bool().
 func (v FloatValue) Bool() (bool, error) {
-	return false, fmt.Errorf("int used as bool")
+	return false, fmt.Errorf("float used as bool")
 }
 
 // Int implements the Value.Int().
@@ -208,12 +243,59 @@ func (v FloatValue) String() string {
 	return fmt.Sprintf(defaultFloatFormat, float64(v))
 }
 
+// DateValue implements datetime values.
+type DateValue time.Time
+
+// Equal tests if the values are equal.
+func (v DateValue) Equal(o DateValue) bool {
+	return time.Time(v).Equal(time.Time(o))
+}
+
+// Before tests if the value v is before the argument value o.
+func (v DateValue) Before(o DateValue) bool {
+	return time.Time(v).Before(time.Time(o))
+}
+
+// Type implements the Value.Type().
+func (v DateValue) Type() Type {
+	return Date
+}
+
+// Date implements the Value.Date().
+func (v DateValue) Date() (time.Time, error) {
+	return time.Time(v), nil
+}
+
+// Bool implements the Value.Bool().
+func (v DateValue) Bool() (bool, error) {
+	return false, fmt.Errorf("datetime used as bool")
+}
+
+// Int implements the Value.Int().
+func (v DateValue) Int() (int64, error) {
+	return time.Time(v).UnixNano(), nil
+}
+
+// Float implements the Value.Float().
+func (v DateValue) Float() (float64, error) {
+	return 0, fmt.Errorf("datetime used as float")
+}
+
+func (v DateValue) String() string {
+	return time.Time(v).Format(DateTimeLayout)
+}
+
 // StringValue implements string values.
 type StringValue string
 
 // Type implements the Value.Type().
 func (v StringValue) Type() Type {
 	return String
+}
+
+// Date implements the Value.Date().
+func (v StringValue) Date() (time.Time, error) {
+	return ParseDate(string(v))
 }
 
 // Bool implements the Value.Bool().
@@ -249,6 +331,11 @@ func (v TableValue) Type() Type {
 	return Table
 }
 
+// Date implements the Value.Date().
+func (v TableValue) Date() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("table used as date")
+}
+
 // Bool implements the Value.Bool().
 func (v TableValue) Bool() (bool, error) {
 	return false, fmt.Errorf("table used as bool")
@@ -280,6 +367,11 @@ type NullValue struct {
 // Type implements the Value.Type().
 func (v NullValue) Type() Type {
 	return Any
+}
+
+// Date implements the Value.Date().
+func (v NullValue) Date() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("null used as date")
 }
 
 // Bool implements the Value.Bool().
@@ -325,6 +417,11 @@ func NewFormattedValue(v Value, f *Format) *FormattedValue {
 // Type implements the Value.Type().
 func (v *FormattedValue) Type() Type {
 	return v.value.Type()
+}
+
+// Date implements the Value.Date().
+func (v *FormattedValue) Date() (time.Time, error) {
+	return v.value.Date()
 }
 
 // Bool implements the Value.Bool().

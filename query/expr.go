@@ -49,17 +49,17 @@ type Call struct {
 
 // Bind implements the Expr.Bind().
 func (call *Call) Bind(sql *Query) error {
-	for _, arg := range call.Arguments {
-		err := arg.Bind(sql)
-		if err != nil {
-			return err
-		}
-	}
-
 	// Resolve function.
 	call.Function = builtIn(call.Name)
 	if call.Function == nil {
 		return fmt.Errorf("undefined function: %s", call.Name)
+	}
+
+	for i := call.Function.FirstBound; i < len(call.Arguments); i++ {
+		err := call.Arguments[i].Bind(sql)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
