@@ -265,6 +265,15 @@ This query gives the same result as the previous example:
  - UPPER(*expression*): returns the uppercase representation of the
    *expression*.
 
+### Date and Time Functions
+
+ - DATEDIFF(*diff*, *from*, *to): returns the time difference between
+   *from* and *to*. The *diff* specifies the units in which the
+   difference is computed:
+   - `year`, `yy`, `yyyy`: difference between date year parts
+   - `day`, `dd`, `d`: difference in calendar days
+ - GETDATE(): returns the current system timestamp
+
 # TODO
 
  - [ ] Queries:

@@ -79,4 +79,4 @@ Identifier = ucLetter, {ucLetter|ucDigit|'_'|'$'} | '"', characters, '"';
 
 String = "'", characters, "'";
 
-Type = 'BOOLEAN' | 'INTEGER' | 'REAL' | 'VARCHAR';
+Type = 'BOOLEAN' | 'INTEGER' | 'REAL' | 'DATETIME' | 'VARCHAR';
