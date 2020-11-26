@@ -167,6 +167,10 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"Hello,"}},
 	},
 	{
+		q: `SELECT LEFT('Hello', 6);`,
+		v: [][]string{{"Hello"}},
+	},
+	{
 		q: `SELECT LEN('Hello, world!');`,
 		v: [][]string{{"13"}},
 	},
