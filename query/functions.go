@@ -9,6 +9,7 @@ package query
 import (
 	"encoding/base64"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 	"unicode"
@@ -484,7 +485,7 @@ func builtInNChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	if i < 0 {
+	if i < 0 || i > math.MaxInt32 {
 		return types.Null, nil
 	}
 	return types.StringValue(string(rune(i))), nil
