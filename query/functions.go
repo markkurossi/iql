@@ -552,9 +552,38 @@ func builtInDateDiff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	case "year", "yy", "yyyy":
 		return types.IntValue(to.Year() - from.Year()), nil
 
+		// XXX quarter, qq, q
+		// XXX month, mm, m
+		// XXX dayofyear, dy, y
+
 	case "day", "dd", "d":
 		d := to.Truncate(time.Hour * 24).Sub(from.Truncate(time.Hour * 24))
-		return types.IntValue(int(d.Hours() / 24)), nil
+		return types.IntValue(d.Hours() / 24), nil
+
+		// XXX week, wk, ww
+
+	case "hour", "hh":
+		d := to.Truncate(time.Hour).Sub(from.Truncate(time.Hour))
+		return types.IntValue(d.Hours()), nil
+
+	case "minute", "mi", "n":
+		d := to.Truncate(time.Minute).Sub(from.Truncate(time.Minute))
+		return types.IntValue(d.Minutes()), nil
+
+	case "second", "ss", "s":
+		d := to.Truncate(time.Second).Sub(from.Truncate(time.Second))
+		return types.IntValue(d / 1000000000), nil
+
+	case "millisecond", "ms":
+		d := to.Truncate(time.Millisecond).Sub(from.Truncate(time.Millisecond))
+		return types.IntValue(d / 1000000), nil
+
+	case "microsecond", "mcs":
+		d := to.Truncate(time.Microsecond).Sub(from.Truncate(time.Microsecond))
+		return types.IntValue(d / 1000), nil
+
+	case "nanosecond", "ns":
+		return types.IntValue(to.Sub(from)), nil
 
 	default:
 		return nil, fmt.Errorf("invalid datepart: %s", args[0])
