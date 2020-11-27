@@ -272,6 +272,12 @@ This query gives the same result as the previous example:
    difference is computed:
    - `year`, `yy`, `yyyy`: difference between date year parts
    - `day`, `dd`, `d`: difference in calendar days
+   - `hour`, `hh`: difference in hours
+   - `minute`, `mi`, `n`: difference in minutes
+   - `second`, `ss`, `s`: difference seconds
+   - `millisecond`, `ms`: difference in milliseconds
+   - `microsecond`, `mcs`: difference in microseconds
+   - `nanosecond`, `ns`: difference in nanoseconds
  - GETDATE(): returns the current system timestamp
 
 # TODO
