@@ -82,7 +82,7 @@ func (call *Call) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 // IsIdempotent implements the Expr.IsIdempotent().
 func (call *Call) IsIdempotent() bool {
-	return call.Function.Idempotent
+	return call.Function.IsIdempotent(call.Arguments)
 }
 
 func (call *Call) String() string {

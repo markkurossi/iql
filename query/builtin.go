@@ -19,157 +19,178 @@ import (
 
 // Function implements a function.
 type Function struct {
-	Name       string
-	Impl       FunctionImpl
-	MinArgs    int
-	MaxArgs    int
-	FirstBound int
-	Idempotent bool
+	Name         string
+	Impl         FunctionImpl
+	MinArgs      int
+	MaxArgs      int
+	FirstBound   int
+	IsIdempotent IsIdempotent
 }
 
 // FunctionImpl implements the built-in IQL functions.
 type FunctionImpl func(args []Expr, row *Row, rows []*Row) (types.Value, error)
 
+// IsIdempotent tests if the function is idempotent when applied to
+// its arguments.
+type IsIdempotent func(args []Expr) bool
+
+func idempotentTrue(args []Expr) bool {
+	return true
+}
+
+func idempotentFalse(args []Expr) bool {
+	return false
+}
+
+func idempotentArgs(args []Expr) bool {
+	for _, arg := range args {
+		if !arg.IsIdempotent() {
+			return false
+		}
+	}
+	return true
+}
+
 var builtIns = []Function{
 	// Aggregate functions.
 	{
-		Name:       "AVG",
-		Impl:       builtInAvg,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: true,
+		Name:         "AVG",
+		Impl:         builtInAvg,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentTrue,
 	},
 	{
-		Name:       "COUNT",
-		Impl:       builtInCount,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: true,
+		Name:         "COUNT",
+		Impl:         builtInCount,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentTrue,
 	},
 	{
-		Name:       "MAX",
-		Impl:       builtInMax,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: true,
+		Name:         "MAX",
+		Impl:         builtInMax,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentTrue,
 	},
 	{
-		Name:       "MIN",
-		Impl:       builtInMin,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: true,
+		Name:         "MIN",
+		Impl:         builtInMin,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentTrue,
 	},
 	{
-		Name:       "SUM",
-		Impl:       builtInSum,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: true,
+		Name:         "SUM",
+		Impl:         builtInSum,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentTrue,
 	},
 
 	{
-		Name:       "NULLIF",
-		Impl:       builtInNullIf,
-		MinArgs:    2,
-		MaxArgs:    2,
-		Idempotent: false,
+		Name:         "NULLIF",
+		Impl:         builtInNullIf,
+		MinArgs:      2,
+		MaxArgs:      2,
+		IsIdempotent: idempotentArgs,
 	},
 
 	// String functions.
 	{
-		Name:       "BASE64ENC",
-		Impl:       builtInBase64Enc,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "BASE64ENC",
+		Impl:         builtInBase64Enc,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "BASE64DEC",
-		Impl:       builtInBase64Dec,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "BASE64DEC",
+		Impl:         builtInBase64Dec,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "LEFT",
-		Impl:       builtInLeft,
-		MinArgs:    2,
-		MaxArgs:    2,
-		Idempotent: false,
+		Name:         "LEFT",
+		Impl:         builtInLeft,
+		MinArgs:      2,
+		MaxArgs:      2,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "LEN",
-		Impl:       builtInLen,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "LEN",
+		Impl:         builtInLen,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "LOWER",
-		Impl:       builtInLower,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "LOWER",
+		Impl:         builtInLower,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "LTRIM",
-		Impl:       builtInLTrim,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "LTRIM",
+		Impl:         builtInLTrim,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "NCHAR",
-		Impl:       builtInNChar,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "NCHAR",
+		Impl:         builtInNChar,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "RTRIM",
-		Impl:       builtInRTrim,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "RTRIM",
+		Impl:         builtInRTrim,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "TRIM",
-		Impl:       builtInTrim,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "TRIM",
+		Impl:         builtInTrim,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "UNICODE",
-		Impl:       builtInUnicode,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "UNICODE",
+		Impl:         builtInUnicode,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "UPPER",
-		Impl:       builtInUpper,
-		MinArgs:    1,
-		MaxArgs:    1,
-		Idempotent: false,
+		Name:         "UPPER",
+		Impl:         builtInUpper,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 
 	// Datetime functions.
 	{
-		Name:       "DATEDIFF",
-		Impl:       builtInDateDiff,
-		MinArgs:    3,
-		MaxArgs:    3,
-		FirstBound: 1,
-		Idempotent: false,
+		Name:         "DATEDIFF",
+		Impl:         builtInDateDiff,
+		MinArgs:      3,
+		MaxArgs:      3,
+		FirstBound:   1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
-		Name:       "GETDATE",
-		Impl:       builtInGetDate,
-		MinArgs:    0,
-		MaxArgs:    0,
-		Idempotent: false,
+		Name:         "GETDATE",
+		Impl:         builtInGetDate,
+		MinArgs:      0,
+		MaxArgs:      0,
+		IsIdempotent: idempotentFalse,
 	},
 }
 

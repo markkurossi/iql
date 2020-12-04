@@ -45,24 +45,35 @@ type Value interface {
 func Equal(value1, value2 Value) (bool, error) {
 	switch v1 := value1.(type) {
 	case BoolValue:
-		v2, ok := value2.(BoolValue)
-		return ok && v1 == v2, nil
+		v2, err := value2.Bool()
+		if err != nil {
+			return false, nil
+		}
+		return v1 == BoolValue(v2), nil
 
 	case IntValue:
-		v2, ok := value2.(IntValue)
-		return ok && v1 == v2, nil
+		v2, err := value2.Int()
+		if err != nil {
+			return false, nil
+		}
+		return v1 == IntValue(v2), nil
 
 	case FloatValue:
-		v2, ok := value2.(FloatValue)
-		return ok && v1 == v2, nil
+		v2, err := value2.Float()
+		if err != nil {
+			return false, nil
+		}
+		return v1 == FloatValue(v2), nil
 
 	case DateValue:
-		v2, ok := value2.(DateValue)
-		return ok && v1.Equal(v2), nil
+		v2, err := value2.Date()
+		if err != nil {
+			return false, nil
+		}
+		return v1.Equal(DateValue(v2)), nil
 
 	case StringValue:
-		v2, ok := value2.(StringValue)
-		return ok && v1 == v2, nil
+		return v1 == StringValue(value2.String()), nil
 
 	default:
 		return false, fmt.Errorf("types.Equal: invalid type: %T", value1)
