@@ -387,7 +387,7 @@ func (v NullValue) Date() (time.Time, error) {
 
 // Bool implements the Value.Bool().
 func (v NullValue) Bool() (bool, error) {
-	return false, errors.New("null used as bool")
+	return false, nil
 }
 
 // Int implements the Value.Int().
