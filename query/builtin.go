@@ -469,10 +469,15 @@ func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	runes := []rune(str)
 
 	var idx int
-	if idx64 > int64(len(runes)) {
-		idx = len(runes)
+	if idx64 < 0 {
+		idx = 0
+	} else if idx64 > math.MaxInt32 {
+		idx = math.MaxInt32
 	} else {
 		idx = int(idx64)
+	}
+	if idx > len(runes) {
+		idx = len(runes)
 	}
 	return types.StringValue(string(runes[:idx])), nil
 }
