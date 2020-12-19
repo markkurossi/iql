@@ -204,6 +204,26 @@ SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
 		q: `SELECT UPPER('Hello, world!');`,
 		v: [][]string{{"HELLO, WORLD!"}},
 	},
+
+	// Datetime literals.
+	{
+		q: `SELECT YEAR('2010-04-30T01:01:01.1234567-07:00');`,
+		v: [][]string{{"2010"}},
+	},
+	{
+		q: `SELECT YEAR('2007-04-30 13:10:02.0474381');`,
+		v: [][]string{{"2007"}},
+	},
+	{
+		q: `SELECT YEAR('2007-04-30 13:10:02.0474381 -07:00');`,
+		v: [][]string{{"2007"}},
+	},
+	{
+		q: `SELECT YEAR('2007-04-30');`,
+		v: [][]string{{"2007"}},
+	},
+
+	// Datetime functions.
 	{
 		q: `SELECT DATEDIFF(year,
                             '2005-12-31 23:59:59.9999999',
@@ -257,6 +277,10 @@ SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
 SET now = GETDATE();
 SELECT DATEDIFF(year, now, now);`,
 		v: [][]string{{"0"}},
+	},
+	{
+		q: `SELECT YEAR('2005-12-31 23:59:59.9999999');`,
+		v: [][]string{{"2005"}},
 	},
 }
 

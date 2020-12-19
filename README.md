@@ -279,6 +279,8 @@ This query gives the same result as the previous example:
    - `microsecond`, `mcs`: difference in microseconds
    - `nanosecond`, `ns`: difference in nanoseconds
  - GETDATE(): returns the current system timestamp
+ - YEAR(*date*): returns an integer representing the year of the
+   argument *date*.
 
 # TODO
 

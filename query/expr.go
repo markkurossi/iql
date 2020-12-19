@@ -86,7 +86,7 @@ func (call *Call) IsIdempotent() bool {
 }
 
 func (call *Call) String() string {
-	return fmt.Sprintf("%s(%q)", call.Function, call.Arguments)
+	return fmt.Sprintf("%s(%q)", call.Name, call.Arguments)
 }
 
 // Binary implements binary expressions.

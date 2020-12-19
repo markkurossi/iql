@@ -192,6 +192,13 @@ var builtIns = []Function{
 		MaxArgs:      0,
 		IsIdempotent: idempotentFalse,
 	},
+	{
+		Name:         "YEAR",
+		Impl:         builtInYear,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
 }
 
 func builtInAvg(args []Expr, row *Row, rows []*Row) (types.Value, error) {
@@ -613,6 +620,18 @@ func builtInDateDiff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 func builtInGetDate(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	return types.DateValue(time.Now()), nil
+}
+
+func builtInYear(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	dateVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	date, err := dateVal.Date()
+	if err != nil {
+		return nil, err
+	}
+	return types.IntValue(date.Year()), nil
 }
 
 var builtInsByName map[string]*Function
