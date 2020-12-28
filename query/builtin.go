@@ -120,6 +120,13 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "LASTCHARINDEX",
+		Impl:         builtInLastCharIndex,
+		MinArgs:      2,
+		MaxArgs:      3,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "LEFT",
 		Impl:         builtInLeft,
 		MinArgs:      2,
@@ -510,6 +517,48 @@ func builtInBase64Dec(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return nil, err
 	}
 	return types.StringValue(string(bytes)), nil
+}
+
+func builtInLastCharIndex(args []Expr, row *Row, rows []*Row) (
+	types.Value, error) {
+
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	str := strVal.String()
+	searchVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	search := searchVal.String()
+
+	var idx int
+	if len(args) > 2 {
+		idxVal, err := args[2].Eval(row, rows)
+		if err != nil {
+			return nil, err
+		}
+		idx64, err := idxVal.Int()
+		if err != nil {
+			return nil, err
+		}
+
+		runes := []rune(str)
+
+		if idx64 < 0 {
+			idx = 0
+		} else if idx64 > math.MaxInt32 {
+			idx = math.MaxInt32
+		} else {
+			idx = int(idx64)
+		}
+		if idx > len(runes) {
+			idx = len(runes)
+		}
+	}
+
+	return types.IntValue(idx + strings.LastIndex(str[idx:], search) + 1), nil
 }
 
 func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
