@@ -243,23 +243,20 @@ This query gives the same result as the previous example:
 ### String Functions
 
  - CHARINDEX(*expression*, *search* [, *start*]): return the first
-   index of *search* in *expression*. The optional argument *start*
-   specifies the search start location. If the *start* argument is
-   omitted or smaller than zero, the search start from the beginning
-   of *expression*. **Note** that the returned index value is
-   1-based. The function returns the value 0 if the *search* substring
-   could not be found from *expression*.
+   index of the substring *search* in *expression*. The optional
+   argument *start* specifies the search start location. If the
+   *start* argument is omitted or smaller than zero, the search start
+   from the beginning of *expression*. **Note** that the returned
+   index value is 1-based. The function returns the value 0 if the
+   *search* substring could not be found from *expression*.
  - BASE64ENC(*expression*): return the Base64 encoding of the string
    *expression*
  - BASE64DEC(*expression*): decodes the Base64 encoded string and
    returns the resulting data, converted to string
- - LASTCHARINDEX(*expression*, *search* [, *start*]): return the last
-   index of *search* in *expression*. The optional argument *start*
-   specifies the search start location. If the *start* argument is
-   omitted or smaller than zero, the search start from the beginning
-   of *expression*. **Note** that the returned index value is
-   1-based. The function returns the value 0 if the *search* substring
-   could not be found from *expression*.
+ - LASTCHARINDEX(*expression*, *search*): return the last index of the
+   substring *search* in *expression*. **Note** that the returned
+   index value is 1-based. The function returns the value 0 if the
+   *search* substring could not be found from *expression*.
  - LEFT(*expression*, *count*): returns the *count* leftmost
    characters from the string *expression*.
  - LEN(*expression*): returns the number of Unicode code points in the

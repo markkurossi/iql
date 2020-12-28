@@ -123,7 +123,7 @@ var builtIns = []Function{
 		Name:         "LASTCHARINDEX",
 		Impl:         builtInLastCharIndex,
 		MinArgs:      2,
-		MaxArgs:      3,
+		MaxArgs:      2,
 		IsIdempotent: idempotentArgs,
 	},
 	{
@@ -533,32 +533,7 @@ func builtInLastCharIndex(args []Expr, row *Row, rows []*Row) (
 	}
 	search := searchVal.String()
 
-	var idx int
-	if len(args) > 2 {
-		idxVal, err := args[2].Eval(row, rows)
-		if err != nil {
-			return nil, err
-		}
-		idx64, err := idxVal.Int()
-		if err != nil {
-			return nil, err
-		}
-
-		runes := []rune(str)
-
-		if idx64 < 0 {
-			idx = 0
-		} else if idx64 > math.MaxInt32 {
-			idx = math.MaxInt32
-		} else {
-			idx = int(idx64)
-		}
-		if idx > len(runes) {
-			idx = len(runes)
-		}
-	}
-
-	return types.IntValue(idx + strings.LastIndex(str[idx:], search) + 1), nil
+	return types.IntValue(strings.LastIndex(str, search) + 1), nil
 }
 
 func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {

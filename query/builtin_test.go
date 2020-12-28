@@ -181,11 +181,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"foo"}},
 	},
 	{
-		q: `SELECT LASTCHARINDEX('abcd}def', '}');`,
-		v: [][]string{{"5"}},
-	},
-	{
-		q: `SELECT LASTCHARINDEX('}abcd}def', '}', 1);`,
+		q: `SELECT LASTCHARINDEX('}abcd}def', '}');`,
 		v: [][]string{{"6"}},
 	},
 	{
