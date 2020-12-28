@@ -187,6 +187,34 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"@"}},
 	},
 	{
+		q: `SELECT REVERSE('Ken');`,
+		v: [][]string{{"neK"}},
+	},
+	{
+		q: `SELECT REVERSE('Rob');`,
+		v: [][]string{{"boR"}},
+	},
+	{
+		q: `SELECT REVERSE(1234);`,
+		v: [][]string{{"4321"}},
+	},
+	{
+		q: `SELECT RIGHT('abcdefg', 0);`,
+		v: [][]string{{""}},
+	},
+	{
+		q: `SELECT RIGHT('abcdefg', 2);`,
+		v: [][]string{{"fg"}},
+	},
+	{
+		q: `SELECT RIGHT('abcdefg', 7);`,
+		v: [][]string{{"abcdefg"}},
+	},
+	{
+		q: `SELECT RIGHT('abcdefg', 100000);`,
+		v: [][]string{{"abcdefg"}},
+	},
+	{
 		q: `SELECT RTRIM('  Hello, World!  ');`,
 		v: [][]string{{"  Hello, World!"}},
 	},

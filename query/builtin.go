@@ -148,6 +148,20 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "REVERSE",
+		Impl:         builtInReverse,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
+		Name:         "RIGHT",
+		Impl:         builtInRight,
+		MinArgs:      2,
+		MaxArgs:      2,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "RTRIM",
 		Impl:         builtInRTrim,
 		MinArgs:      1,
@@ -522,6 +536,51 @@ func builtInNChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return types.Null, nil
 	}
 	return types.StringValue(string(rune(i))), nil
+}
+
+func builtInReverse(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	val, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	var sb strings.Builder
+	runes := []rune(val.String())
+	for i := len(runes) - 1; i >= 0; i-- {
+		sb.WriteRune(runes[i])
+	}
+
+	return types.StringValue(sb.String()), nil
+}
+
+func builtInRight(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	idxVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	str := strVal.String()
+	idx64, err := idxVal.Int()
+	if err != nil {
+		return nil, err
+	}
+
+	runes := []rune(str)
+
+	var idx int
+	if idx64 < 0 {
+		idx = 0
+	} else if idx64 > math.MaxInt32 {
+		idx = math.MaxInt32
+	} else {
+		idx = int(idx64)
+	}
+	if idx > len(runes) {
+		idx = len(runes)
+	}
+	return types.StringValue(string(runes[len(runes)-idx:])), nil
 }
 
 func builtInRTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {

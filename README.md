@@ -258,6 +258,10 @@ This query gives the same result as the previous example:
    code *expression*
  - TRIM(*expression*): remove the leading and trailing whitespace
    from the string representation of *expression*.
+ - REVERSE(*expression*): return the reverse order of the argument
+   string *expression*.
+ - RIGHT(*expression*, *count*): returns the *count* rightmost
+   characters from the string *expression*.
  - RTRIM(*expression*): remove the trailing whitespace from the
    string representation of *expression*.
  - UNICODE(*expression*): returns the integer value of the first
