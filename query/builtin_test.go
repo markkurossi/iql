@@ -155,6 +155,24 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 
 	// String functions.
 	{
+		q: `SELECT CHARINDEX('Reflectors are vital safety' +
+                             ' components of your bicycle.',
+                             'bicycle');`,
+		v: [][]string{{"48"}},
+	},
+	{
+		q: `SELECT CHARINDEX('Reflectors are vital safety' +
+                             ' components of your bicycle.',
+                             'vital', 5);`,
+		v: [][]string{{"16"}},
+	},
+	{
+		q: `SELECT CHARINDEX('Reflectors are vital safety' +
+                             ' components of your bicycle.',
+                             'bike');`,
+		v: [][]string{{"0"}},
+	},
+	{
 		q: `SELECT BASE64ENC('foo');`,
 		v: [][]string{{"Zm9v"}},
 	},
