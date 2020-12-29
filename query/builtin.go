@@ -183,6 +183,13 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "SUBSTRING",
+		Impl:         builtInSubstring,
+		MinArgs:      3,
+		MaxArgs:      3,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "TRIM",
 		Impl:         builtInTrim,
 		MinArgs:      1,
@@ -581,6 +588,61 @@ func builtInLower(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return nil, err
 	}
 	return types.StringValue(strings.ToLower(val.String())), nil
+}
+
+func builtInSubstring(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	str := strVal.String()
+	idxVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	idx64, err := idxVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	// Index is 1-based.
+	idx64--
+
+	runes := []rune(str)
+
+	var idx int
+	if idx64 < 0 {
+		idx = 0
+	} else if idx64 > math.MaxInt32 {
+		idx = math.MaxInt32
+	} else {
+		idx = int(idx64)
+	}
+	if idx > len(runes) {
+		idx = len(runes)
+	}
+
+	lengthVal, err := args[2].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	length64, err := lengthVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	if length64 < 0 {
+		return nil, fmt.Errorf("SUBSTRING: negative length: %d", length64)
+	}
+	var length int
+	if length64 > math.MaxInt32 {
+		length = math.MaxInt32
+	} else {
+		length = int(length64)
+	}
+	if idx+length > len(runes) {
+		length = len(runes) - idx
+	}
+
+	return types.StringValue(string(runes[idx : idx+length])), nil
 }
 
 func builtInLTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {

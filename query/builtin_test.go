@@ -245,6 +245,38 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"  Hello, World!"}},
 	},
 	{
+		q: `SELECT SUBSTRING('master', 1, 1);`,
+		v: [][]string{{"m"}},
+	},
+	{
+		q: `SELECT SUBSTRING('master', 3, 2);`,
+		v: [][]string{{"st"}},
+	},
+	{
+		q: `SELECT SUBSTRING('tempdb', 1, 1);`,
+		v: [][]string{{"t"}},
+	},
+	{
+		q: `SELECT SUBSTRING('tempdb', 3, 2);`,
+		v: [][]string{{"mp"}},
+	},
+	{
+		q: `SELECT SUBSTRING('hello', 0, 2);`,
+		v: [][]string{{"he"}},
+	},
+	{
+		q: `SELECT SUBSTRING('hello', 0-10, 2);`,
+		v: [][]string{{"he"}},
+	},
+	{
+		q: `SELECT SUBSTRING('hello', 100, 2);`,
+		v: [][]string{{""}},
+	},
+	{
+		q: `SELECT SUBSTRING('hello', 3, 100);`,
+		v: [][]string{{"llo"}},
+	},
+	{
 		q: `SELECT TRIM('  Hello, World!  ');`,
 		v: [][]string{{"Hello, World!"}},
 	},

@@ -267,14 +267,23 @@ This query gives the same result as the previous example:
    string representation of *expression*.
  - NCHAR(*expression*): returns the Unicode character with the integer
    code *expression*
- - TRIM(*expression*): remove the leading and trailing whitespace
-   from the string representation of *expression*.
  - REVERSE(*expression*): return the reverse order of the argument
    string *expression*.
  - RIGHT(*expression*, *count*): returns the *count* rightmost
    characters from the string *expression*.
  - RTRIM(*expression*): remove the trailing whitespace from the
    string representation of *expression*.
+ - SUBSTRING(*expression*, *start*, *length*): returns a substring of
+   the *expression*. The *start* specifies the start index of the
+   substring to return. **Note** that the start index is 1-based. If
+   the start index is 0 or negative, the substring will start from the
+   beginning of the *expression*. The *length* specifies non-negative
+   length of the returned substring. If the *length* argument is
+   negative, an error will be generated. If *start* + *length* is
+   larger than the length of *expression*, the substring contains
+   character to the end of *expression*.
+ - TRIM(*expression*): remove the leading and trailing whitespace
+   from the string representation of *expression*.
  - UNICODE(*expression*): returns the integer value of the first
    Unicode character of the string *expression*
  - UPPER(*expression*): returns the uppercase representation of the
