@@ -213,6 +213,14 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"@"}},
 	},
 	{
+		q: `SELECT REPLICATE('0', 4);`,
+		v: [][]string{{"0000"}},
+	},
+	{
+		q: `SELECT REPLICATE('0', 4-5);`,
+		v: [][]string{{"NULL"}},
+	},
+	{
 		q: `SELECT REVERSE('Ken');`,
 		v: [][]string{{"neK"}},
 	},
@@ -243,6 +251,46 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 	{
 		q: `SELECT RTRIM('  Hello, World!  ');`,
 		v: [][]string{{"  Hello, World!"}},
+	},
+	{
+		q: `SELECT SPACE(5);`,
+		v: [][]string{{"     "}},
+	},
+	{
+		q: `SELECT SPACE(1-2);`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 2, 3, 'ijklmn');`,
+		v: [][]string{{"aijklmnef"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 0, 3, 'ijklmn');`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 0-1, 3, 'ijklmn');`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 7, 0, 'ijklmn');`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 2, 0-1, 'ijklmn');`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 2, 100, 'ijklmn');`,
+		v: [][]string{{"aijklmn"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 2, 0, 'ijklmn');`,
+		v: [][]string{{"aijklmnbcdef"}},
+	},
+	{
+		q: `SELECT STUFF('abcdef', 2, 4, null);`,
+		v: [][]string{{"af"}},
 	},
 	{
 		q: `SELECT SUBSTRING('master', 1, 1);`,

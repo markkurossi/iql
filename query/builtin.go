@@ -162,6 +162,13 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "REPLICATE",
+		Impl:         builtInReplicate,
+		MinArgs:      2,
+		MaxArgs:      2,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "REVERSE",
 		Impl:         builtInReverse,
 		MinArgs:      1,
@@ -180,6 +187,20 @@ var builtIns = []Function{
 		Impl:         builtInRTrim,
 		MinArgs:      1,
 		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
+		Name:         "SPACE",
+		Impl:         builtInSpace,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
+		Name:         "STUFF",
+		Impl:         builtInStuff,
+		MinArgs:      4,
+		MaxArgs:      4,
 		IsIdempotent: idempotentArgs,
 	},
 	{
@@ -671,6 +692,34 @@ func builtInNChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	return types.StringValue(string(rune(i))), nil
 }
 
+func builtInReplicate(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	str := strVal.String()
+
+	countVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	count, err := countVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	if count < 0 {
+		return types.Null, nil
+	}
+
+	var sb strings.Builder
+	var i int64
+	for i = 0; i < count; i++ {
+		sb.WriteString(str)
+	}
+
+	return types.StringValue(sb.String()), nil
+}
+
 func builtInReverse(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	val, err := args[0].Eval(row, rows)
 	if err != nil {
@@ -725,6 +774,99 @@ func builtInRTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		func(r rune) bool {
 			return unicode.IsSpace(r)
 		})), nil
+}
+
+func builtInSpace(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	countVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	count, err := countVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	if count < 0 {
+		return types.Null, nil
+	}
+
+	var sb strings.Builder
+	var i int64
+	for i = 0; i < count; i++ {
+		sb.WriteRune(' ')
+	}
+
+	return types.StringValue(sb.String()), nil
+}
+
+func builtInStuff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	str, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	runes := []rune(str.String())
+
+	startVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	start64, err := startVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	var start int
+	if start64 <= 0 {
+		return types.Null, nil
+	} else if start64 > math.MaxInt32 {
+		start = math.MaxInt32
+	} else {
+		start = int(start64)
+	}
+	if start > len(runes) {
+		return types.Null, nil
+	}
+	start--
+
+	countVal, err := args[2].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	count64, err := countVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	if count64 < 0 {
+		return types.Null, nil
+	}
+	var count int
+	if count64 > math.MaxInt32 {
+		count = math.MaxInt32
+	} else {
+		count = int(count64)
+	}
+	if start+count > len(runes) {
+		count = len(runes) - start
+	}
+
+	replaceStr, err := args[3].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	var replace string
+	_, ok := replaceStr.(types.NullValue)
+	if !ok {
+		replace = replaceStr.String()
+	}
+
+	var sb strings.Builder
+	for i := 0; i < start; i++ {
+		sb.WriteRune(runes[i])
+	}
+	sb.WriteString(replace)
+	for i := start + count; i < len(runes); i++ {
+		sb.WriteRune(runes[i])
+	}
+
+	return types.StringValue(sb.String()), nil
 }
 
 func builtInTrim(args []Expr, row *Row, rows []*Row) (types.Value, error) {

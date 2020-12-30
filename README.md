@@ -242,6 +242,10 @@ This query gives the same result as the previous example:
 
 ### String Functions
 
+ - BASE64DEC(*expression*): decodes the Base64 encoded string and
+   returns the resulting data, converted to string
+ - BASE64ENC(*expression*): return the Base64 encoding of the string
+   *expression*
  - CHARINDEX(*expression*, *search* [, *start*]): return the first
    index of the substring *search* in *expression*. The optional
    argument *start* specifies the search start location. If the
@@ -249,10 +253,6 @@ This query gives the same result as the previous example:
    from the beginning of *expression*. **Note** that the returned
    index value is 1-based. The function returns the value 0 if the
    *search* substring could not be found from *expression*.
- - BASE64ENC(*expression*): return the Base64 encoding of the string
-   *expression*
- - BASE64DEC(*expression*): decodes the Base64 encoded string and
-   returns the resulting data, converted to string
  - LASTCHARINDEX(*expression*, *search*): return the last index of the
    substring *search* in *expression*. **Note** that the returned
    index value is 1-based. The function returns the value 0 if the
@@ -267,12 +267,27 @@ This query gives the same result as the previous example:
    string representation of *expression*.
  - NCHAR(*expression*): returns the Unicode character with the integer
    code *expression*
+ - REPLICATE(*expression*, *count*): repeats the string value
+   *expression* count times. If the *count* is negative, the function
+   returns NULL.
  - REVERSE(*expression*): return the reverse order of the argument
    string *expression*.
  - RIGHT(*expression*, *count*): returns the *count* rightmost
    characters from the string *expression*.
  - RTRIM(*expression*): remove the trailing whitespace from the
    string representation of *expression*.
+ - SPACE(*count*): return a string containing *count* space
+   characters.
+ - STUFF(*string*, *start*, *length*, *replace*): remove *length*
+   characters from the index *start* from the string expression
+   *string* and replace the removed characters with *replace*. If
+   *start* is smaller than or equal to 0, the function returns
+   NULL. If the *start* is larger than the length of *string*, the
+   function returns NULL. If *length* is negative, the function
+   returns NULL. If *length* is larger than the length of *string*,
+   the function removes all characters starting from the index
+   *start*. If the *replace* values is NULL, no replacement characters
+   are inserted.
  - SUBSTRING(*expression*, *start*, *length*): returns a substring of
    the *expression*. The *start* specifies the start index of the
    substring to return. **Note** that the start index is 1-based. If
