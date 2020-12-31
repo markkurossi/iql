@@ -16,14 +16,14 @@ FROM (
                c.'.name'    AS Name,
                c.'.address' AS Address
         FROM storeurl FILTER 'table:nth-of-type(1) tr' AS c
-        WHERE ID <> null
+        WHERE '.id' <> null
      ) AS customers,
      (
         SELECT p.'.id'    AS ID,
                p.'.name'  AS Name,
                p.'.price' AS Price
         FROM storeurl FILTER 'table:nth-of-type(2) tr' AS p
-        WHERE ID <> null
+        WHERE '.id' <> null
      ) AS products,
      (
        SELECT o.'0' AS ID,

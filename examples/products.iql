@@ -14,5 +14,5 @@ FROM (
              products.'.name'  AS Name,
              products.'.price' AS Price
       FROM 'store.html' FILTER 'table:nth-of-type(2) tr' AS products
-      WHERE products.ID <> null
+      WHERE '.id' <> null
      );

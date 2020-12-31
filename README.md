@@ -25,7 +25,7 @@ SELECT customers.'.id'      AS ID,
        customers.'.address' AS Address
 FROM 'https://markkurossi.com/iql/examples/store.html'
      FILTER 'table:nth-of-type(1) tr' AS customers
-WHERE ID <> null;
+WHERE '.id' <> null;
 ```
 
 ```
@@ -49,7 +49,7 @@ SELECT products.'.id'    AS ID,
        products.'.price' AS Price
 FROM 'https://markkurossi.com/iql/examples/store.html'
      FILTER 'table:nth-of-type(2) tr' AS products
-WHERE products.ID <> null;
+WHERE '.id' <> null;
 ```
 
 ```
@@ -103,14 +103,14 @@ FROM (
                c.'.name'    AS Name,
                c.'.address' AS Address
         FROM storeurl FILTER 'table:nth-of-type(1) tr' AS c
-        WHERE ID <> null
+        WHERE '.id' <> null
      ) AS customers,
      (
         SELECT p.'.id'    AS ID,
                p.'.name'  AS Name,
                p.'.price' AS Price
         FROM storeurl FILTER 'table:nth-of-type(2) tr' AS p
-        WHERE ID <> null
+        WHERE '.id' <> null
      ) AS products,
      (
        SELECT o.'0' AS ID,

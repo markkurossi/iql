@@ -4,4 +4,4 @@ SELECT customers.'.id'      AS ID,
        customers.'.name'    AS Name,
        customers.'.address' AS Address
 FROM 'store.html' FILTER 'table:nth-of-type(1) tr' AS customers
-WHERE ID <> null;
+WHERE '.id' <> null;
