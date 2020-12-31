@@ -14,6 +14,24 @@ import (
 	"github.com/markkurossi/iql/types"
 )
 
+// HTMLFilter filters the input with the CSS selector string and
+// returns the matching elements.
+func HTMLFilter(input io.ReadCloser, filter string) ([]string, error) {
+	defer input.Close()
+
+	doc, err := goquery.NewDocumentFromReader(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []string
+	doc.Find(filter).Each(func(i int, s *goquery.Selection) {
+		result = append(result, s.Text())
+	})
+
+	return result, nil
+}
+
 // HTML implements a data source from HTML data.
 type HTML struct {
 	columns []types.ColumnSelector

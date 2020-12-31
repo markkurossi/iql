@@ -331,3 +331,6 @@ This query gives the same result as the previous example:
  - [ ] HTTP resource cache
  - [ ] JSON data format
  - [ ] YAML data format
+ - [ ] CSV:
+   - [ ] change default to `headers` and provide `noheaders` flag
+   - [ ] `SELECT * FROM 'test.csv'`;
