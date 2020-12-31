@@ -436,15 +436,16 @@ func TestBuiltIn(t *testing.T) {
 				}
 				t.Fatalf("%s: parse failed: %v", name, err)
 			}
-			verifyResult(t, name, q, input.v)
+			verifyResult(t, name, input.q, q, input.v)
 		}
 	}
 }
 
-func verifyResult(t *testing.T, name string, q types.Source, v [][]string) {
+func verifyResult(t *testing.T, name, source string, q types.Source,
+	v [][]string) {
 	rows, err := q.Get()
 	if err != nil {
-		t.Errorf("%s: q.Get failed: %v", name, err)
+		t.Errorf("%s: q.Get failed: %v:\n%s\n", name, err, source)
 		return
 	}
 	if len(rows) != len(v) {

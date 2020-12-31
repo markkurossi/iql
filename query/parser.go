@@ -459,21 +459,24 @@ func columnsFor(columns []ColumnSelector,
 
 	var result []types.ColumnSelector
 
+	// Collect all referenced columns for the source.
+	seen := make(map[string]bool)
 	for _, col := range columns {
-		switch c := col.Expr.(type) {
-		case *Reference:
-			if c.Source == source {
-				result = append(result, types.ColumnSelector{
-					Name: c.Reference,
-					As:   col.As,
-				})
-				// We passed the source specific selectors down to the
-				// source and from now on, we are referencing the
-				// fields with their alias names.
-				if len(col.As) > 0 {
-					c.Column = col.As
+		var filtered []types.Reference
+
+		for _, ref := range col.Expr.References() {
+			if ref.Source == source {
+				if !seen[ref.Column] {
+					filtered = append(filtered, ref)
+					seen[ref.Column] = true
 				}
 			}
+		}
+
+		for _, ref := range filtered {
+			result = append(result, types.ColumnSelector{
+				Name: ref,
+			})
 		}
 	}
 

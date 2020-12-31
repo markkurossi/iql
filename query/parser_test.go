@@ -47,7 +47,7 @@ from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data;`,
 	{
 		q: `select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year > 2009;`,
+where Data.0 > 2009;`,
 		v: [][]string{
 			{"2010", "200"},
 		},
@@ -55,7 +55,7 @@ where Data.Year > 2009;`,
 	{
 		q: `select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year = 2009;`,
+where Data.0 = 2009;`,
 		v: [][]string{
 			{"2009", "101"},
 		},
@@ -63,7 +63,7 @@ where Data.Year = 2009;`,
 	{
 		q: `select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year >= 2009;`,
+where Data.0 >= 2009;`,
 		v: [][]string{
 			{"2009", "101"},
 			{"2010", "200"},
@@ -72,7 +72,7 @@ where Data.Year >= 2009;`,
 	{
 		q: `select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year < 2009;`,
+where Data.0 < 2009;`,
 		v: [][]string{
 			{"2008", "100"},
 		},
@@ -80,7 +80,7 @@ where Data.Year < 2009;`,
 	{
 		q: `select Data.0 As Year, Data.1 as Value
 from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
-where Data.Year <= 2009;`,
+where Data.0 <= 2009;`,
 		v: [][]string{
 			{"2008", "100"},
 			{"2009", "101"},
@@ -266,8 +266,8 @@ FROM 'data:text/csv;base64,UmVnaW9uLFVuaXQsQ291bnQKYSwxLDIwMAphLDIsMTAwCmEsMiw1M
 SELECT
         "0" AS Ints,
         "1" AS Floats,
-        Ints + Floats AS Sum1,
-        Floats + Ints AS Sum2
+        "0" + "1" AS Sum1,
+        "1" + "0" AS Sum2
 FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
 		v: [][]string{
 			{"1", "4.1", "5.1", "5.1"},
@@ -580,7 +580,7 @@ func TestParser(t *testing.T) {
 					tab.Print(os.Stdout)
 				}
 			} else {
-				verifyResult(t, name, q, results[0])
+				verifyResult(t, name, input.q, q, results[0])
 				results = results[1:]
 			}
 		}

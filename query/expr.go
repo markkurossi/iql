@@ -38,6 +38,7 @@ type Expr interface {
 	Eval(row *Row, rows []*Row) (types.Value, error)
 	IsIdempotent() bool
 	String() string
+	References() []types.Reference
 }
 
 // Call implements function call expressions.
@@ -87,6 +88,14 @@ func (call *Call) IsIdempotent() bool {
 
 func (call *Call) String() string {
 	return fmt.Sprintf("%s(%q)", call.Name, call.Arguments)
+}
+
+// References implements the Expr.References().
+func (call *Call) References() (result []types.Reference) {
+	for _, arg := range call.Arguments {
+		result = append(result, arg.References()...)
+	}
+	return result
 }
 
 // Binary implements binary expressions.
@@ -335,6 +344,13 @@ func (b *Binary) String() string {
 	return fmt.Sprintf("%s %s %s", b.Left, b.Type, b.Right)
 }
 
+// References implements the Expr.References().
+func (b *Binary) References() (result []types.Reference) {
+	result = append(result, b.Left.References()...)
+	result = append(result, b.Right.References()...)
+	return result
+}
+
 // And implements logical AND expressions.
 type And struct {
 	Left  Expr
@@ -385,6 +401,13 @@ func (and *And) String() string {
 	return fmt.Sprintf("%s AND %s", and.Left, and.Right)
 }
 
+// References implements the Expr.References().
+func (and *And) References() (result []types.Reference) {
+	result = append(result, and.Left.References()...)
+	result = append(result, and.Right.References()...)
+	return result
+}
+
 // Constant implements contant expressions.
 type Constant struct {
 	Value types.Value
@@ -408,6 +431,11 @@ func (c *Constant) IsIdempotent() bool {
 
 func (c *Constant) String() string {
 	return c.Value.String()
+}
+
+// References implements the Expr.References().
+func (c *Constant) References() (result []types.Reference) {
+	return
 }
 
 // Reference implements column reference expressions.
@@ -487,6 +515,11 @@ func (ref *Reference) IsIdempotent() bool {
 	return false
 }
 
+// References implements the Expr.References().
+func (ref *Reference) References() []types.Reference {
+	return []types.Reference{ref.Reference}
+}
+
 // Cast implements type cast expressions.
 type Cast struct {
 	Expr Expr
@@ -542,6 +575,11 @@ func (c *Cast) IsIdempotent() bool {
 
 func (c *Cast) String() string {
 	return fmt.Sprintf("CAST(%s AS %s)", c.Expr, c.Type)
+}
+
+// References implements the Expr.References().
+func (c *Cast) References() []types.Reference {
+	return c.Expr.References()
 }
 
 // Case implements case expressions.
@@ -638,4 +676,19 @@ func (c *Case) IsIdempotent() bool {
 
 func (c *Case) String() string {
 	return fmt.Sprintf("CASE %s %v ELSE %s END", c.Input, c.Branches, c.Else)
+}
+
+// References implements the Expr.References().
+func (c *Case) References() (result []types.Reference) {
+	if c.Input != nil {
+		result = append(result, c.Input.References()...)
+	}
+	for _, b := range c.Branches {
+		result = append(result, b.When.References()...)
+		result = append(result, b.Then.References()...)
+	}
+	if c.Else != nil {
+		result = append(result, c.Else.References()...)
+	}
+	return result
 }

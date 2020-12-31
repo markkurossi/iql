@@ -110,7 +110,7 @@ func NewCSV(input io.ReadCloser, filter string,
 		for _, col := range columns {
 			i, ok := names[col.Name.Column]
 			if !ok {
-				return nil, fmt.Errorf("cvs: unknown column: %s",
+				return nil, fmt.Errorf("csv: unknown column: %s",
 					col.Name.Column)
 			}
 			indices = append(indices, i)
