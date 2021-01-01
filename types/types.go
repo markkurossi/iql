@@ -36,26 +36,31 @@ const (
 
 // Date formats.
 const (
-	DateTimeLayout     = "2006-01-02 15:04:05.999999999"
-	DateTimeZoneLayout = "2006-01-02 15:04:05.999999999 -07:00"
-	DateLayout         = "2006-01-02"
+	DateTimeLayout      = "2006-01-02 15:04:05.999999999"
+	DateTimeZoneLayout  = "2006-01-02 15:04:05.999999999 -07:00"
+	DateTimeZoneLayout2 = "2006-01-02T15:04:05.999999999 -07:00"
+	DateLayout          = "2006-01-02"
+	DateLayoutUS        = "01/02/2006"
 )
+
+var dateFormats = []string{
+	time.RFC3339Nano,
+	DateTimeLayout,
+	DateTimeZoneLayout,
+	DateTimeZoneLayout2,
+	DateLayout,
+	DateLayoutUS,
+}
 
 // ParseDate parses the datetime literal value.
 func ParseDate(val string) (time.Time, error) {
-	t, err := time.Parse(time.RFC3339Nano, val)
-	if err == nil {
-		return t, nil
+	for _, fmt := range dateFormats {
+		t, err := time.Parse(fmt, val)
+		if err == nil {
+			return t, nil
+		}
 	}
-	t, err = time.Parse(DateTimeLayout, val)
-	if err == nil {
-		return t, nil
-	}
-	t, err = time.Parse(DateTimeZoneLayout, val)
-	if err == nil {
-		return t, nil
-	}
-	return time.Parse(DateLayout, val)
+	return time.Time{}, fmt.Errorf("unsupported date value: %s", val)
 }
 
 // ParseBoolean parses the boolean literal value.
