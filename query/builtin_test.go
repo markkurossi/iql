@@ -356,6 +356,19 @@ SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
 		q: `SELECT YEAR('2007-04-30');`,
 		v: [][]string{{"2007"}},
 	},
+	{
+		q: `SELECT YEAR(0);`,
+		// XXX SQL Server return 1900
+		v: [][]string{{"1970"}},
+	},
+	{
+		q: `SELECT MONTH('2007-04-30T01:01:01.1234567 -07:00');`,
+		v: [][]string{{"4"}},
+	},
+	{
+		q: `SELECT DAY('2015-04-30 01:01:01.1234567');`,
+		v: [][]string{{"30"}},
+	},
 
 	// Datetime functions.
 	{

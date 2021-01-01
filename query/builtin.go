@@ -242,11 +242,25 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "DAY",
+		Impl:         builtInDay,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "GETDATE",
 		Impl:         builtInGetDate,
 		MinArgs:      0,
 		MaxArgs:      0,
 		IsIdempotent: idempotentFalse,
+	},
+	{
+		Name:         "MONTH",
+		Impl:         builtInMonth,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
 	},
 	{
 		Name:         "YEAR",
@@ -957,8 +971,32 @@ func builtInDateDiff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	}
 }
 
+func builtInDay(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	dateVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	date, err := dateVal.Date()
+	if err != nil {
+		return nil, err
+	}
+	return types.IntValue(date.Day()), nil
+}
+
 func builtInGetDate(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	return types.DateValue(time.Now()), nil
+}
+
+func builtInMonth(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	dateVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	date, err := dateVal.Date()
+	if err != nil {
+		return nil, err
+	}
+	return types.IntValue(date.Month()), nil
 }
 
 func builtInYear(args []Expr, row *Row, rows []*Row) (types.Value, error) {
