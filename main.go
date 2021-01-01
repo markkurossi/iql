@@ -12,6 +12,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime/pprof"
 
 	"github.com/markkurossi/iql/data"
 	"github.com/markkurossi/iql/query"
@@ -20,9 +21,22 @@ import (
 )
 
 func main() {
+	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to `file`")
 	htmlFilter := flag.String("html", "", "HTML filter")
 	flag.Parse()
 	log.SetFlags(0)
+
+	if len(*cpuprofile) > 0 {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 
 	for _, arg := range flag.Args() {
 		f, err := os.Open(arg)
