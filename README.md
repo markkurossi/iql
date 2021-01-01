@@ -317,11 +317,11 @@ This query gives the same result as the previous example:
    - `millisecond`, `ms`: difference in milliseconds
    - `microsecond`, `mcs`: difference in microseconds
    - `nanosecond`, `ns`: difference in nanoseconds
- - DAY(*date): returns an integer representing the day of the month of
-   the argument *date*
- - GETDATE(): returns the current system timestamp
- - MONTH(*date): returns an integer representing the month of the year
+ - DAY(*date*): returns an integer representing the day of the month
    of the argument *date*
+ - GETDATE(): returns the current system timestamp
+ - MONTH(*date*): returns an integer representing the month of the
+   year of the argument *date*
  - YEAR(*date*): returns an integer representing the year of the
    argument *date*.
 
