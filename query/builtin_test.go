@@ -173,6 +173,27 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"0"}},
 	},
 	{
+		q: `SELECT CONCAT('Happy ', 'Birthday ', 11, '/', '25');`,
+		v: [][]string{{"Happy Birthday 11/25"}},
+	},
+	{
+		q: `SELECT CONCAT('Name', NULL, 'Lastname');`,
+		v: [][]string{{"NameLastname"}},
+	},
+	{
+		q: `SELECT CONCAT_WS(',', '1 Microsoft Way', NULL, NULL, 'Redmond',
+                             'WA', 98052);`,
+		v: [][]string{{"1 Microsoft Way,Redmond,WA,98052"}},
+	},
+	{
+		q: `SELECT CONCAT_WS(null, 'a', 'b', 'c');`,
+		v: [][]string{{"abc"}},
+	},
+	{
+		q: `SELECT CONCAT_WS('-', null, 'a', null);`,
+		v: [][]string{{"a"}},
+	},
+	{
 		q: `SELECT BASE64ENC('foo');`,
 		v: [][]string{{"Zm9v"}},
 	},

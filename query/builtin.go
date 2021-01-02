@@ -106,6 +106,20 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "CONCAT",
+		Impl:         builtInConcat,
+		MinArgs:      2,
+		MaxArgs:      math.MaxInt32,
+		IsIdempotent: idempotentArgs,
+	},
+	{
+		Name:         "CONCAT_WS",
+		Impl:         builtInConcatWS,
+		MinArgs:      3,
+		MaxArgs:      math.MaxInt32,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "BASE64ENC",
 		Impl:         builtInBase64Enc,
 		MinArgs:      1,
@@ -538,6 +552,58 @@ func builtInCharIndex(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	}
 
 	return types.IntValue(idx + strings.Index(str[idx:], search) + 1), nil
+}
+
+func builtInConcat(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	var sb strings.Builder
+	for i := 0; i < len(args); i++ {
+		val, err := args[i].Eval(row, rows)
+		if err != nil {
+			return nil, err
+		}
+		_, n := val.(types.NullValue)
+		if !n {
+			sb.WriteString(val.String())
+		}
+	}
+
+	return types.StringValue(sb.String()), nil
+}
+
+func builtInConcatWS(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	separatorStr, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	var separator string
+	_, ok := separatorStr.(types.NullValue)
+	if !ok {
+		separator = separatorStr.String()
+	}
+
+	// Collect non-null parts.
+	var parts []string
+	for i := 1; i < len(args); i++ {
+		val, err := args[i].Eval(row, rows)
+		if err != nil {
+			return nil, err
+		}
+		_, n := val.(types.NullValue)
+		if !n {
+			parts = append(parts, val.String())
+		}
+	}
+
+	// Construct result string.
+	var sb strings.Builder
+	for idx, part := range parts {
+		if idx > 0 && idx < len(parts) {
+			sb.WriteString(separator)
+		}
+		sb.WriteString(part)
+	}
+
+	return types.StringValue(sb.String()), nil
 }
 
 func builtInBase64Enc(args []Expr, row *Row, rows []*Row) (types.Value, error) {

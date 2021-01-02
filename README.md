@@ -253,6 +253,15 @@ This query gives the same result as the previous example:
    from the beginning of *expression*. **Note** that the returned
    index value is 1-based. The function returns the value 0 if the
    *search* substring could not be found from *expression*.
+ - CONCAT(*val1*, *val2* [, ..., *valn*]): concatenates the argument
+   string expressions into a string. All NULL expressions are handles
+   as empty strings.
+ - CONCAT_WS(*separator*, *val1*, *val2* [, ..., *valn*]):
+   concatenates the argument string expressions into a string where
+   arguments are separated by the *separator* string. All NULL
+   expressions are ingored and they are not separated by the
+   *separator* string. If the *separator* is NULL, this works like the
+   CONCAT() function.
  - LASTCHARINDEX(*expression*, *search*): return the last index of the
    substring *search* in *expression*. **Note** that the returned
    index value is 1-based. The function returns the value 0 if the
