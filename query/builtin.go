@@ -162,6 +162,13 @@ var builtIns = []Function{
 		IsIdempotent: idempotentArgs,
 	},
 	{
+		Name:         "LPAD",
+		Impl:         builtInLPad,
+		MinArgs:      2,
+		MaxArgs:      3,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "LTRIM",
 		Impl:         builtInLTrim,
 		MinArgs:      1,
@@ -689,6 +696,56 @@ func builtInLower(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return nil, err
 	}
 	return types.StringValue(strings.ToLower(val.String())), nil
+}
+
+func builtInLPad(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	strVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	lengthVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	length64, err := lengthVal.Int()
+	if err != nil {
+		return nil, err
+	}
+
+	var length int
+	if length64 < 0 {
+		length = 0
+	} else if length64 > math.MaxInt32 {
+		length = math.MaxInt32
+	} else {
+		length = int(length64)
+	}
+
+	runes := []rune(strVal.String())
+	if length <= len(runes) {
+		return types.StringValue(string(runes[:length])), nil
+	}
+
+	pad := ' '
+	if len(args) == 3 {
+		padStr, err := args[2].Eval(row, rows)
+		if err != nil {
+			return nil, err
+		}
+		padRunes := []rune(padStr.String())
+		if len(padRunes) != 1 {
+			return nil, fmt.Errorf("LPAD: invalid padding: '%s'", padStr)
+		}
+		pad = padRunes[0]
+	}
+
+	var result []rune
+	for i := 0; i < length-len(runes); i++ {
+		result = append(result, pad)
+	}
+	result = append(result, runes...)
+
+	return types.StringValue(string(result)), nil
 }
 
 func builtInSubstring(args []Expr, row *Row, rows []*Row) (types.Value, error) {

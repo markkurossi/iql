@@ -226,6 +226,18 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"hello, world!"}},
 	},
 	{
+		q: `SELECT LPAD('ABC', 5, '*');`,
+		v: [][]string{{"**ABC"}},
+	},
+	{
+		q: `SELECT LPAD('ABC', 5);`,
+		v: [][]string{{"  ABC"}},
+	},
+	{
+		q: `SELECT LPAD('ABCDEF', 5, '*');`,
+		v: [][]string{{"ABCDE"}},
+	},
+	{
 		q: `SELECT LTRIM('  Hello, World!  ');`,
 		v: [][]string{{"Hello, World!  "}},
 	},

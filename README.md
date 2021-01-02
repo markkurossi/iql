@@ -272,6 +272,12 @@ This query gives the same result as the previous example:
    string representation of *expression*.
  - LOWER(*expression*): returns the lowercase representation of the
    *expression*.
+ - LPAD(*expression*, *length* [, *pad*]): pads the *expression* from
+   the start with *pad* characters so that the resulting string has
+   *lenght* characters. If the *expression* is longer than *length*,
+   the function returns *length* leftmost characters from the string
+   *expression*. If the argument *pad* is omitted, the space character
+   (' ') is used as padding.
  - LTRIM(*expression*): remove the leading whitespace from the
    string representation of *expression*.
  - NCHAR(*expression*): returns the Unicode character with the integer
