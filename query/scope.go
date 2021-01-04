@@ -8,6 +8,7 @@ package query
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/markkurossi/iql/types"
 )
@@ -28,6 +29,8 @@ func NewScope(parent *Scope) *Scope {
 
 // Declare declares the name with type.
 func (scope *Scope) Declare(name string, t types.Type) error {
+	name = strings.ToUpper(name)
+
 	b := scope.Get(name)
 	if b != nil {
 		return fmt.Errorf("identifier '%s' already declared", name)
@@ -42,6 +45,8 @@ func (scope *Scope) Declare(name string, t types.Type) error {
 
 // Set sets the binding for the name.
 func (scope *Scope) Set(name string, v types.Value) error {
+	name = strings.ToUpper(name)
+
 	for s := scope; s != nil; s = s.Parent {
 		b, ok := s.Symbols[name]
 		if ok {
@@ -59,6 +64,8 @@ func (scope *Scope) Set(name string, v types.Value) error {
 
 // Get gets the name binding from the scope.
 func (scope *Scope) Get(name string) *Binding {
+	name = strings.ToUpper(name)
+
 	for s := scope; s != nil; s = s.Parent {
 		b, ok := s.Symbols[name]
 		if ok {

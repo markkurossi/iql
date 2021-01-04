@@ -7,7 +7,7 @@ TopLevelClause = ( VariableDecl
 
 
 VariableDecl = 'DECLARE', Identifier, Type;
-VariableInit = 'SET', Identifier, '=', Expr;
+VariableInit = 'SET', Identifier, [ '=' ], Expr;
 
 PrintStmt = 'PRINT', Expr;
 

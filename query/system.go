@@ -12,12 +12,15 @@ import (
 
 const (
 	sysRealFmt = "REALFMT"
+	sysTermOut = "TERMOUT"
 )
 
 // InitSystemVariables initializes the global system variables for the
 // scope.
 func InitSystemVariables(scope *Scope) {
 	scope.Declare(sysRealFmt, types.String)
+	scope.Declare(sysTermOut, types.Bool)
+	scope.Set(sysTermOut, types.BoolValue(true))
 }
 
 // Format gets the value formatting options from the scope.

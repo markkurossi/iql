@@ -548,6 +548,14 @@ SELECT 3.1415;`,
 			{"3.14"},
 		},
 	},
+	{
+		q: `
+SET TERMOUT OFF
+SELECT 'Hello, world!';`,
+		v: [][]string{
+			{"Hello, world!"},
+		},
+	},
 }
 
 func TestParser(t *testing.T) {

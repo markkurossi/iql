@@ -62,11 +62,13 @@ func main() {
 					}
 					log.Fatalf("%s\n", err)
 				}
-				tab, err := types.Tabulate(q, tabulate.Unicode)
-				if err != nil {
-					log.Fatalf("Query failed: %v\n", err)
+				if q.SysTermOut() {
+					tab, err := types.Tabulate(q, tabulate.Unicode)
+					if err != nil {
+						log.Fatalf("Query failed: %v\n", err)
+					}
+					tab.Print(os.Stdout)
 				}
-				tab.Print(os.Stdout)
 			}
 		}
 	}

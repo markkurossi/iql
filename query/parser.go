@@ -163,23 +163,29 @@ func (p *Parser) parseSet() error {
 		return p.errUnexpected(t)
 	}
 	name := t.StrVal
+
+	// Optional '=' token.
 	t, err = p.get()
 	if err != nil {
 		return err
 	}
 	if t.Type != '=' {
-		return p.errUnexpected(t)
+		p.lexer.unget(t)
 	}
+
+	// Value to set.
 	expr, err := p.parseExpr()
 	if err != nil {
 		return err
 	}
+
+	// Optional ';' token.
 	t, err = p.get()
 	if err != nil {
 		return err
 	}
 	if t.Type != ';' {
-		return p.errUnexpected(t)
+		p.lexer.unget(t)
 	}
 
 	q := NewQuery(p.global)

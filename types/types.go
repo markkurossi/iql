@@ -66,9 +66,9 @@ func ParseDate(val string) (time.Time, error) {
 // ParseBoolean parses the boolean literal value.
 func ParseBoolean(val string) (bool, bool) {
 	switch strings.ToLower(val) {
-	case True:
+	case True, "on":
 		return true, true
-	case False:
+	case False, "off":
 		return false, true
 	default:
 		return false, false

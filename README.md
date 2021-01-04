@@ -222,6 +222,8 @@ This query gives the same result as the previous example:
 
  - REALFMT VARCHAR: specifies the formatting option for real
    numbers. The default value is `%g`.
+ - TERMOUT BOOLEAN: controls the terminal output from the queries. The
+   default value is `ON`.
 
 ## Built-in Functions
 

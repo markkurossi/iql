@@ -51,6 +51,19 @@ func NewQuery(global *Scope) *Query {
 	}
 }
 
+// SysTermOut describes if terminal output is enabled.
+func (sql *Query) SysTermOut() bool {
+	b := sql.Global.Get(sysTermOut)
+	if b == nil {
+		panic("system variable TERMOUT not set")
+	}
+	v, err := b.Value.Bool()
+	if err != nil {
+		panic(fmt.Sprintf("invalid system variable value: %s", err))
+	}
+	return v
+}
+
 // ColumnSelector defines selected query output columns.
 type ColumnSelector struct {
 	Expr Expr
