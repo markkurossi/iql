@@ -220,10 +220,10 @@ This query gives the same result as the previous example:
 
 ## System Variables
 
- - REALFMT VARCHAR: specifies the formatting option for real
-   numbers. The default value is `%g`.
- - TERMOUT BOOLEAN: controls the terminal output from the queries. The
-   default value is `ON`.
+ |Variable|Type   |Default| Description |
+ |--------|-------|-------|-------------|
+ |REALFMT |VARCHAR|`%g`|The formatting option for real numbers.|
+ |TERMOUT |BOOLEAN|`ON`|Controls the terminal output from the queries.|
 
 ## Built-in Functions
 
