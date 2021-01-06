@@ -34,7 +34,7 @@ func (r *Row) String() string {
 
 // Expr implements expressions.
 type Expr interface {
-	Bind(sql *Query) error
+	Bind(iql *Query) error
 	Eval(row *Row, rows []*Row) (types.Value, error)
 	IsIdempotent() bool
 	String() string
@@ -49,7 +49,7 @@ type Call struct {
 }
 
 // Bind implements the Expr.Bind().
-func (call *Call) Bind(sql *Query) error {
+func (call *Call) Bind(iql *Query) error {
 	// Resolve function.
 	call.Function = builtIn(call.Name)
 	if call.Function == nil {
@@ -57,7 +57,7 @@ func (call *Call) Bind(sql *Query) error {
 	}
 
 	for i := call.Function.FirstBound; i < len(call.Arguments); i++ {
-		err := call.Arguments[i].Bind(sql)
+		err := call.Arguments[i].Bind(iql)
 		if err != nil {
 			return err
 		}
@@ -144,12 +144,12 @@ func (t BinaryType) String() string {
 }
 
 // Bind implements the Expr.Bind().
-func (b *Binary) Bind(sql *Query) error {
-	err := b.Left.Bind(sql)
+func (b *Binary) Bind(iql *Query) error {
+	err := b.Left.Bind(iql)
 	if err != nil {
 		return err
 	}
-	return b.Right.Bind(sql)
+	return b.Right.Bind(iql)
 }
 
 // Eval implements the Expr.Eval().
@@ -358,12 +358,12 @@ type And struct {
 }
 
 // Bind implements the Expr.Bind().
-func (and *And) Bind(sql *Query) error {
-	err := and.Left.Bind(sql)
+func (and *And) Bind(iql *Query) error {
+	err := and.Left.Bind(iql)
 	if err != nil {
 		return err
 	}
-	return and.Right.Bind(sql)
+	return and.Right.Bind(iql)
 }
 
 // Eval implements the Expr.Eval().
@@ -414,7 +414,7 @@ type Constant struct {
 }
 
 // Bind implements the Expr.Bind().
-func (c *Constant) Bind(sql *Query) error {
+func (c *Constant) Bind(iql *Query) error {
 	return nil
 }
 
@@ -470,8 +470,8 @@ func (idx ColumnIndex) String() string {
 }
 
 // Bind implements the Expr.Bind().
-func (ref *Reference) Bind(sql *Query) error {
-	r, err := sql.resolveName(ref.Reference, false)
+func (ref *Reference) Bind(iql *Query) error {
+	r, err := iql.resolveName(ref.Reference, false)
 	if err != nil {
 		return err
 	}
@@ -527,8 +527,8 @@ type Cast struct {
 }
 
 // Bind implements the Expr.Bind().
-func (c *Cast) Bind(sql *Query) error {
-	return c.Expr.Bind(sql)
+func (c *Cast) Bind(iql *Query) error {
+	return c.Expr.Bind(iql)
 }
 
 // Eval implements the Expr.Eval().
@@ -596,22 +596,22 @@ type Branch struct {
 }
 
 // Bind implements the Expr.Bind().
-func (c *Case) Bind(sql *Query) error {
+func (c *Case) Bind(iql *Query) error {
 	if c.Input != nil {
-		if err := c.Input.Bind(sql); err != nil {
+		if err := c.Input.Bind(iql); err != nil {
 			return err
 		}
 	}
 	for _, b := range c.Branches {
-		if err := b.When.Bind(sql); err != nil {
+		if err := b.When.Bind(iql); err != nil {
 			return err
 		}
-		if err := b.Then.Bind(sql); err != nil {
+		if err := b.Then.Bind(iql); err != nil {
 			return err
 		}
 	}
 	if c.Else != nil {
-		return c.Else.Bind(sql)
+		return c.Else.Bind(iql)
 	}
 	return nil
 }
