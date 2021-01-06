@@ -20,7 +20,7 @@ var (
 	_ types.Source = &Query{}
 )
 
-// Query implements an SQL query. It also implements data.Source so
+// Query implements an IQL query. It also implements data.Source so
 // that the query can be used as a nested data source for other
 // queries.
 type Query struct {
@@ -52,8 +52,8 @@ func NewQuery(global *Scope) *Query {
 }
 
 // SysTermOut describes if terminal output is enabled.
-func (sql *Query) SysTermOut() bool {
-	b := sql.Global.Get(sysTermOut)
+func (iql *Query) SysTermOut() bool {
+	b := iql.Global.Get(sysTermOut)
 	if b == nil {
 		panic("system variable TERMOUT not set")
 	}
@@ -95,18 +95,18 @@ type SourceSelector struct {
 }
 
 // Columns implements the Source.Columns().
-func (sql *Query) Columns() []types.ColumnSelector {
-	return sql.resultColumns
+func (iql *Query) Columns() []types.ColumnSelector {
+	return iql.resultColumns
 }
 
 // Get implements the Source.Get().
-func (sql *Query) Get() ([]types.Row, error) {
-	if sql.evaluated {
-		return sql.result, nil
+func (iql *Query) Get() ([]types.Row, error) {
+	if iql.evaluated {
+		return iql.result, nil
 	}
 
 	// Eval all sources.
-	for sourceIdx, from := range sql.From {
+	for sourceIdx, from := range iql.From {
 		_, err := from.Source.Get()
 		if err != nil {
 			return nil, err
@@ -148,7 +148,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 			} else {
 				key = columnName
 			}
-			sql.fromColumns[key] = ColumnIndex{
+			iql.fromColumns[key] = ColumnIndex{
 				Source: sourceIdx,
 				Column: columnIdx,
 				Type:   col.Type,
@@ -156,8 +156,27 @@ func (sql *Query) Get() ([]types.Row, error) {
 		}
 	}
 
+	if len(iql.Select) == 0 {
+		// SELECT *, populate iql.Select from source columns.
+		for _, f := range iql.From {
+			columns := f.Source.Columns()
+			for _, col := range columns {
+				ref := col.Name
+				if len(f.As) != 0 {
+					ref.Source = f.As
+				}
+
+				iql.Select = append(iql.Select, ColumnSelector{
+					Expr: &Reference{
+						Reference: ref,
+					},
+				})
+			}
+		}
+	}
+
 	// Create column info.
-	for _, col := range sql.Select {
+	for _, col := range iql.Select {
 		if !col.IsPublic() {
 			continue
 		}
@@ -169,7 +188,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 		} else {
 			as = col.Expr.String()
 		}
-		sql.resultColumns = append(sql.resultColumns, types.ColumnSelector{
+		iql.resultColumns = append(iql.resultColumns, types.ColumnSelector{
 			Name: types.Reference{
 				Column: col.Expr.String(),
 			},
@@ -179,8 +198,8 @@ func (sql *Query) Get() ([]types.Row, error) {
 
 	// Bind SELECT expressions.
 	var idempotent = true
-	for _, sel := range sql.Select {
-		if err := sel.Expr.Bind(sql); err != nil {
+	for _, sel := range iql.Select {
+		if err := sel.Expr.Bind(iql); err != nil {
 			return nil, err
 		}
 		if !sel.Expr.IsIdempotent() {
@@ -188,26 +207,26 @@ func (sql *Query) Get() ([]types.Row, error) {
 		}
 	}
 	// Bind WHERE expressions.
-	if sql.Where != nil {
-		if err := sql.Where.Bind(sql); err != nil {
+	if iql.Where != nil {
+		if err := iql.Where.Bind(iql); err != nil {
 			return nil, err
 		}
 	}
 	// Bind GROUP BY expressions.
-	for _, group := range sql.GroupBy {
-		if err := group.Bind(sql); err != nil {
+	for _, group := range iql.GroupBy {
+		if err := group.Bind(iql); err != nil {
 			return nil, err
 		}
 	}
 	// Bind ORDER BY expressions.
-	for _, order := range sql.OrderBy {
-		if err := order.Expr.Bind(sql); err != nil {
+	for _, order := range iql.OrderBy {
+		if err := order.Expr.Bind(iql); err != nil {
 			return nil, err
 		}
 	}
 
 	var matches []*Row
-	err := sql.eval(0, nil, &matches)
+	err := iql.eval(0, nil, &matches)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +235,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 	grouping := NewGrouping()
 	for _, match := range matches {
 		var key []types.Value
-		for _, group := range sql.GroupBy {
+		for _, group := range iql.GroupBy {
 			val, err := group.Eval(match, nil)
 			if err != nil {
 				return nil, err
@@ -228,12 +247,12 @@ func (sql *Query) Get() ([]types.Row, error) {
 
 	// Select result columns.
 	matches = nil
-	format := Format(sql.Global)
+	format := Format(iql.Global)
 	for _, group := range grouping.Get() {
 		for _, match := range group {
 			var row types.Row
 			var i int
-			for _, sel := range sql.Select {
+			for _, sel := range iql.Select {
 				if !sel.IsPublic() {
 					continue
 				}
@@ -248,7 +267,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 						val = types.NewFormattedValue(val, format)
 					}
 					row = append(row, types.NewValueColumn(val))
-					sql.resultColumns[i].ResolveValue(val)
+					iql.resultColumns[i].ResolveValue(val)
 				}
 				i++
 			}
@@ -257,7 +276,7 @@ func (sql *Query) Get() ([]types.Row, error) {
 				Order: match.Order,
 			})
 			// Idempotent and GROUP BY return one result per group.
-			if idempotent || len(sql.GroupBy) > 0 {
+			if idempotent || len(iql.GroupBy) > 0 {
 				break
 			}
 		}
@@ -274,8 +293,8 @@ func (sql *Query) Get() ([]types.Row, error) {
 		}
 		for idx := 0; idx < l; idx++ {
 			var desc bool
-			if idx < len(sql.OrderBy) {
-				desc = sql.OrderBy[idx].Desc
+			if idx < len(iql.OrderBy) {
+				desc = iql.OrderBy[idx].Desc
 			}
 			cmp, err := types.Compare(o1[idx], o2[idx])
 			if err != nil {
@@ -297,23 +316,23 @@ func (sql *Query) Get() ([]types.Row, error) {
 	}
 
 	for _, match := range matches {
-		sql.result = append(sql.result, match.Data[0])
+		iql.result = append(iql.result, match.Data[0])
 	}
 
-	sql.evaluated = true
+	iql.evaluated = true
 
-	return sql.result, nil
+	return iql.result, nil
 }
 
-func (sql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
+func (iql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
 
-	if idx >= len(sql.From) {
+	if idx >= len(iql.From) {
 		match := true
 		row := &Row{
 			Data: data,
 		}
-		if sql.Where != nil {
-			val, err := sql.Where.Eval(row, nil)
+		if iql.Where != nil {
+			val, err := iql.Where.Eval(row, nil)
 			if err != nil {
 				return err
 			}
@@ -324,7 +343,7 @@ func (sql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
 		}
 		if match {
 			// ORDER BY
-			for _, order := range sql.OrderBy {
+			for _, order := range iql.OrderBy {
 				v, err := order.Expr.Eval(row, nil)
 				if err != nil {
 					return err
@@ -337,13 +356,13 @@ func (sql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
 		return nil
 	}
 
-	rows, err := sql.From[idx].Source.Get()
+	rows, err := iql.From[idx].Source.Get()
 	if err != nil {
 		return err
 	}
 
 	for _, row := range rows {
-		err := sql.eval(idx+1, append(data, row), result)
+		err := iql.eval(idx+1, append(data, row), result)
 		if err != nil {
 			return err
 		}
@@ -351,11 +370,11 @@ func (sql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
 	return nil
 }
 
-func (sql *Query) resolveName(name types.Reference, public bool) (
+func (iql *Query) resolveName(name types.Reference, public bool) (
 	*Reference, error) {
 
 	if name.IsAbsolute() {
-		index, ok := sql.fromColumns[name.String()]
+		index, ok := iql.fromColumns[name.String()]
 		if !ok {
 			return nil, fmt.Errorf("undefined column '%s'", name)
 		}
@@ -368,12 +387,12 @@ func (sql *Query) resolveName(name types.Reference, public bool) (
 
 	var match *Reference
 
-	for _, from := range sql.From {
+	for _, from := range iql.From {
 		key := types.Reference{
 			Source: from.As,
 			Column: name.Column,
 		}
-		index, ok := sql.fromColumns[key.String()]
+		index, ok := iql.fromColumns[key.String()]
 		if ok {
 			if match != nil {
 				return nil, fmt.Errorf("ambiguous column name '%s'", name)
@@ -390,7 +409,7 @@ func (sql *Query) resolveName(name types.Reference, public bool) (
 	}
 
 	// Check variables.
-	b := sql.Global.Get(name.Column)
+	b := iql.Global.Get(name.Column)
 	if b != nil {
 		return &Reference{
 			Reference: types.Reference{

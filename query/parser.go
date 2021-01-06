@@ -295,25 +295,6 @@ func (p *Parser) parseSelect() (*Query, error) {
 				break
 			}
 		}
-
-		if len(q.Select) == 0 {
-			// SELECT *, populate q.Select from source columns.
-			for _, f := range q.From {
-				columns := f.Source.Columns()
-				for _, col := range columns {
-					ref := col.Name
-					if len(f.As) != 0 {
-						ref.Source = f.As
-					}
-
-					q.Select = append(q.Select, ColumnSelector{
-						Expr: &Reference{
-							Reference: ref,
-						},
-					})
-				}
-			}
-		}
 	} else {
 		p.lexer.unget(t)
 	}
