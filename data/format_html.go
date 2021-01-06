@@ -7,6 +7,7 @@
 package data
 
 import (
+	"errors"
 	"io"
 	"strings"
 
@@ -44,6 +45,10 @@ func NewHTML(input []io.ReadCloser, filter string,
 
 	for _, in := range input {
 		defer in.Close()
+	}
+
+	if len(columns) == 0 {
+		return nil, errors.New("html: 'SELECT *' not supported")
 	}
 
 	var rows []types.Row

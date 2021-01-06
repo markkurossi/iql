@@ -105,27 +105,6 @@ func (sql *Query) Get() ([]types.Row, error) {
 		return sql.result, nil
 	}
 
-	// Create column info.
-	for _, col := range sql.Select {
-		if !col.IsPublic() {
-			continue
-		}
-		// Promote expressions to aliases unless explicit aliases are
-		// defined.
-		var as string
-		if len(col.As) > 0 {
-			as = col.As
-		} else {
-			as = col.Expr.String()
-		}
-		sql.resultColumns = append(sql.resultColumns, types.ColumnSelector{
-			Name: types.Reference{
-				Column: col.Expr.String(),
-			},
-			As: as,
-		})
-	}
-
 	// Eval all sources.
 	for sourceIdx, from := range sql.From {
 		_, err := from.Source.Get()
@@ -133,7 +112,11 @@ func (sql *Query) Get() ([]types.Row, error) {
 			return nil, err
 		}
 		if false {
-			fmt.Printf("%d\t%s\n", sourceIdx, from.As)
+			fmt.Printf("Source %d", sourceIdx)
+			if len(from.As) > 0 {
+				fmt.Printf("\tAS %s", from.As)
+			}
+			fmt.Println()
 			tab := tabulate.New(tabulate.Unicode)
 			tab.Header("Index")
 			tab.Header("data.Name")
@@ -171,6 +154,27 @@ func (sql *Query) Get() ([]types.Row, error) {
 				Type:   col.Type,
 			}
 		}
+	}
+
+	// Create column info.
+	for _, col := range sql.Select {
+		if !col.IsPublic() {
+			continue
+		}
+		// Promote expressions to aliases unless explicit aliases are
+		// defined.
+		var as string
+		if len(col.As) > 0 {
+			as = col.As
+		} else {
+			as = col.Expr.String()
+		}
+		sql.resultColumns = append(sql.resultColumns, types.ColumnSelector{
+			Name: types.Reference{
+				Column: col.Expr.String(),
+			},
+			As: as,
+		})
 	}
 
 	// Bind SELECT expressions.

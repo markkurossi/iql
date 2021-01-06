@@ -8,6 +8,7 @@ package data
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -114,7 +115,18 @@ func NewCSV(input []io.ReadCloser, filter string,
 			if headers {
 				// Mapping from column names to column indices.
 				if len(records) == 0 {
-					return nil, fmt.Errorf("csv: no records")
+					return nil, errors.New("csv: no records")
+				}
+
+				if len(columns) == 0 {
+					// SELECT *
+					for _, col := range records[0] {
+						columns = append(columns, types.ColumnSelector{
+							Name: types.Reference{
+								Column: col,
+							},
+						})
+					}
 				}
 
 				names := make(map[string]int)
@@ -131,6 +143,10 @@ func NewCSV(input []io.ReadCloser, filter string,
 					indices = append(indices, i)
 				}
 			} else {
+				if len(columns) == 0 {
+					return nil, errors.New(
+						"csv: 'SELECT *' not supported without headers")
+				}
 				for _, col := range columns {
 					i, err := strconv.Atoi(col.Name.Column)
 					if err != nil {

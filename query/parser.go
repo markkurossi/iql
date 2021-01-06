@@ -224,26 +224,30 @@ func (p *Parser) parsePrint() error {
 func (p *Parser) parseSelect() (*Query, error) {
 	q := NewQuery(p.global)
 
-	// Columns
-	for {
-		col, err := p.parseColumn()
-		if err != nil {
-			return nil, err
-		}
-		q.Select = append(q.Select, *col)
+	// Columns. The columns list is empty for "SELECT *" queries.
+	t, err := p.get()
+	if t.Type != '*' {
+		p.lexer.unget(t)
+		for {
+			col, err := p.parseColumn()
+			if err != nil {
+				return nil, err
+			}
+			q.Select = append(q.Select, *col)
 
-		t, err := p.get()
-		if err != nil {
-			return nil, err
-		}
-		if t.Type != ',' {
-			p.lexer.unget(t)
-			break
+			t, err := p.get()
+			if err != nil {
+				return nil, err
+			}
+			if t.Type != ',' {
+				p.lexer.unget(t)
+				break
+			}
 		}
 	}
 
 	// INTO
-	t, err := p.get()
+	t, err = p.get()
 	if err != nil {
 		return nil, err
 	}
@@ -289,6 +293,25 @@ func (p *Parser) parseSelect() (*Query, error) {
 			if t.Type != ',' {
 				p.lexer.unget(t)
 				break
+			}
+		}
+
+		if len(q.Select) == 0 {
+			// SELECT *, populate q.Select from source columns.
+			for _, f := range q.From {
+				columns := f.Source.Columns()
+				for _, col := range columns {
+					ref := col.Name
+					if len(f.As) != 0 {
+						ref.Source = f.As
+					}
+
+					q.Select = append(q.Select, ColumnSelector{
+						Expr: &Reference{
+							Reference: ref,
+						},
+					})
+				}
 			}
 		}
 	} else {

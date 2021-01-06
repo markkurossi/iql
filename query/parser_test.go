@@ -565,6 +565,19 @@ ORDER BY Ints DESC;`,
 	},
 	{
 		q: `
+DECLARE data VARCHAR;
+SET data = 'data:text/csv;base64,' + BASE64ENC('Ints,Floats,Strings
+1,42.0,foo
+2,3.14,bar');
+
+SELECT * FROM data;`,
+		v: [][]string{
+			{"1", "42", "foo"},
+			{"2", "3.14", "bar"},
+		},
+	},
+	{
+		q: `
 SET REALFMT = '%.2f';
 SELECT 3.1415;`,
 		v: [][]string{
