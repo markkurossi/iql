@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/markkurossi/iql/types"
@@ -26,7 +27,7 @@ var (
 )
 
 // NewSource defines a constructor for data sources.
-type NewSource func(in io.ReadCloser, filter string,
+type NewSource func(in []io.ReadCloser, filter string,
 	columns []types.ColumnSelector) (types.Source, error)
 
 // New creates a new data source for the URL.
@@ -45,7 +46,7 @@ func New(url, filter string, columns []types.ColumnSelector) (
 	return n(input, filter, columns)
 }
 
-func openInput(input string) (io.ReadCloser, Format, error) {
+func openInput(input string) ([]io.ReadCloser, Format, error) {
 	var resolver Resolver
 
 	u, err := url.Parse(input)
@@ -68,7 +69,7 @@ func openInput(input string) (io.ReadCloser, Format, error) {
 		resolver.ResolveMediaType(resp.Header.Get("Content-Type"))
 
 		format, err := resolver.Format()
-		return resp.Body, format, err
+		return []io.ReadCloser{resp.Body}, format, err
 	}
 	if err == nil && u.Scheme == "data" {
 		idx := strings.IndexByte(input, ',')
@@ -105,19 +106,29 @@ func openInput(input string) (io.ReadCloser, Format, error) {
 
 		format, err := resolver.Format()
 
-		return &memory{
-			in: bytes.NewReader(decoded),
+		return []io.ReadCloser{
+			&memory{
+				in: bytes.NewReader(decoded),
+			},
 		}, format, err
 	}
 
-	f, err := os.Open(input)
+	matches, err := filepath.Glob(input)
 	if err != nil {
 		return nil, 0, err
+	}
+	var result []io.ReadCloser
+	for _, match := range matches {
+		f, err := os.Open(match)
+		if err != nil {
+			return nil, 0, err
+		}
+		result = append(result, f)
 	}
 
 	format, err := resolver.Format()
 
-	return f, format, err
+	return result, format, err
 }
 
 type memory struct {

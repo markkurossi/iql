@@ -19,7 +19,7 @@ import (
 
 var parserTests = []IQLTest{
 	{
-		q: `select 1 + 0x01 + 0b10 + 077 + 0o70 as Sum, 100-42 as Diff;`,
+		q: `SELECT 1 + 0x01 + 0b10 + 077 + 0o70 AS Sum, 100-42 AS Diff;`,
 		v: [][]string{{"123", "58"}},
 	},
 
@@ -27,8 +27,9 @@ var parserTests = []IQLTest{
 	// 2009,101
 	// 2010,200
 	{
-		q: `select "0" As Year, "1" as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK';`,
+		q: `SELECT "0" AS Year, "1" AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders';`,
 		v: [][]string{
 			{"2008", "100"},
 			{"2009", "101"},
@@ -36,8 +37,9 @@ from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK';`,
 		},
 	},
 	{
-		q: `select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data;`,
+		q: `SELECT Data.0 AS Year, Data.1 AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders' AS Data;`,
 		v: [][]string{
 			{"2008", "100"},
 			{"2009", "101"},
@@ -45,24 +47,27 @@ from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data;`,
 		},
 	},
 	{
-		q: `select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+		q: `SELECT Data.0 AS Year, Data.1 AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders' AS Data
 where Data.0 > 2009;`,
 		v: [][]string{
 			{"2010", "200"},
 		},
 	},
 	{
-		q: `select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+		q: `SELECT Data.0 AS Year, Data.1 AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders' AS Data
 where Data.0 = 2009;`,
 		v: [][]string{
 			{"2009", "101"},
 		},
 	},
 	{
-		q: `select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+		q: `SELECT Data.0 AS Year, Data.1 AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders' AS Data
 where Data.0 >= 2009;`,
 		v: [][]string{
 			{"2009", "101"},
@@ -70,16 +75,18 @@ where Data.0 >= 2009;`,
 		},
 	},
 	{
-		q: `select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+		q: `SELECT Data.0 AS Year, Data.1 AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders' AS Data
 where Data.0 < 2009;`,
 		v: [][]string{
 			{"2008", "100"},
 		},
 	},
 	{
-		q: `select Data.0 As Year, Data.1 as Value
-from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK' as Data
+		q: `SELECT Data.0 AS Year, Data.1 AS Value
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders' AS Data
 where Data.0 <= 2009;`,
 		v: [][]string{
 			{"2008", "100"},
@@ -88,12 +95,13 @@ where Data.0 <= 2009;`,
 	},
 	{
 		q: `
-select Year, Value
-from (
-        select "0" AS Year,
+SELECT Year, Value
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-     ) as Data;`,
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
+     ) AS Data;`,
 		v: [][]string{
 			{"2008", "100"},
 			{"2009", "101"},
@@ -102,12 +110,13 @@ from (
 	},
 	{
 		q: `
-select Data.Year, Data.Value
-from (
-        select "0" AS Year,
+SELECT Data.Year, Data.Value
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-     ) as Data;`,
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
+     ) AS Data;`,
 		v: [][]string{
 			{"2008", "100"},
 			{"2009", "101"},
@@ -116,11 +125,12 @@ from (
 	},
 	{
 		q: `
-select Year, Value
-from (
-        select "0" AS Year,
+SELECT Year, Value
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
      );`,
 		v: [][]string{
 			{"2008", "100"},
@@ -130,11 +140,12 @@ from (
 	},
 	{
 		q: `
-select Year as Y, Value as V
-from (
-        select "0" AS Year,
+SELECT Year AS Y, Value AS V
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
      );`,
 		v: [][]string{
 			{"2008", "100"},
@@ -146,11 +157,11 @@ from (
 		q: `
 declare data varchar;
 set data = 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK';
-select Year as Y, Value as V
-from (
-        select "0" AS Year,
+SELECT Year AS Y, Value AS V
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from data
+        FROM data FILTER 'noheaders'
      );`,
 		v: [][]string{
 			{"2008", "100"},
@@ -160,37 +171,40 @@ from (
 	},
 	{
 		q: `
-select SUM(Year) as Sum
-from (
-        select "0" AS Year,
+SELECT SUM(Year) AS Sum
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
      );`,
 		v: [][]string{{"6027"}},
 	},
 	{
 		q: `
-select COUNT(Year) as Count
-from (
-        select "0" AS Year,
+SELECT COUNT(Year) AS Count
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
      );`,
 		v: [][]string{{"3"}},
 	},
 
 	{
 		q: `
-select Year,
+SELECT Year,
        Value,
-       Year * Value as Sum
+       Year * Value AS Sum
 into data
-from (
-        select "0" AS Year,
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
      );
-select Year, Sum from data;`,
+SELECT Year, Sum FROM data;`,
 		v: [][]string{
 			{"2008", "100", "200800"},
 			{"2009", "101", "202909"},
@@ -206,17 +220,18 @@ select Year, Sum from data;`,
 	},
 	{
 		q: `
-select Year,
+SELECT Year,
        Value,
-       Year * Value as Sum
+       Year * Value AS Sum
 into data
-from (
-        select "0" AS Year,
+FROM (
+        SELECT "0" AS Year,
                "1" AS Value
-        from 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
      );
 
-select data.Year, data.Sum from data;`,
+SELECT data.Year, data.Sum FROM data;`,
 		v: [][]string{
 			{"2008", "100", "200800"},
 			{"2009", "101", "202909"},
@@ -243,8 +258,7 @@ select data.Year, data.Sum from data;`,
 	{
 		q: `
 SELECT Region, Unit
-FROM 'data:text/csv;base64,UmVnaW9uLFVuaXQsQ291bnQKYSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
-     FILTER 'headers';`,
+FROM 'data:text/csv;base64,UmVnaW9uLFVuaXQsQ291bnQKYSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg==';`,
 		v: [][]string{
 			{"a", "1"},
 			{"a", "2"},
@@ -268,7 +282,8 @@ SELECT
         "1" AS Floats,
         "0" + "1" AS Sum1,
         "1" + "0" AS Sum2
-FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
+FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK'
+FILTER 'noheaders';`,
 		v: [][]string{
 			{"1", "4.1", "5.1", "5.1"},
 			{"2", "4.2", "6.2", "6.2"},
@@ -294,13 +309,14 @@ FROM 'data:text/csv;base64,MSw0LjEKMiw0LjIKMyw0LjMKNCw0LjQK';`,
 	{
 		q: `
 SELECT Name,
-       COUNT(Unit) as Count,
-       AVG(Count) as Avg
+       COUNT(Unit) AS Count,
+       AVG(Count) AS Avg
 FROM (
 	  SELECT "0" AS Name,
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      )
 GROUP BY Name;`,
 		v: [][]string{
@@ -313,12 +329,13 @@ GROUP BY Name;`,
 		q: `
 SELECT Name,
        Unit,
-       AVG(Count) as Avg
+       AVG(Count) AS Avg
 FROM (
 	  SELECT "0" AS Name,
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      )
 GROUP BY Name, Unit;`,
 		v: [][]string{
@@ -343,6 +360,7 @@ FROM (
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      );`,
 		v: [][]string{
 			{"a", "1", "200", "Buy"},
@@ -368,6 +386,7 @@ FROM (
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      );`,
 		v: [][]string{
 			{"a", "1", "R&D"},
@@ -399,6 +418,7 @@ FROM (
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      )
 ORDER BY Name;`,
 		v: [][]string{
@@ -420,6 +440,7 @@ FROM (
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      )
 ORDER BY Name DESC;`,
 		v: [][]string{
@@ -441,6 +462,7 @@ FROM (
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      )
 ORDER BY Name DESC, Unit DESC;`,
 		v: [][]string{
@@ -462,6 +484,7 @@ FROM (
 	         "1" AS Unit,
 	         "2" AS Count
 	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
      )
 ORDER BY Name DESC, Unit DESC, Count;`,
 		v: [][]string{
@@ -486,7 +509,7 @@ ORDER BY Name DESC, Unit DESC, Count;`,
 	{
 		q: `
 SELECT Ints, Floats, Strings
-FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo='
 ORDER BY Ints;`,
 		v: [][]string{
 			{"NULL", "2.75", "x"},
@@ -500,7 +523,7 @@ ORDER BY Ints;`,
 	{
 		q: `
 SELECT Ints, Floats, Strings
-FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo='
 ORDER BY Floats;`,
 		v: [][]string{
 			{"8", "NULL", "y"},
@@ -514,7 +537,7 @@ ORDER BY Floats;`,
 	{
 		q: `
 SELECT Ints, Floats, Strings
-FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo=' FILTER 'headers'
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo='
 ORDER BY Strings;`,
 		v: [][]string{
 			{"12", "1.234", ""},
@@ -533,7 +556,7 @@ SET data = 'data:text/csv;base64,' + BASE64ENC('Ints,Floats,Strings
 2,3.14,bar');
 
 SELECT Ints, Floats, Strings
-FROM data FILTER 'headers'
+FROM data
 ORDER BY Ints DESC;`,
 		v: [][]string{
 			{"2", "3.14", "bar"},

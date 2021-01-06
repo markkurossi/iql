@@ -39,17 +39,36 @@ type HTML struct {
 }
 
 // NewHTML creates a new HTML data source from the input.
-func NewHTML(input io.ReadCloser, filter string,
+func NewHTML(input []io.ReadCloser, filter string,
 	columns []types.ColumnSelector) (types.Source, error) {
 
-	defer input.Close()
-
-	doc, err := goquery.NewDocumentFromReader(input)
-	if err != nil {
-		return nil, err
+	for _, in := range input {
+		defer in.Close()
 	}
 
 	var rows []types.Row
+	var err error
+
+	for _, in := range input {
+		rows, err = processHTML(in, rows, filter, columns)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &HTML{
+		columns: columns,
+		rows:    rows,
+	}, nil
+}
+
+func processHTML(in io.ReadCloser, rows []types.Row, filter string,
+	columns []types.ColumnSelector) ([]types.Row, error) {
+
+	doc, err := goquery.NewDocumentFromReader(in)
+	if err != nil {
+		return nil, err
+	}
 
 	doc.Find(filter).Each(func(i int, s *goquery.Selection) {
 		var row types.Row
@@ -74,10 +93,7 @@ func NewHTML(input io.ReadCloser, filter string,
 		rows = append(rows, row)
 	})
 
-	return &HTML{
-		columns: columns,
-		rows:    rows,
-	}, nil
+	return rows, nil
 }
 
 // Columns implements the Source.Columns().

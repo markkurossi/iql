@@ -41,20 +41,21 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewHTML failed: %s", err)
 	}
-	portfolio, err := data.New("data/test.csv", "", []types.ColumnSelector{
-		{
-			Name: types.Reference{
-				Column: "0",
+	portfolio, err := data.New("data/test.csv", "noheaders",
+		[]types.ColumnSelector{
+			{
+				Name: types.Reference{
+					Column: "0",
+				},
+				As: "Stock",
 			},
-			As: "Stock",
-		},
-		{
-			Name: types.Reference{
-				Column: "1",
+			{
+				Name: types.Reference{
+					Column: "1",
+				},
+				As: "Count",
 			},
-			As: "Count",
-		},
-	})
+		})
 	if err != nil {
 		t.Fatalf("NewHTML failed: %s", err)
 	}

@@ -63,14 +63,17 @@ WHERE '.id' <> null;
 ```
 
 The [orders.csv](https://markkurossi.com/iql/examples/orders.csv) file
-contains order information, encoded as comma-separted values (CSV):
+contains order information, encoded as comma-separted values
+(CSV). The data file does not have CSV headers at its first line so we
+use the `noheaders` filter flag:
 
 ```sql
 SELECT orders.'0' AS ID,
        orders.'1' AS Customer,
        orders.'2' AS Product,
        orders.'3' AS Count
-FROM 'https://markkurossi.com/iql/examples/orders.csv' AS orders;
+FROM 'https://markkurossi.com/iql/examples/orders.csv'
+FILTER 'noheaders' AS orders;
 ```
 
 ```
@@ -117,7 +120,7 @@ FROM (
        	      o.'1' AS Customer,
        	      o.'2' AS Product,
        	      o.'3' AS Count
-       FROM ordersurl AS o
+       FROM ordersurl FILTER 'noheaders' AS o
      ) AS orders
 WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 ```
@@ -163,8 +166,8 @@ options:
  - `comma`=*rune*: use *rune* to separate columns
  - `comment`=*rune*: skip lines starting with *rune*
  - `trim-leading-space`: trim leading space from columns
- - `headers`: the first line of the CSV data is a header line and its
-   names are used to map select columns into CSV record columns
+ - `noheaders`: the first line of the CSV data is not a header
+   line. You must use column indices to select columns from the data.
 
 For example, if you input file is as follows:
 
@@ -182,8 +185,8 @@ The fields can be processing with the following IQL code:
 SELECT data.'0' AS Year,
        data.'1' AS Value,
        data.'2' AS Delta
-FROM 'test_options.csv'
-     FILTER 'skip=1 comma=; comment=# trim-leading-space'
+FROM 'test-options.csv'
+     FILTER 'noheaders skip=1 comma=; comment=# trim-leading-space'
      AS data;
 ```
 
@@ -202,8 +205,8 @@ name the data columns:
 
 ```sql
 SELECT Year, Value, Delta
-FROM 'test_options.csv'
-     FILTER 'headers comma=; comment=# trim-leading-space';
+FROM 'test-options.csv'
+     FILTER 'comma=; comment=# trim-leading-space';
 ```
 
 This query gives the same result as the previous example:
@@ -353,6 +356,6 @@ This query gives the same result as the previous example:
  - [ ] JSON data format
  - [ ] YAML data format
  - [ ] CSV:
-   - [ ] change default to `headers` and provide `noheaders` flag
+   - [X] change default to `headers` and provide `noheaders` flag
    - [ ] `SELECT * FROM 'test.csv'`;
  - [ ] SQL Server base year for YEAR(0) is 1900

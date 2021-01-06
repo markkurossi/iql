@@ -24,7 +24,8 @@ type IQLTest struct {
 	rest [][][]string
 }
 
-var builtInData = `1970,100,100.5
+var builtInData = `Year,IVal,FVal
+1970,100,100.5
 1971,200,200.5
 1972,300,300.5
 1973,400,400.5
@@ -35,10 +36,7 @@ var builtInTests = []IQLTest{
 		q: `
 select AVG(Year)
 from (
-      select "0" as Year,
-             "1" as IVal,
-             "2" as FVal
-      from data
+      select Year, IVal, FVal from data
      );`,
 		v: [][]string{{"1972"}},
 	},
@@ -46,10 +44,7 @@ from (
 		q: `
 select COUNT(Year)
 from (
-      select "0" as Year,
-             "1" as IVal,
-             "2" as FVal
-      from data
+      select Year, IVal, FVal from data
      );`,
 		v: [][]string{{"5"}},
 	},
@@ -57,10 +52,7 @@ from (
 		q: `
 select MAX(Year)
 from (
-      select "0" as Year,
-             "1" as IVal,
-             "2" as FVal
-      from data
+      select Year, IVal, FVal from data
      );`,
 		v: [][]string{{"1974"}},
 	},
@@ -68,10 +60,7 @@ from (
 		q: `
 select MIN(Year)
 from (
-      select "0" as Year,
-             "1" as IVal,
-             "2" as FVal
-      from data
+      select Year, IVal, FVal from data
      );`,
 		v: [][]string{{"1970"}},
 	},
@@ -79,10 +68,7 @@ from (
 		q: `
 select SUM(Year)
 from (
-      select "0" as Year,
-             "1" as IVal,
-             "2" as FVal
-      from data
+      select Year, IVal, FVal from data
      );`,
 		v: [][]string{{"9860"}},
 	},

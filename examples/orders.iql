@@ -4,4 +4,4 @@ SELECT orders.'0' AS ID,
        orders.'1' AS Customer,
        orders.'2' AS Product,
        orders.'3' AS Count
-FROM 'orders.csv' AS orders;
+FROM 'orders.csv' FILTER 'noheaders' AS orders;

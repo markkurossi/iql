@@ -30,6 +30,6 @@ FROM (
        	      o.'1' AS Customer,
        	      o.'2' AS Product,
        	      o.'3' AS Count
-       FROM ordersurl AS o
+       FROM ordersurl FILTER 'noheaders' AS o
      ) AS orders
 WHERE orders.Product = products.ID AND orders.Customer = customers.ID;

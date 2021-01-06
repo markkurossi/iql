@@ -23,18 +23,22 @@ type CSV struct {
 }
 
 // NewCSV creates a new CSV data source from the input.
-func NewCSV(input io.ReadCloser, filter string,
+func NewCSV(input []io.ReadCloser, filter string,
 	columns []types.ColumnSelector) (types.Source, error) {
 
-	defer input.Close()
-
-	reader := csv.NewReader(input)
+	for _, in := range input {
+		defer in.Close()
+	}
 
 	// Parse filter options
 
 	var err error
 	var skip int
-	var headers bool
+	var comment rune
+
+	headers := true
+	trimLeadingSpace := false
+	comma := ','
 
 	for _, option := range strings.Split(filter, " ") {
 		if len(option) == 0 {
@@ -45,10 +49,10 @@ func NewCSV(input io.ReadCloser, filter string,
 		case 1:
 			switch parts[0] {
 			case "trim-leading-space":
-				reader.TrimLeadingSpace = true
+				trimLeadingSpace = true
 
-			case "headers":
-				headers = true
+			case "noheaders":
+				headers = false
 
 			default:
 				return nil, fmt.Errorf("csv: invalid filter flag: %s", parts[0])
@@ -69,7 +73,7 @@ func NewCSV(input io.ReadCloser, filter string,
 					return nil, fmt.Errorf("csv: comma must be rune: %s",
 						parts[1])
 				}
-				reader.Comma = runes[0]
+				comma = runes[0]
 
 			case "comment":
 				runes := []rune(parts[1])
@@ -77,7 +81,7 @@ func NewCSV(input io.ReadCloser, filter string,
 					return nil, fmt.Errorf("csv: comment must be rune: %s",
 						parts[1])
 				}
-				reader.Comment = runes[0]
+				comment = runes[0]
 
 			default:
 				return nil, fmt.Errorf("csv: unknown option: %s", parts[0])
@@ -88,44 +92,72 @@ func NewCSV(input io.ReadCloser, filter string,
 		}
 	}
 
-	records, err := reader.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-	if skip > len(records) {
-		skip = len(records)
-	}
-	records = records[skip:]
-
+	var rows []types.Row
 	var indices []int
 
-	if headers {
-		// Mapping from column names to column indices.
-		names := make(map[string]int)
-		for idx, col := range records[0] {
-			names[col] = idx
-		}
-		records = records[1:]
+	for idx, in := range input {
+		reader := csv.NewReader(in)
+		reader.Comment = comment
+		reader.TrimLeadingSpace = trimLeadingSpace
+		reader.Comma = comma
 
-		for _, col := range columns {
-			i, ok := names[col.Name.Column]
-			if !ok {
-				return nil, fmt.Errorf("csv: unknown column: %s",
-					col.Name.Column)
-			}
-			indices = append(indices, i)
+		records, err := reader.ReadAll()
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		for _, col := range columns {
-			i, err := strconv.Atoi(col.Name.Column)
-			if err != nil {
-				return nil, err
+		if skip > len(records) {
+			skip = len(records)
+		}
+		records = records[skip:]
+
+		if idx == 0 {
+			if headers {
+				// Mapping from column names to column indices.
+				if len(records) == 0 {
+					return nil, fmt.Errorf("csv: no records")
+				}
+
+				names := make(map[string]int)
+				for idx, col := range records[0] {
+					names[col] = idx
+				}
+
+				for _, col := range columns {
+					i, ok := names[col.Name.Column]
+					if !ok {
+						return nil, fmt.Errorf("csv: unknown column: %s",
+							col.Name.Column)
+					}
+					indices = append(indices, i)
+				}
+			} else {
+				for _, col := range columns {
+					i, err := strconv.Atoi(col.Name.Column)
+					if err != nil {
+						return nil, err
+					}
+					indices = append(indices, i)
+				}
 			}
-			indices = append(indices, i)
+		}
+		if headers {
+			records = records[1:]
+		}
+
+		rows, err = processCSV(rows, records, indices, columns)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	var rows []types.Row
+	return &CSV{
+		columns: columns,
+		rows:    rows,
+	}, nil
+}
+
+func processCSV(rows []types.Row, records [][]string, indices []int,
+	columns []types.ColumnSelector) ([]types.Row, error) {
 
 	for _, record := range records {
 		var row types.Row
@@ -151,11 +183,7 @@ func NewCSV(input io.ReadCloser, filter string,
 		}
 		rows = append(rows, row)
 	}
-
-	return &CSV{
-		columns: columns,
-		rows:    rows,
-	}, nil
+	return rows, nil
 }
 
 // Columns implements the Source.Columns().

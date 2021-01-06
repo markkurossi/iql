@@ -1,0 +1,6 @@
+SELECT data.'0' AS Year,
+       data.'1' AS Value,
+       data.'2' AS Delta
+FROM 'test-options.csv'
+     FILTER 'noheaders skip=1 comma=; comment=# trim-leading-space'
+     AS data;

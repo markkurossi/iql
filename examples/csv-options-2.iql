@@ -1,0 +1,3 @@
+SELECT Year, Value, Delta
+FROM 'test-options.csv'
+     FILTER 'comma=; comment=# trim-leading-space';
