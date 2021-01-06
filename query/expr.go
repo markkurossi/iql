@@ -50,12 +50,6 @@ type Call struct {
 
 // Bind implements the Expr.Bind().
 func (call *Call) Bind(iql *Query) error {
-	// Resolve function.
-	call.Function = builtIn(call.Name)
-	if call.Function == nil {
-		return fmt.Errorf("undefined function: %s", call.Name)
-	}
-
 	for i := call.Function.FirstBound; i < len(call.Arguments); i++ {
 		err := call.Arguments[i].Bind(iql)
 		if err != nil {
@@ -92,8 +86,10 @@ func (call *Call) String() string {
 
 // References implements the Expr.References().
 func (call *Call) References() (result []types.Reference) {
-	for _, arg := range call.Arguments {
-		result = append(result, arg.References()...)
+	for idx, arg := range call.Arguments {
+		if idx >= call.Function.FirstBound {
+			result = append(result, arg.References()...)
+		}
 	}
 	return result
 }

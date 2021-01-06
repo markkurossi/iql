@@ -865,10 +865,18 @@ func (p *Parser) parseFunc(name *Token) (Expr, error) {
 			p.lexer.unget(t)
 		}
 	}
-	return &Call{
+	call := &Call{
 		Name:      strings.ToUpper(name.StrVal),
 		Arguments: args,
-	}, nil
+	}
+
+	// Resolve function.
+	call.Function = builtIn(call.Name)
+	if call.Function == nil {
+		return nil, fmt.Errorf("undefined function: %s", call.Name)
+	}
+
+	return call, nil
 }
 
 func (p *Parser) parseCase() (Expr, error) {
