@@ -60,7 +60,7 @@ func main() {
 					if err == io.EOF {
 						break
 					}
-					log.Fatalf("%s\n", err)
+					log.Fatalf("%s: %s\n", arg, err)
 				}
 				if q.SysTermOut() {
 					tab, err := types.Tabulate(q, tabulate.Unicode)
