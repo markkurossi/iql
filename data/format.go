@@ -21,27 +21,32 @@ const (
 	FormatUnknown Format = iota
 	FormatCSV
 	FormatHTML
+	FormatJSON
 )
 
 var mediatypes = map[string]Format{
-	"text/csv":  FormatCSV,
-	"text/html": FormatHTML,
+	"text/csv":         FormatCSV,
+	"text/html":        FormatHTML,
+	"application/json": FormatJSON,
 }
 
 var suffixes = map[string]Format{
 	".csv":  FormatCSV,
 	".html": FormatHTML,
+	".json": FormatJSON,
 }
 
 var formats = map[Format]NewSource{
 	FormatCSV:  NewCSV,
 	FormatHTML: NewHTML,
+	FormatJSON: NewJSON,
 }
 
 var formatNames = map[Format]string{
 	FormatUnknown: "unknown",
 	FormatCSV:     "csv",
 	FormatHTML:    "html",
+	FormatJSON:    "json",
 }
 
 func (f Format) String() string {

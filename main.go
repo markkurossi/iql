@@ -23,6 +23,7 @@ import (
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to `file`")
 	htmlFilter := flag.String("html", "", "HTML filter")
+	jsonFilter := flag.String("json", "", "JSON filter")
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -51,6 +52,14 @@ func main() {
 			}
 			for idx, r := range result {
 				fmt.Printf("%s:%s: nth=%d:\n%s\n", arg, *htmlFilter, idx+1, r)
+			}
+		} else if len(*jsonFilter) > 0 {
+			result, err := data.JSONFilter(f, *jsonFilter)
+			if err != nil {
+				log.Fatalf("JSON filter: %s\n", err)
+			}
+			for idx, r := range result {
+				fmt.Printf("%s:%s: nth=%d:\n%v\n", arg, *htmlFilter, idx, r)
 			}
 		} else {
 			parser := query.NewParser(f, arg)
