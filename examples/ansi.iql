@@ -4,4 +4,4 @@ SELECT src.name         AS Name,
        src.red          AS Red,
        src.green        AS Green,
        src.blue         AS Blue
-from 'ansi.json' FILTER 'colors' AS src;
+FROM 'ansi.json' FILTER 'colors' AS src;

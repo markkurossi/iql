@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"sort"
 	"strings"
 
 	"github.com/markkurossi/iql/types"
@@ -49,16 +50,47 @@ func NewJSON(input []io.ReadCloser, filter string,
 		defer in.Close()
 	}
 
-	// XXX this could work
-	if len(columns) == 0 {
-		return nil, errors.New("json: 'SELECT *' not supported")
-	}
-
 	var rows []types.Row
-	var err error
 
-	for _, in := range input {
-		rows, err = processJSON(in, rows, filter, columns)
+	for idx, in := range input {
+		data, err := ioutil.ReadAll(in)
+		if err != nil {
+			return nil, err
+		}
+		var v interface{}
+		err = json.Unmarshal(data, &v)
+		if err != nil {
+			return nil, err
+		}
+		filtered, err := jsonq.Ctx(v).Select(filter).Get()
+		if err != nil {
+			return nil, err
+		}
+		if len(filtered) == 0 {
+			continue
+		}
+
+		if idx == 0 && len(columns) == 0 {
+			// SELECT *
+			switch obj := filtered[0].(type) {
+			case map[string]interface{}:
+				for col := range obj {
+					columns = append(columns, types.ColumnSelector{
+						Name: types.Reference{
+							Column: col,
+						},
+					})
+				}
+				sort.Slice(columns, func(i, j int) bool {
+					return columns[i].Name.Column < columns[j].Name.Column
+				})
+
+			default:
+				return nil, errors.New("json: 'SELECT *' not supported")
+			}
+		}
+
+		rows, err = processJSON(filtered, rows, filter, columns)
 		if err != nil {
 			return nil, err
 		}
@@ -70,23 +102,9 @@ func NewJSON(input []io.ReadCloser, filter string,
 	}, nil
 }
 
-func processJSON(in io.ReadCloser, rows []types.Row, filter string,
+func processJSON(filtered []interface{}, rows []types.Row, filter string,
 	columns []types.ColumnSelector) ([]types.Row, error) {
 
-	data, err := ioutil.ReadAll(in)
-	if err != nil {
-		return nil, err
-	}
-	var v interface{}
-	err = json.Unmarshal(data, &v)
-	if err != nil {
-		return nil, err
-	}
-
-	filtered, err := jsonq.Ctx(v).Select(filter).Get()
-	if err != nil {
-		return nil, err
-	}
 	for _, f := range filtered {
 		var row types.Row
 		for i, col := range columns {

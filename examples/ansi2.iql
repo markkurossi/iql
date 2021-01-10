@@ -1,0 +1,3 @@
+/* -*- sql -*- */
+
+SELECT * FROM 'ansi.json' FILTER 'colors';
