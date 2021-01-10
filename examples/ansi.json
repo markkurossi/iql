@@ -1,0 +1,100 @@
+{
+    "colors": [
+	{
+	    "name": "Black",
+	    "red": 0,
+	    "green": 0,
+	    "blue": 0
+	},
+	{
+	    "name": "Red",
+	    "red": 205,
+	    "green": 0,
+	    "blue": 0
+	},
+	{
+	    "name": "Green",
+	    "red": 0,
+	    "green": 205,
+	    "blue": 0
+	},
+	{
+	    "name": "Yellow",
+	    "red": 205,
+	    "green": 205,
+	    "blue": 0
+	},
+	{
+	    "name": "Blue",
+	    "red": 0,
+	    "green": 0,
+	    "blue": 238
+	},
+	{
+	    "name": "Magenta",
+	    "red": 205,
+	    "green": 0,
+	    "blue": 205
+	},
+	{
+	    "name": "Cyan",
+	    "red": 0,
+	    "green": 205,
+	    "blue": 205
+	},
+	{
+	    "name": "White",
+	    "red": 229,
+	    "green": 229,
+	    "blue": 229
+	},
+	{
+	    "name": "Bright Black (Gray)",
+	    "red": 127,
+	    "green": 127,
+	    "blue": 127
+	},
+	{
+	    "name": "Bright Red",
+	    "red": 255,
+	    "green": 0,
+	    "blue": 0
+	},
+	{
+	    "name": "Bright Green",
+	    "red": 0,
+	    "green": 255,
+	    "blue": 0
+	},
+	{
+	    "name": "Bright Yellow",
+	    "red": 255,
+	    "green": 255,
+	    "blue": 0
+	},
+	{
+	    "name": "Bright Blue",
+	    "red": 92,
+	    "green": 92,
+	    "blue": 255
+	},
+	{
+	    "name": "Bright Magenta",
+	    "red": 255,
+	    "green": 0,
+	    "blue": 255
+	},
+	{
+	    "name": "Bright Cyan",
+	    "red": 0,
+	    "green": 255,
+	    "blue": 255
+	},
+	{
+	    "name": "Bright White",
+	    "red": 255,
+	    "green": 255,
+	    "blue": 255
+	}
+    ]
+}

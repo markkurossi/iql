@@ -9,8 +9,10 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/jsonq"
@@ -47,7 +49,59 @@ func NewJSON(input []io.ReadCloser, filter string,
 		defer in.Close()
 	}
 
-	return nil, errors.New("json: not implemented yet")
+	// XXX this could work
+	if len(columns) == 0 {
+		return nil, errors.New("json: 'SELECT *' not supported")
+	}
+
+	var rows []types.Row
+	var err error
+
+	for _, in := range input {
+		rows, err = processJSON(in, rows, filter, columns)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &JSON{
+		columns: columns,
+		rows:    rows,
+	}, nil
+}
+
+func processJSON(in io.ReadCloser, rows []types.Row, filter string,
+	columns []types.ColumnSelector) ([]types.Row, error) {
+
+	data, err := ioutil.ReadAll(in)
+	if err != nil {
+		return nil, err
+	}
+	var v interface{}
+	err = json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered, err := jsonq.Ctx(v).Select(filter).Get()
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range filtered {
+		var row types.Row
+		for i, col := range columns {
+			sel, err := jsonq.Get(f, col.Name.Column)
+			if err != nil {
+				return nil, err
+			}
+			row = append(row,
+				types.StringColumn(strings.TrimSpace(fmt.Sprintf("%v", sel))))
+			columns[i].ResolveString(row[i].String())
+		}
+		rows = append(rows, row)
+	}
+
+	return rows, nil
 }
 
 // Columns implements the Source.Columns().

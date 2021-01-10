@@ -169,7 +169,7 @@ options:
  - `noheaders`: the first line of the CSV data is not a header
    line. You must use column indices to select columns from the data.
 
-For example, if you input file is as follows:
+For example, if your input file is as follows:
 
 ```csv
 Year; Value; Delta
@@ -179,7 +179,7 @@ Year; Value; Delta
 1972; 200;   99
 ```
 
-The fields can be processing with the following IQL code:
+The fields can be processed with the following IQL code:
 
 ```sql
 SELECT data.'0' AS Year,
@@ -219,6 +219,71 @@ This query gives the same result as the previous example:
 │ 1971 │   101 │     1 │
 │ 1972 │   200 │    99 │
 └──────┴───────┴───────┘
+```
+
+### JSON
+
+The JSON data source extracts input from JSON documents. The data
+source uses the [jsonq](https://github.com/markkurossi/jsonq) package
+for the JSON processing. This means that the filter and column
+selectors are JSONQ selectors which emulate XPath expressions. The
+input document processing is done as follows:
+ - the `FILTER` selector selects input rows
+ - the `SELECT` selectors select columns from input rows
+
+For example, if your input file is as follows:
+
+```json
+{
+    "colors": [
+	{
+	    "name": "Black",
+	    "red": 0,
+	    "green": 0,
+	    "blue": 0
+	},
+	{
+	    "name": "Red",
+	    "red": 205,
+	    "green": 0,
+	    "blue": 0
+	},
+	... objects omitted ...
+    ]
+}
+```
+
+The color values can be processed with the following IQL code:
+
+```sql
+SELECT src.name         AS Name,
+       src.red          AS Red,
+       src.green        AS Green,
+       src.blue         AS Blue
+from 'ansi.json' FILTER 'colors' AS src;
+```
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Name                ┃ Red ┃ Green ┃ Blue ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━╇━━━━━━━╇━━━━━━┩
+│ Black               │   0 │     0 │    0 │
+│ Red                 │ 205 │     0 │    0 │
+│ Green               │   0 │   205 │    0 │
+│ Yellow              │ 205 │   205 │    0 │
+│ Blue                │   0 │     0 │  238 │
+│ Magenta             │ 205 │     0 │  205 │
+│ Cyan                │   0 │   205 │  205 │
+│ White               │ 229 │   229 │  229 │
+│ Bright Black (Gray) │ 127 │   127 │  127 │
+│ Bright Red          │ 255 │     0 │    0 │
+│ Bright Green        │   0 │   255 │    0 │
+│ Bright Yellow       │ 255 │   255 │    0 │
+│ Bright Blue         │  92 │    92 │  255 │
+│ Bright Magenta      │ 255 │     0 │  255 │
+│ Bright Cyan         │   0 │   255 │  255 │
+│ Bright White        │ 255 │   255 │  255 │
+└─────────────────────┴─────┴───────┴──────┘
 ```
 
 ## System Variables
@@ -353,6 +418,5 @@ This query gives the same result as the previous example:
  - [ ] Aggregate:
    - [ ] Value cache
  - [ ] HTTP resource cache
- - [ ] JSON data format
  - [ ] YAML data format
  - [ ] SQL Server base year for YEAR(0) is 1900
