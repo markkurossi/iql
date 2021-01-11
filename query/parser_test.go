@@ -19,6 +19,26 @@ import (
 
 var parserTests = []IQLTest{
 	{
+		q: `SELECT 42;`,
+		v: [][]string{{"42"}},
+	},
+	{
+		q: `SELECT 3.14;`,
+		v: [][]string{{"3.14"}},
+	},
+	{
+		q: `SELECT 0b101, 0B101;`,
+		v: [][]string{{"5", "5"}},
+	},
+	{
+		q: `SELECT 0o0777, 0O0777, 0777;`,
+		v: [][]string{{"511", "511", "511"}},
+	},
+	{
+		q: `SELECT 0xdeadbeef, 0xdeadbeef;`,
+		v: [][]string{{"3735928559", "3735928559"}},
+	},
+	{
 		q: `SELECT -1;`,
 		v: [][]string{{"-1"}},
 	},
