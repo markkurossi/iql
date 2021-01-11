@@ -236,7 +236,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"0000"}},
 	},
 	{
-		q: `SELECT REPLICATE('0', 4-5);`,
+		q: `SELECT REPLICATE('0', -1);`,
 		v: [][]string{{"NULL"}},
 	},
 	{
@@ -276,7 +276,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"     "}},
 	},
 	{
-		q: `SELECT SPACE(1-2);`,
+		q: `SELECT SPACE(-1);`,
 		v: [][]string{{"NULL"}},
 	},
 	{
@@ -288,7 +288,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"NULL"}},
 	},
 	{
-		q: `SELECT STUFF('abcdef', 0-1, 3, 'ijklmn');`,
+		q: `SELECT STUFF('abcdef', -1, 3, 'ijklmn');`,
 		v: [][]string{{"NULL"}},
 	},
 	{
@@ -296,7 +296,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"NULL"}},
 	},
 	{
-		q: `SELECT STUFF('abcdef', 2, 0-1, 'ijklmn');`,
+		q: `SELECT STUFF('abcdef', 2, -1, 'ijklmn');`,
 		v: [][]string{{"NULL"}},
 	},
 	{
@@ -332,7 +332,7 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"he"}},
 	},
 	{
-		q: `SELECT SUBSTRING('hello', 0-10, 2);`,
+		q: `SELECT SUBSTRING('hello', -10, 2);`,
 		v: [][]string{{"he"}},
 	},
 	{

@@ -19,6 +19,14 @@ import (
 
 var parserTests = []IQLTest{
 	{
+		q: `SELECT -1;`,
+		v: [][]string{{"-1"}},
+	},
+	{
+		q: `SELECT -3.14;`,
+		v: [][]string{{"-3.14"}},
+	},
+	{
 		q: `SELECT 1 + 0x01 + 0b10 + 077 + 0o70 AS Sum, 100-42 AS Diff;`,
 		v: [][]string{{"123", "58"}},
 	},

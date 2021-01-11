@@ -15,6 +15,7 @@ import (
 var (
 	_ Expr = &Call{}
 	_ Expr = &Binary{}
+	_ Expr = &Unary{}
 	_ Expr = &And{}
 	_ Expr = &Constant{}
 	_ Expr = &Reference{}
@@ -185,7 +186,7 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 			opType = types.Bool
 		default:
 			return nil,
-				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
 					left, left, b.Type, right, right)
 		}
 
@@ -197,7 +198,7 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 			opType = types.Float
 		default:
 			return nil,
-				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
 					left, left, b.Type, right, right)
 		}
 
@@ -207,7 +208,7 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 			opType = types.Float
 		default:
 			return nil,
-				fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
 					left, left, b.Type, right, right)
 		}
 
@@ -215,7 +216,7 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 		opType = types.String
 
 	default:
-		return nil, fmt.Errorf("binary %s(%T) %s %s(%T) not implemented",
+		return nil, fmt.Errorf("binary %s{%T} %s %s{%T} not implemented",
 			left, left, b.Type, right, right)
 	}
 
@@ -326,7 +327,7 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 	default:
 		return nil,
-			fmt.Errorf("invalid types: %s(%T) %s %s(%T)",
+			fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
 				left, left, b.Type, right, right)
 	}
 }
@@ -345,6 +346,84 @@ func (b *Binary) References() (result []types.Reference) {
 	result = append(result, b.Left.References()...)
 	result = append(result, b.Right.References()...)
 	return result
+}
+
+// Unary implements unary expressions.
+type Unary struct {
+	Type UnaryType
+	Expr Expr
+}
+
+// UnaryType specifies unary expression types.
+type UnaryType int
+
+// Unary expressions.
+const (
+	UnaryMinus UnaryType = iota
+)
+
+var unaries = map[UnaryType]string{
+	UnaryMinus: "-",
+}
+
+func (t UnaryType) String() string {
+	name, ok := unaries[t]
+	if ok {
+		return name
+	}
+	return fmt.Sprintf("{unary %d}", t)
+}
+
+// Bind implements the Expr.Bind().
+func (u *Unary) Bind(iql *Query) error {
+	return u.Expr.Bind(iql)
+}
+
+// Eval implements the Expr.Eval().
+func (u *Unary) Eval(row *Row, rows []*Row) (types.Value, error) {
+	val, err := u.Expr.Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check null values.
+	_, n := val.(types.NullValue)
+	if n {
+		return types.Null, nil
+	}
+
+	switch val.(type) {
+	case types.IntValue:
+		v, err := val.Int()
+		if err != nil {
+			return nil, err
+		}
+		return types.IntValue(-v), nil
+
+	case types.FloatValue:
+		v, err := val.Float()
+		if err != nil {
+			return nil, err
+		}
+		return types.FloatValue(-v), nil
+
+	default:
+		return nil, fmt.Errorf("invalid type: %s%s{%T}", u.Type, val, val)
+	}
+}
+
+// IsIdempotent implements the Expr.IsIdempotent().
+func (u *Unary) IsIdempotent() bool {
+	return u.Expr.IsIdempotent()
+}
+
+func (u *Unary) String() string {
+	return fmt.Sprintf("%s%s", u.Type, u.Expr)
+}
+
+// References implements the Expr.References().
+func (u *Unary) References() (result []types.Reference) {
+	return append(result, u.Expr.References()...)
 }
 
 // And implements logical AND expressions.

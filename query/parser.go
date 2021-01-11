@@ -726,7 +726,30 @@ func (p *Parser) parseExprMultiplicative() (Expr, error) {
 }
 
 func (p *Parser) parseExprUnary() (Expr, error) {
-	return p.parseExprPostfix()
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+
+	var ut UnaryType
+
+	switch t.Type {
+	case '-':
+		ut = UnaryMinus
+
+	default:
+		p.lexer.unget(t)
+		return p.parseExprPostfix()
+	}
+
+	expr, err := p.parseExprPostfix()
+	if err != nil {
+		return nil, err
+	}
+	return &Unary{
+		Type: ut,
+		Expr: expr,
+	}, nil
 }
 
 func (p *Parser) parseExprPostfix() (Expr, error) {
