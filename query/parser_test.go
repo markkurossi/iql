@@ -47,6 +47,24 @@ var parserTests = []IQLTest{
 		v: [][]string{{"-3.14"}},
 	},
 	{
+		q: `SELECT 'Cincinnati';`,
+		v: [][]string{{"Cincinnati"}},
+	},
+	{
+		q: `SELECT 'O''Brien';`,
+		v: [][]string{{"O'Brien"}},
+	},
+	{
+		q: `SELECT 'Process X is 50% complete.';`,
+		v: [][]string{{"Process X is 50% complete."}},
+	},
+	{
+		q: `SELECT 'The level for job_id: %d should be between %d and %d.';`,
+		v: [][]string{{
+			"The level for job_id: %d should be between %d and %d.",
+		}},
+	},
+	{
 		q: `SELECT 1 + 0x01 + 0b10 + 077 + 0o70 AS Sum, 100-42 AS Diff;`,
 		v: [][]string{{"123", "58"}},
 	},
