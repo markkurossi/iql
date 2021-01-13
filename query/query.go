@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"unicode"
 
 	"github.com/markkurossi/iql/types"
 	"github.com/markkurossi/tabulate"
@@ -78,7 +77,7 @@ func (col ColumnSelector) IsPublic() bool {
 		return true
 	}
 	runes := []rune(col.As)
-	return len(runes) > 0 && unicode.IsUpper(runes[0])
+	return len(runes) > 0 && runes[0] != ','
 }
 
 func (col ColumnSelector) String() string {
@@ -370,8 +369,7 @@ func (iql *Query) eval(idx int, data []types.Row, result *[]*Row) error {
 	return nil
 }
 
-func (iql *Query) resolveName(name types.Reference, public bool) (
-	*Reference, error) {
+func (iql *Query) resolveName(name types.Reference) (*Reference, error) {
 
 	if name.IsAbsolute() {
 		index, ok := iql.fromColumns[name.String()]
@@ -381,7 +379,6 @@ func (iql *Query) resolveName(name types.Reference, public bool) (
 		return &Reference{
 			Reference: name,
 			index:     index,
-			public:    public,
 		}, nil
 	}
 
@@ -400,7 +397,6 @@ func (iql *Query) resolveName(name types.Reference, public bool) (
 			match = &Reference{
 				Reference: key,
 				index:     index,
-				public:    public,
 			}
 		}
 	}

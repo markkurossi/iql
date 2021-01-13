@@ -546,7 +546,7 @@ func (idx ColumnIndex) String() string {
 
 // Bind implements the Expr.Bind().
 func (ref *Reference) Bind(iql *Query) error {
-	r, err := iql.resolveName(ref.Reference, false)
+	r, err := iql.resolveName(ref.Reference)
 	if err != nil {
 		return err
 	}

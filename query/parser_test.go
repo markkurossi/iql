@@ -83,6 +83,16 @@ FILTER 'noheaders';`,
 		},
 	},
 	{
+		q: `SELECT "0" AS Year, "1" AS [,Value]
+FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+FILTER 'noheaders';`,
+		v: [][]string{
+			{"2008"},
+			{"2009"},
+			{"2010"},
+		},
+	},
+	{
 		q: `SELECT Data.0 AS Year, Data.1 AS Value
 FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
 FILTER 'noheaders' AS Data;`,

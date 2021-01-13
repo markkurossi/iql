@@ -153,6 +153,12 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"*"}},
 	},
 	{
+		q: `SELECT CHAR(65) AS [65], CHAR(66) AS [66],
+CHAR(97) AS [97], CHAR(98) AS [98],
+CHAR(49) AS [49], CHAR(50) AS [50];`,
+		v: [][]string{{"A", "B", "a", "b", "1", "2"}},
+	},
+	{
 		q: `SELECT CHARINDEX('Reflectors are vital safety' +
                              ' components of your bicycle.',
                              'bicycle');`,
@@ -493,22 +499,23 @@ func verifyResult(t *testing.T, name, source string, q types.Source,
 		return
 	}
 	if len(rows) != len(v) {
-		t.Errorf("%s: got %d rows, expected %d", name, len(rows), len(v))
+		t.Errorf("%s: got %d rows, expected %d\n%s\n",
+			name, len(rows), len(v), source)
 		printResult(q, rows)
 		return
 	}
 	for rowID, row := range rows {
 		if len(row) != len(v[rowID]) {
-			t.Fatalf("%s: row %d: got %d columns, expected %d",
-				name, rowID, len(row), len(v[rowID]))
+			t.Fatalf("%s: row %d: got %d columns, expected %d\n%s\n",
+				name, rowID, len(row), len(v[rowID]), source)
 			printResult(q, rows)
 			continue
 		}
 		for colID, col := range row {
 			result := col.String()
 			if result != v[rowID][colID] {
-				t.Errorf("%s: %d.%d: got '%s', expected '%s'",
-					name, rowID, colID, result, v[rowID][colID])
+				t.Errorf("%s: %d.%d: got '%s', expected '%s'\n%s\n",
+					name, rowID, colID, result, v[rowID][colID], source)
 				printResult(q, rows)
 			}
 		}
