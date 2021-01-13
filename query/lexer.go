@@ -377,14 +377,18 @@ lexer:
 			token.StrVal = string(runes)
 			return token, nil
 
-		case '"':
+		case '"', '[':
+			end := r
+			if r == '[' {
+				end = ']'
+			}
 			var runes []rune
 			for {
 				r, _, err := l.ReadRune()
 				if err != nil {
 					return nil, err
 				}
-				if r == '"' {
+				if r == end {
 					r, _, err := l.ReadRune()
 					if err != nil {
 						if err != io.EOF {
@@ -392,7 +396,7 @@ lexer:
 						}
 						break
 					}
-					if r != '"' {
+					if r != end {
 						l.UnreadRune()
 						break
 					}
