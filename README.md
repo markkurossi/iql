@@ -322,6 +322,8 @@ from 'ansi.json' FILTER 'colors' AS src;
    returns the resulting data, converted to string
  - BASE64ENC(*expression*): return the Base64 encoding of the string
    *expression*
+ - CHAR(*code*): returns the Unicode character for integer value
+   *code*.
  - CHARINDEX(*expression*, *search* [, *start*]): return the first
    index of the substring *search* in *expression*. The optional
    argument *start* specifies the search start location. If the

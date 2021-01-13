@@ -141,6 +141,18 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 
 	// String functions.
 	{
+		q: `SELECT CHAR(-1);`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT CHAR(0xffffffff);`,
+		v: [][]string{{"NULL"}},
+	},
+	{
+		q: `SELECT CHAR(42);`,
+		v: [][]string{{"*"}},
+	},
+	{
 		q: `SELECT CHARINDEX('Reflectors are vital safety' +
                              ' components of your bicycle.',
                              'bicycle');`,

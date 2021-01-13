@@ -99,6 +99,13 @@ var builtIns = []Function{
 
 	// String functions.
 	{
+		Name:         "CHAR",
+		Impl:         builtInChar,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
 		Name:         "CHARINDEX",
 		Impl:         builtInCharIndex,
 		MinArgs:      2,
@@ -519,6 +526,22 @@ func builtInNullIf(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return types.Null, nil
 	}
 	return val, nil
+}
+
+func builtInChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	codeVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	code64, err := codeVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	if code64 < 0 || code64 > math.MaxInt32 {
+		return types.Null, nil
+	}
+	code := rune(code64)
+	return types.StringValue(code), nil
 }
 
 func builtInCharIndex(args []Expr, row *Row, rows []*Row) (types.Value, error) {
