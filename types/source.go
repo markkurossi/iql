@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/markkurossi/tabulate"
+	"github.com/markkurossi/vt100"
 )
 
 var (
@@ -307,6 +308,10 @@ func Tabulate(source Source, style tabulate.Style) (*tabulate.Tabulate, error) {
 		return nil, err
 	}
 	tab := tabulate.New(style)
+	tab.Measure = func(column string) int {
+		w, _ := vt100.DisplayWidth(column)
+		return w
+	}
 	for _, col := range source.Columns() {
 		tab.Header(col.String()).SetAlign(col.Type.Align())
 	}

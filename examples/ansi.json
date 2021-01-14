@@ -4,97 +4,129 @@
 	    "name": "Black",
 	    "red": 0,
 	    "green": 0,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 30,
+	    "bg": 40
 	},
 	{
 	    "name": "Red",
 	    "red": 205,
 	    "green": 0,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 31,
+	    "bg": 41
 	},
 	{
 	    "name": "Green",
 	    "red": 0,
 	    "green": 205,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 32,
+	    "bg": 42
 	},
 	{
 	    "name": "Yellow",
 	    "red": 205,
 	    "green": 205,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 33,
+	    "bg": 43
 	},
 	{
 	    "name": "Blue",
 	    "red": 0,
 	    "green": 0,
-	    "blue": 238
+	    "blue": 238,
+	    "fg": 34,
+	    "bg": 44
 	},
 	{
 	    "name": "Magenta",
 	    "red": 205,
 	    "green": 0,
-	    "blue": 205
+	    "blue": 205,
+	    "fg": 35,
+	    "bg": 45
 	},
 	{
 	    "name": "Cyan",
 	    "red": 0,
 	    "green": 205,
-	    "blue": 205
+	    "blue": 205,
+	    "fg": 36,
+	    "bg": 46
 	},
 	{
 	    "name": "White",
 	    "red": 229,
 	    "green": 229,
-	    "blue": 229
+	    "blue": 229,
+	    "fg": 37,
+	    "bg": 47
 	},
 	{
 	    "name": "Bright Black (Gray)",
 	    "red": 127,
 	    "green": 127,
-	    "blue": 127
+	    "blue": 127,
+	    "fg": 90,
+	    "bg": 100
 	},
 	{
 	    "name": "Bright Red",
 	    "red": 255,
 	    "green": 0,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 91,
+	    "bg": 101
 	},
 	{
 	    "name": "Bright Green",
 	    "red": 0,
 	    "green": 255,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 92,
+	    "bg": 102
 	},
 	{
 	    "name": "Bright Yellow",
 	    "red": 255,
 	    "green": 255,
-	    "blue": 0
+	    "blue": 0,
+	    "fg": 93,
+	    "bg": 103
 	},
 	{
 	    "name": "Bright Blue",
 	    "red": 92,
 	    "green": 92,
-	    "blue": 255
+	    "blue": 255,
+	    "fg": 94,
+	    "bg": 104
 	},
 	{
 	    "name": "Bright Magenta",
 	    "red": 255,
 	    "green": 0,
-	    "blue": 255
+	    "blue": 255,
+	    "fg": 95,
+	    "bg": 105
 	},
 	{
 	    "name": "Bright Cyan",
 	    "red": 0,
 	    "green": 255,
-	    "blue": 255
+	    "blue": 255,
+	    "fg": 96,
+	    "bg": 106
 	},
 	{
 	    "name": "Bright White",
 	    "red": 255,
 	    "green": 255,
-	    "blue": 255
+	    "blue": 255,
+	    "fg": 97,
+	    "bg": 107
 	}
     ]
 }

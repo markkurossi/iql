@@ -1,0 +1,24 @@
+/* -*- sql -*- */
+
+SELECT CONCAT(CHAR(0x1b), '[',
+              CASE
+	           WHEN s.Avg > 127 THEN '30'
+		   ELSE '97'
+	      END,
+	      ';', s.BG, 'm', ' ', s.Name, ' ',
+              CHAR(0x1b), '[0m') AS Name,
+	      s.FG	  	 AS FG,
+	      s.BG		 AS BG,
+	      s.Red 	  	 AS Red,
+	      s.Green		 AS Green,
+	      s.Blue		 AS Blue
+FROM (
+      SELECT src.name         AS Name,
+             src.fg		AS FG,
+             src.bg		AS BG,
+             src.red          AS Red,
+             src.green        AS Green,
+             src.blue         AS Blue,
+             (src.red + src.green + src.blue) / 3 AS Avg
+      FROM 'ansi.json' FILTER 'colors' AS src
+     ) AS s;
