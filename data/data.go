@@ -117,6 +117,9 @@ func openInput(input string) ([]io.ReadCloser, Format, error) {
 	if err != nil {
 		return nil, 0, err
 	}
+	if len(matches) == 0 {
+		return nil, 0, fmt.Errorf("file not found: %s", input)
+	}
 	var result []io.ReadCloser
 	for _, match := range matches {
 		f, err := os.Open(match)
