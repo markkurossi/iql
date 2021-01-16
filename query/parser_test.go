@@ -648,6 +648,35 @@ SELECT 'Hello, world!';`,
 			{"Hello, world!"},
 		},
 	},
+
+	// Functions.
+	{
+		q: `
+CREATE FUNCTION add(a INTEGER, b INTEGER)
+RETURNS INTEGER
+AS
+BEGIN
+    RETURN a + b;
+END;
+
+--SELECT add(1, 2);`,
+		//		v: [][]string{
+		//			{"3"},
+		//		},
+	},
+	{
+		q: `
+CREATE FUNCTION add(a INTEGER, b INTEGER)
+RETURNS INTEGER
+BEGIN
+    RETURN a + b;
+END;
+
+--SELECT add(1, 2);`,
+		//		v: [][]string{
+		//			{"3"},
+		//		},
+	},
 }
 
 func TestParser(t *testing.T) {

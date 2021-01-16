@@ -64,7 +64,12 @@ const (
 	TSymWhen
 	TSymThen
 	TSymElse
+	TSymBegin
 	TSymEnd
+	TSymCreate
+	TSymFunction
+	TSymReturns
+	TSymReturn
 	TAnd
 	TOr
 	TNeq
@@ -102,7 +107,12 @@ var tokenTypes = map[TokenType]string{
 	TSymWhen:     "WHEN",
 	TSymThen:     "THEN",
 	TSymElse:     "ELSE",
+	TSymBegin:    "BEGIN",
 	TSymEnd:      "END",
+	TSymCreate:   "CREATE",
+	TSymFunction: "FUNCTION",
+	TSymReturns:  "RETURNS",
+	TSymReturn:   "RETURN",
 	TAnd:         "AND",
 	TOr:          "OR",
 	TNeq:         "<>",
@@ -145,7 +155,12 @@ var symbols = map[string]TokenType{
 	"WHEN":     TSymWhen,
 	"THEN":     TSymThen,
 	"ELSE":     TSymElse,
+	"BEGIN":    TSymBegin,
 	"END":      TSymEnd,
+	"CREATE":   TSymCreate,
+	"FUNCTION": TSymFunction,
+	"RETURNS":  TSymReturns,
+	"RETURN":   TSymReturn,
 	"AND":      TAnd,
 	"OR":       TOr,
 }

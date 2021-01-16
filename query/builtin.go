@@ -20,11 +20,20 @@ import (
 // Function implements a function.
 type Function struct {
 	Name         string
+	Args         []FunctionArg
 	Impl         FunctionImpl
 	MinArgs      int
 	MaxArgs      int
 	FirstBound   int
 	IsIdempotent IsIdempotent
+}
+
+// FunctionArg defines function arguments for user-defined
+// functions. Builtin functions verify function parameter types
+// dynamically.
+type FunctionArg struct {
+	Name string
+	Type types.Type
 }
 
 // FunctionImpl implements the built-in IQL functions.

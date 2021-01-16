@@ -61,6 +61,18 @@ func (p *Parser) need(tt TokenType) (*Token, error) {
 	return t, nil
 }
 
+func (p *Parser) optional(tt TokenType) (*Token, error) {
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type != tt {
+		p.lexer.unget(t)
+		return nil, nil
+	}
+	return t, nil
+}
+
 // Parse parses the next query from the parser's input.
 func (p *Parser) Parse() (*Query, error) {
 	p.nesting++
@@ -94,6 +106,12 @@ func (p *Parser) Parse() (*Query, error) {
 
 		case TSymSelect:
 			return p.parseSelect()
+
+		case TSymCreate:
+			err = p.parseCreate()
+			if err != nil {
+				return nil, err
+			}
 
 		default:
 			return nil, p.errUnexpected(t)
@@ -179,13 +197,9 @@ func (p *Parser) parseSet() error {
 		return err
 	}
 
-	// Optional ';' token.
-	t, err = p.get()
+	_, err = p.optional(';')
 	if err != nil {
 		return err
-	}
-	if t.Type != ';' {
-		p.lexer.unget(t)
 	}
 
 	q := NewQuery(p.global)
@@ -575,6 +589,126 @@ func (p *Parser) parseOrderBy() ([]Order, error) {
 			return result, nil
 		}
 	}
+}
+
+func (p *Parser) parseCreate() error {
+	t, err := p.get()
+	if err != nil {
+		return err
+	}
+	switch t.Type {
+	case TSymFunction:
+		return p.parseCreateFunction()
+
+	default:
+		return p.errUnexpected(t)
+	}
+}
+
+func (p *Parser) parseCreateFunction() error {
+	t, err := p.need(TIdentifier)
+	if err != nil {
+		return err
+	}
+	name := t.StrVal
+	var args []FunctionArg
+
+	t, err = p.need('(')
+	if err != nil {
+		return err
+	}
+	t, err = p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type != ')' {
+		// Function arguments.
+		p.lexer.unget(t)
+		for {
+			t, err = p.need(TIdentifier)
+			if err != nil {
+				return err
+			}
+			argName := t.StrVal
+
+			argType, err := p.parseType()
+			if err != nil {
+				return err
+			}
+			args = append(args, FunctionArg{
+				Name: argName,
+				Type: argType,
+			})
+
+			t, err = p.get()
+			if err != nil {
+				return err
+			}
+			if t.Type == ')' {
+				break
+			} else if t.Type != ',' {
+				return p.errUnexpected(t)
+			}
+		}
+	}
+	_, err = p.need(TSymReturns)
+	if err != nil {
+		return err
+	}
+	t, err = p.get()
+	if err != nil {
+		return err
+	}
+	_, err = p.optional(TSymAs)
+	if err != nil {
+		return err
+	}
+	_, err = p.need(TSymBegin)
+	if err != nil {
+		return err
+	}
+
+	var ret Expr
+	for {
+		t, err = p.get()
+		if err != nil {
+			return err
+		}
+		if t.Type == TSymReturn {
+			ret, err = p.parseExpr()
+			if err != nil {
+				return err
+			}
+			_, err = p.optional(';')
+			if err != nil {
+				return err
+			}
+			break
+		}
+
+		p.lexer.unget(t)
+		_, err = p.parseStmt()
+		if err != nil {
+			return err
+		}
+	}
+	_, err = p.need(TSymEnd)
+	if err != nil {
+		return err
+	}
+	_, err = p.optional(';')
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s(%v) RETURN %s\n", name, args, ret)
+
+	fmt.Printf("CREATE FUNCTION not implemented yet\n")
+	return nil
+}
+
+func (p *Parser) parseStmt() (int, error) {
+	return 0, fmt.Errorf("parseStmt not implemented yet")
 }
 
 func (p *Parser) parseExpr() (Expr, error) {
