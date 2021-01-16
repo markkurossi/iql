@@ -182,14 +182,7 @@ func (p *Parser) parseSet() error {
 	}
 	name := t.StrVal
 
-	// Optional '=' token.
-	t, err = p.get()
-	if err != nil {
-		return err
-	}
-	if t.Type != '=' {
-		p.lexer.unget(t)
-	}
+	_, err = p.optional('=')
 
 	// Value to set.
 	expr, err := p.parseExpr()
