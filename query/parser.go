@@ -603,7 +603,7 @@ func (p *Parser) parseCreateFunction() error {
 	if err != nil {
 		return err
 	}
-	name := t.StrVal
+	name := strings.ToUpper(t.StrVal)
 	var args []FunctionArg
 
 	t, err = p.need('(')
@@ -622,7 +622,7 @@ func (p *Parser) parseCreateFunction() error {
 			if err != nil {
 				return err
 			}
-			argName := t.StrVal
+			argName := strings.ToUpper(t.StrVal)
 
 			argType, err := p.parseType()
 			if err != nil {
@@ -648,7 +648,7 @@ func (p *Parser) parseCreateFunction() error {
 	if err != nil {
 		return err
 	}
-	t, err = p.get()
+	retType, err := p.parseType()
 	if err != nil {
 		return err
 	}
@@ -694,10 +694,15 @@ func (p *Parser) parseCreateFunction() error {
 		return err
 	}
 
-	fmt.Printf("%s(%v) RETURN %s\n", name, args, ret)
-
-	fmt.Printf("CREATE FUNCTION not implemented yet\n")
-	return nil
+	return createFunction(&Function{
+		Name:         name,
+		Args:         args,
+		RetType:      retType,
+		Ret:          ret,
+		MinArgs:      len(args),
+		MaxArgs:      len(args),
+		IsIdempotent: idempotentFalse,
+	})
 }
 
 func (p *Parser) parseStmt() (int, error) {

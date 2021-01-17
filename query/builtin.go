@@ -21,11 +21,20 @@ import (
 type Function struct {
 	Name         string
 	Args         []FunctionArg
+	RetType      types.Type
+	Ret          Expr
 	Impl         FunctionImpl
 	MinArgs      int
 	MaxArgs      int
 	FirstBound   int
 	IsIdempotent IsIdempotent
+}
+
+func (f *Function) String() string {
+	if f.Impl != nil {
+		return fmt.Sprintf("builtin %s", f.Name)
+	}
+	return fmt.Sprintf("%s(%v) %s", f.Name, f.Args, f.RetType)
 }
 
 // FunctionArg defines function arguments for user-defined
@@ -1179,6 +1188,11 @@ func builtIn(name string) *Function {
 	return builtInsByName[name]
 }
 
-func (f *Function) String() string {
-	return f.Name
+func createFunction(f *Function) error {
+	_, ok := builtInsByName[f.Name]
+	if ok {
+		return fmt.Errorf("function %s already defined", f.Name)
+	}
+	builtInsByName[f.Name] = f
+	return nil
 }

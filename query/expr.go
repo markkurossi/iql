@@ -47,12 +47,28 @@ type Call struct {
 	Name      string
 	Arguments []Expr
 	Function  *Function
+	Env       *Query
 }
 
 // Bind implements the Expr.Bind().
 func (call *Call) Bind(iql *Query) error {
 	for i := call.Function.FirstBound; i < len(call.Arguments); i++ {
 		err := call.Arguments[i].Bind(iql)
+		if err != nil {
+			return err
+		}
+	}
+
+	if call.Function.Impl == nil {
+		call.Env = NewQuery(iql.Global)
+
+		// Define function arguments.
+		for _, arg := range call.Function.Args {
+			call.Env.Global.Declare(arg.Name, arg.Type)
+		}
+
+		// Bind function implementation.
+		err := call.Function.Ret.Bind(call.Env)
 		if err != nil {
 			return err
 		}
@@ -71,6 +87,21 @@ func (call *Call) Eval(row *Row, rows []*Row) (types.Value, error) {
 	if len(call.Arguments) > call.Function.MaxArgs {
 		return nil, fmt.Errorf("%s: too many arguments: got %d, expected %d",
 			call.Name, len(call.Arguments), call.Function.MaxArgs)
+	}
+
+	if call.Function.Impl == nil {
+		// Expand environment with argument values.
+		for i := call.Function.FirstBound; i < len(call.Arguments); i++ {
+			val, err := call.Arguments[i].Eval(row, rows)
+			if err != nil {
+				return nil, err
+			}
+			err = call.Env.Global.Set(call.Function.Args[i].Name, val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return call.Function.Ret.Eval(row, rows)
 	}
 
 	return call.Function.Impl(call.Arguments, row, rows)
