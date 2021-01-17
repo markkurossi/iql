@@ -1191,8 +1191,23 @@ func builtIn(name string) *Function {
 func createFunction(f *Function) error {
 	_, ok := builtInsByName[f.Name]
 	if ok {
-		return fmt.Errorf("function %s already defined", f.Name)
+		return fmt.Errorf("function already defined: %s", f.Name)
 	}
 	builtInsByName[f.Name] = f
+	return nil
+}
+
+func dropFunction(name string, ifExists bool) error {
+	f, ok := builtInsByName[name]
+	if !ok {
+		if ifExists {
+			return nil
+		}
+		return fmt.Errorf("unknown function: %s", name)
+	}
+	if f.Impl != nil {
+		return fmt.Errorf("can't drop builtin function: %s", name)
+	}
+	delete(builtInsByName, name)
 	return nil
 }

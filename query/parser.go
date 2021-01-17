@@ -113,6 +113,12 @@ func (p *Parser) Parse() (*Query, error) {
 				return nil, err
 			}
 
+		case TSymDrop:
+			err = p.parseDrop()
+			if err != nil {
+				return nil, err
+			}
+
 		default:
 			return nil, p.errUnexpected(t)
 		}
@@ -703,6 +709,51 @@ func (p *Parser) parseCreateFunction() error {
 		MaxArgs:      len(args),
 		IsIdempotent: idempotentFalse,
 	})
+}
+
+func (p *Parser) parseDrop() error {
+	t, err := p.get()
+	if err != nil {
+		return err
+	}
+	switch t.Type {
+	case TSymFunction:
+		return p.parseDropFunction()
+
+	default:
+		return p.errUnexpected(t)
+	}
+}
+
+func (p *Parser) parseDropFunction() error {
+	var ifExists bool
+
+	t, err := p.get()
+	if err != nil {
+		return err
+	}
+	if t.Type == TSymIf {
+		_, err = p.need(TSymExists)
+		if err != nil {
+			return err
+		}
+		ifExists = true
+	} else {
+		p.lexer.unget(t)
+	}
+
+	t, err = p.need(TIdentifier)
+	if err != nil {
+		return err
+	}
+	name := strings.ToUpper(t.StrVal)
+
+	_, err = p.optional(';')
+	if err != nil {
+		return err
+	}
+
+	return dropFunction(name, ifExists)
 }
 
 func (p *Parser) parseStmt() (int, error) {

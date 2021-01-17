@@ -660,20 +660,21 @@ BEGIN
 END;
 
 SELECT add(1, 2);
---DROP FUNCTION add;`,
+DROP FUNCTION add;`,
 		v: [][]string{
 			{"3"},
 		},
 	},
 	{
 		q: `
-CREATE FUNCTION add2(a INTEGER, b INTEGER)
+DROP FUNCTION IF EXISTS add;
+CREATE FUNCTION add(a INTEGER, b INTEGER)
 RETURNS INTEGER
 BEGIN
     RETURN a + b;
 END;
 
---SELECT add2(1, 2);`,
+--SELECT add(1, 2);`,
 		v: [][]string{
 			{"3"},
 		},

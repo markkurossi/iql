@@ -70,6 +70,9 @@ const (
 	TSymFunction
 	TSymReturns
 	TSymReturn
+	TSymDrop
+	TSymIf
+	TSymExists
 	TAnd
 	TOr
 	TNeq
@@ -113,6 +116,9 @@ var tokenTypes = map[TokenType]string{
 	TSymFunction: "FUNCTION",
 	TSymReturns:  "RETURNS",
 	TSymReturn:   "RETURN",
+	TSymDrop:     "DROP",
+	TSymIf:       "IF",
+	TSymExists:   "EXISTS",
 	TAnd:         "AND",
 	TOr:          "OR",
 	TNeq:         "<>",
@@ -161,6 +167,9 @@ var symbols = map[string]TokenType{
 	"FUNCTION": TSymFunction,
 	"RETURNS":  TSymReturns,
 	"RETURN":   TSymReturn,
+	"DROP":     TSymDrop,
+	"IF":       TSymIf,
+	"EXISTS":   TSymExists,
 	"AND":      TAnd,
 	"OR":       TOr,
 }
