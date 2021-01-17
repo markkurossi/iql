@@ -1,9 +1,11 @@
-Program = { TopLevelClause, ';'};
+Program = { TopLevelClause, [';']};
 
 TopLevelClause = ( VariableDecl
 	         | VariableInit
 		 | PrintStmt
-		 | SelectClause );
+		 | SelectClause
+		 | CreateClause
+		 | DropClause );
 
 
 VariableDecl = 'DECLARE', Identifier, Type;
@@ -32,6 +34,21 @@ FromClause = (String, [ 'FILTER', String ] | '(', SelectClause, ')'),
 	     'AS', Identifier;
 
 OrderClause = Expr, [('ASC' | 'DESC')];
+
+CreateClause = 'CREATE', CreateFunc;
+
+CreateFunc = 'FUNCTION', Identifier, FuncArgs, 'RETURNS', Type, ['AS'],
+	     FuncBody;
+FuncArgs = '(', {FuncArgDefs}, ')';
+FuncArgDefs = FuncArgDef, {',', FuncArgDef};
+FuncArgDef = Identifier, Type;
+
+FuncBody = 'BEGIN', [Statements], 'RETURN', Expr, [';'], 'END';
+
+
+DropClause = 'DROP', DropFunc;
+
+DropFunc = 'FUNCTION', ['IF', 'EXISTS'], Identifier;
 
 Expr = LogicalAndExpr, {'OR', LogicalAndExpr};
 
