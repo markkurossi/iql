@@ -524,8 +524,8 @@ lexer:
 				token.IntVal = i64
 				return token, nil
 			}
-			return nil, fmt.Errorf("%s: unexpected character '%s'",
-				l.point, string(r))
+			l.UnreadRune()
+			return nil, fmt.Errorf("unexpected character '%s'", string(r))
 		}
 	}
 }
