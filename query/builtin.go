@@ -1231,10 +1231,17 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	width, err := widthVal.Int()
+	width64, err := widthVal.Int()
 	if err != nil {
 		return nil, err
 	}
+	var width int
+	if width64 > math.MaxInt32 {
+		width = math.MaxInt32
+	} else {
+		width = int(width64)
+	}
+
 	pad := ' '
 	if len(args) == 4 {
 		padVal, err := args[3].Eval(row, rows)
@@ -1264,7 +1271,7 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		}
 	}
 
-	return types.StringValue(vt100.HBlock(int(width), val/max, pad)), nil
+	return types.StringValue(vt100.HBlock(width, val/max, pad)), nil
 }
 
 var builtInsByName map[string]*Function
