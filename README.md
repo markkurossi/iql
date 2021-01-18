@@ -169,7 +169,7 @@ options:
  - `trim-leading-space`: trim leading space from columns
  - `noheaders`: the first line of the CSV data is not a header
    line. You must use column indices to select columns from the data.
- - `prepend-headers=*header*[,...]`: prepend the headers to the CVS
+ - `prepend-headers`=*header*[,...]: prepend the headers to the CVS
    file's header line. This option can be fixed malformed CVS files
    which contain an invalid first header line.
 
