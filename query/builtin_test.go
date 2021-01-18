@@ -139,6 +139,12 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 		v: [][]string{{"5"}},
 	},
 
+	// Mathematical functions.
+	{
+		q: `SELECT FLOOR(123.45), FLOOR(-123.45);`,
+		v: [][]string{{"123", "-124"}},
+	},
+
 	// String functions.
 	{
 		q: `SELECT CHAR(-1);`,

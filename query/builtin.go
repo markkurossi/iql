@@ -107,12 +107,20 @@ var builtIns = []Function{
 		MaxArgs:      1,
 		IsIdempotent: idempotentTrue,
 	},
-
 	{
 		Name:         "NULLIF",
 		Impl:         builtInNullIf,
 		MinArgs:      2,
 		MaxArgs:      2,
+		IsIdempotent: idempotentArgs,
+	},
+
+	// Mathematical function.
+	{
+		Name:         "FLOOR",
+		Impl:         builtInFloor,
+		MinArgs:      1,
+		MaxArgs:      1,
 		IsIdempotent: idempotentArgs,
 	},
 
@@ -554,6 +562,23 @@ func builtInNullIf(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return types.Null, nil
 	}
 	return val, nil
+}
+
+func builtInFloor(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	val, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	switch v := val.(type) {
+	case types.IntValue:
+		return val, nil
+
+	case types.FloatValue:
+		return types.FloatValue(math.Floor(float64(v))), nil
+
+	default:
+		return types.Null, nil
+	}
 }
 
 func builtInChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {

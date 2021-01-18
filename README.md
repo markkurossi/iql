@@ -138,7 +138,7 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 # Query Language Documentation
 
 The IQL follows SQL in all constructs where possible. The full
-[syntax](#IQL-Grammar-BNF) is defined in the
+[syntax](#Appendix-A:-IQL-Grammar-BNF) is defined in the
 [iql.iso-ebnf](iql.iso-ebnf) file and it is also available as
 [SVG](iql.svg) and [HTML](iql.html) versions.
 
@@ -315,6 +315,11 @@ from 'ansi.json' FILTER 'colors' AS src;
  - SUM(Expression): returns the sum of all the values. The NULL values
    are ignored.
 
+### Mathematical Functions
+
+ - FLOOR(*numeric*): rounds the *numeric* value down to the largest
+   integer less than or equal to the argument value.
+
 ### String Functions
 
  - BASE64DEC(*expression*): decodes the Base64 encoded string and
@@ -417,7 +422,7 @@ from 'ansi.json' FILTER 'colors' AS src;
  - YEAR(*date*): returns an integer representing the year of the
    argument *date*.
 
-### Date Visualization Functions
+### Data Visualization Functions
 
  - HBAR(*value*, *max*, *width* [,*pad*]): creates a horizontal
    histogram bar that is *width* characters long. The leftmost
@@ -426,11 +431,11 @@ from 'ansi.json' FILTER 'colors' AS src;
    *pad* character. The default padding character is space (' ',
    0x20). If the *pad* is a string, it must be one rune long.
 
-## IQL Grammar BNF
+# Appendix A: IQL Grammar BNF
 
 ![IQL Grammar](iql.svg)
 
-# TODO
+# Appendix B: TODO
 
  - [ ] Queries:
    - [ ] Push table specific AND-relation SELECT expressions down to
