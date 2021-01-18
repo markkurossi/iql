@@ -192,17 +192,13 @@ func processCSV(rows []types.Row, records [][]string, indices []int,
 			var val string
 
 			if idx < 0 {
-				if -idx > len(record) {
-					return nil,
-						fmt.Errorf("csv: index %d (%d) out of bounds", i, idx)
+				if -idx <= len(record) {
+					val = record[len(record)+idx]
 				}
-				val = record[len(record)+idx]
 			} else {
-				if idx >= len(record) {
-					return nil,
-						fmt.Errorf("csv: index %d (%d) out of bounds", i, idx)
+				if idx < len(record) {
+					val = record[idx]
 				}
-				val = record[idx]
 			}
 			columns[i].ResolveString(val)
 			row = append(row, types.StringColumn(val))
