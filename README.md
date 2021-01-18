@@ -12,7 +12,9 @@ and HTTPS URLs, local files, and data URIs.
 The [examples](examples/) directory contains sample data files and
 queries. The data files are also hosted at my [web
 site](https://markkurossi.com/iql/examples/) and we use that location
-for these examples.
+for these examples. Please, check also [Appendix
+B](#appendix-b-data-visualization-examples) for additional data
+visualization examples.
 
 The [store.html](https://markkurossi.com/iql/examples/store.html) file
 contains 2 data sources, encoded has HTML tables. The "customers"
@@ -138,7 +140,7 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 # Query Language Documentation
 
 The IQL follows SQL in all constructs where possible. The full
-[syntax](#Appendix-A:-IQL-Grammar-BNF) is defined in the
+[syntax](#appendix-a-iql-grammar-bnf) is defined in the
 [iql.iso-ebnf](iql.iso-ebnf) file and it is also available as
 [SVG](iql.svg) and [HTML](iql.html) versions.
 
@@ -167,6 +169,9 @@ options:
  - `trim-leading-space`: trim leading space from columns
  - `noheaders`: the first line of the CSV data is not a header
    line. You must use column indices to select columns from the data.
+ - `prepend-headers=*header*[,...]`: prepend the headers to the CVS
+   file's header line. This option can be fixed malformed CVS files
+   which contain an invalid first header line.
 
 For example, if your input file is as follows:
 
@@ -435,7 +440,151 @@ from 'ansi.json' FILTER 'colors' AS src;
 
 ![IQL Grammar](iql.svg)
 
-# Appendix B: TODO
+# Appendix B: Data Visualization Examples
+
+These data visualization examples use a dataset from [Freie
+Universität
+Berlin](https://www.geo.fu-berlin.de/en/v/soga/Basics-of-statistics/Continous-Random-Variables/The-Standard-Normal-Distribution/The-Standard-Normal-Distribution-An-Example/index.html). The copyright of the dataset is as follows:
+
+> You may use this project freely under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/). Please cite as follow: Hartmann, K., Krois, J., Waske, B. (2018): E-Learning Project SOGA: Statistics and Geospatial Data Analysis. Department of Earth Sciences, Freie Universitaet Berlin.
+
+ The data set
+[students.csv](https://userpage.fu-berlin.de/soga/200/2010_data_sets/students.csv)
+contains 8239 records, each having 16 attributes of a particular
+student. The CSV file has header row but it does not have the column
+name for the first data column which is the record sequence
+number. Therefore, the examples below use the `prepend-headers=seq`
+CSV filtering option. All example snippets below are taken from the
+[students.iql](examples/students.iql) IQL file.
+
+All examples below assume that the following settings have been made
+in the sample preamble:
+
+```sql
+-- Print real numbers two decimal digits.
+SET REALFMT = '%.2f';
+
+-- Define the students.csv data URL.
+DECLARE dataurl VARCHAR;
+SET dataurl = 'https://userpage.fu-berlin.de/soga/200/2010_data_sets/students.csv';
+```
+
+## Height Histogram
+
+The height histogram shows student heights in 5cm data ranges. We use
+the HBAR() function to create horizontal histogram bars.
+
+```sql
+SELECT height,
+       count,
+       HBAR(count, max(count), 20) AS histogram
+FROM (
+       SELECT height / 5 * 5 AS height,
+              COUNT(height)  AS count
+       FROM dataurl FILTER 'prepend-headers=seq'
+       GROUP BY height / 5
+       ORDER BY height
+     );
+```
+
+```
+┏━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┓
+┃ height ┃ count ┃ histogram            ┃
+┡━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━┩
+│    135 │     3 │                      │
+│    140 │    32 │ ▍                    │
+│    145 │   126 │ █▊                   │
+│    150 │   352 │ █████▏               │
+│    155 │   732 │ ██████████▊          │
+│    160 │  1138 │ ████████████████▊    │
+│    165 │  1230 │ ██████████████████▏  │
+│    170 │  1350 │ ████████████████████ │
+│    175 │  1196 │ █████████████████▋   │
+│    180 │  1037 │ ███████████████▎     │
+│    185 │   644 │ █████████▌           │
+│    190 │   291 │ ████▎                │
+│    195 │    87 │ █▎                   │
+│    200 │    19 │ ▎                    │
+│    205 │     2 │                      │
+└────────┴───────┴──────────────────────┘
+```
+
+## Male Height Histogram
+
+This example draws height histogram for male students.
+
+```sql
+SELECT height,
+       count,
+       HBAR(count, max(count), 20) AS histogram
+FROM (
+       SELECT height / 5 * 5 AS height,
+              COUNT(height)  AS count,
+              gender         AS ",gender"
+       FROM dataurl FILTER 'prepend-headers=seq'
+       WHERE gender='Male'
+       GROUP BY height / 5
+       ORDER BY height
+     );
+```
+
+```
+┏━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┓
+┃ height ┃ count ┃ histogram            ┃
+┡━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━┩
+│    140 │     1 │                      │
+│    145 │     2 │                      │
+│    150 │     3 │                      │
+│    155 │    25 │ ▌                    │
+│    160 │   117 │ ██▍                  │
+│    165 │   322 │ ██████▋              │
+│    170 │   711 │ ██████████████▋      │
+│    175 │   954 │ ███████████████████▋ │
+│    180 │   969 │ ████████████████████ │
+│    185 │   630 │ █████████████        │
+│    190 │   287 │ █████▉               │
+│    195 │    87 │ █▊                   │
+│    200 │    19 │ ▍                    │
+│    205 │     2 │                      │
+└────────┴───────┴──────────────────────┘
+```
+
+## Changing Histogram Background Color
+
+We can use VT100 codes to change the histogram background color. This
+helps us to visualize some histogram bars which have very small number
+of samples.
+
+First, we create a function for rendering the histogram bars:
+
+```sql
+CREATE FUNCTION histogram(val INTEGER, max INTEGER, width INTEGER)
+RETURNS VARCHAR
+AS
+BEGIN
+    RETURN CONCAT(CHAR(0x1b), '[107m',
+                  HBAR(val, max, width),
+                  CHAR(0x1b), '[0m');
+END
+```
+
+Then we update the height histogram program to use the new
+`histogram()` function to render the data bars:
+
+```sql
+SELECT height,
+       count,
+       histogram(count, max(count), 20) AS histogram
+FROM (
+       SELECT height / 5 * 5 AS height,
+              COUNT(height)  AS count
+       FROM dataurl FILTER 'prepend-headers=seq'
+       GROUP BY height / 5
+       ORDER BY height
+     );
+```
+
+# Appendix C: TODO
 
  - [ ] Queries:
    - [ ] Push table specific AND-relation SELECT expressions down to

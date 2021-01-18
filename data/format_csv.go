@@ -38,6 +38,7 @@ func NewCSV(input []io.ReadCloser, filter string,
 	var comment rune
 
 	headers := true
+	var prependHeaders []string
 	trimLeadingSpace := false
 	comma := ','
 
@@ -84,6 +85,9 @@ func NewCSV(input []io.ReadCloser, filter string,
 				}
 				comment = runes[0]
 
+			case "prepend-headers":
+				prependHeaders = strings.Split(parts[1], ",")
+
 			default:
 				return nil, fmt.Errorf("csv: unknown option: %s", parts[0])
 			}
@@ -102,6 +106,10 @@ func NewCSV(input []io.ReadCloser, filter string,
 		reader.TrimLeadingSpace = trimLeadingSpace
 		reader.Comma = comma
 
+		if len(prependHeaders) > 0 {
+			reader.FieldsPerRecord = -1
+		}
+
 		records, err := reader.ReadAll()
 		if err != nil {
 			return nil, err
@@ -118,9 +126,11 @@ func NewCSV(input []io.ReadCloser, filter string,
 					return nil, errors.New("csv: no records")
 				}
 
+				r0 := append(prependHeaders, records[0]...)
+
 				if len(columns) == 0 {
 					// SELECT *
-					for _, col := range records[0] {
+					for _, col := range r0 {
 						columns = append(columns, types.ColumnSelector{
 							Name: types.Reference{
 								Column: col,
@@ -130,7 +140,7 @@ func NewCSV(input []io.ReadCloser, filter string,
 				}
 
 				names := make(map[string]int)
-				for idx, col := range records[0] {
+				for idx, col := range r0 {
 					names[col] = idx
 				}
 

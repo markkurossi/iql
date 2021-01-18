@@ -1,0 +1,73 @@
+/* -*- sql -*- */
+
+-- Print real numbers two decimal digits.
+SET REALFMT = '%.2f';
+
+/*
+ * The copyright of the linked data set is as follows:
+ *
+ * You may use this project freely under the Creative Commons
+ * Attribution-ShareAlike 4.0 International License. Please cite as
+ * follow: Hartmann, K., Krois, J., Waske, B. (2018): E-Learning
+ * Project SOGA: Statistics and Geospatial Data Analysis. Department
+ * of Earth Sciences, Freie Universitaet Berlin.
+ */
+
+-- Define the students.csv data URL.
+DECLARE dataurl VARCHAR;
+SET dataurl = 'https://userpage.fu-berlin.de/soga/200/2010_data_sets/students.csv';
+
+SELECT height,
+       count,
+       HBAR(count, max(count), 20) AS histogram
+FROM (
+       SELECT height / 5 * 5 AS height,
+              COUNT(height)  AS count
+       FROM dataurl FILTER 'prepend-headers=seq'
+       GROUP BY height / 5
+       ORDER BY height
+     );
+
+SELECT height,
+       count,
+       HBAR(count, max(count), 20) AS histogram
+FROM (
+       SELECT height / 5 * 5 AS height,
+              COUNT(height)  AS count,
+              gender         AS ",gender"
+       FROM dataurl FILTER 'prepend-headers=seq'
+       WHERE gender='Male'
+       GROUP BY height / 5
+       ORDER BY height
+     );
+
+SELECT weight,
+       count,
+       HBAR(count, max(count), 20) AS hist
+FROM (
+       SELECT CAST(FLOOR(weight / 5) * 5 AS INTEGER) AS weight,
+              COUNT(weight) AS count
+       FROM dataurl FILTER 'prepend-headers=seq'
+       GROUP BY FLOOR(weight / 5)
+       ORDER BY weight
+     );
+
+CREATE FUNCTION histogram(val INTEGER, max INTEGER, width INTEGER)
+RETURNS VARCHAR
+AS
+BEGIN
+    RETURN CONCAT(CHAR(0x1b), '[107m',
+                  HBAR(val, max, width),
+                  CHAR(0x1b), '[0m');
+END
+
+SELECT height,
+       count,
+       histogram(count, max(count), 20) AS histogram
+FROM (
+       SELECT height / 5 * 5 AS height,
+              COUNT(height)  AS count
+       FROM dataurl FILTER 'prepend-headers=seq'
+       GROUP BY height / 5
+       ORDER BY height
+     );
