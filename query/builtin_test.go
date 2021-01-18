@@ -466,6 +466,20 @@ SELECT DATEDIFF(year, now, now);`,
 		q: `SELECT YEAR('2005-12-31 23:59:59.9999999');`,
 		v: [][]string{{"2005"}},
 	},
+
+	// Visualization functions.
+	{
+		q: `SELECT HBAR(73, 100, 10) AS Completed;`,
+		v: [][]string{{"\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e  "}},
+	},
+	{
+		q: `SELECT HBAR(73, 100, 10, '.') AS Completed;`,
+		v: [][]string{{"\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e.."}},
+	},
+	{
+		q: `SELECT HBAR(73, 100, 10, 0x2e) AS Completed;`,
+		v: [][]string{{"\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e.."}},
+	},
 }
 
 func TestBuiltIn(t *testing.T) {

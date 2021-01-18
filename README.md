@@ -137,11 +137,10 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 
 # Query Language Documentation
 
-The IQL follows SQL in all constructs where possible. The full syntax
-is defined in the [iql.iso-ebnf](iql.iso-ebnf) file and it is also
-available as [SVG](iql.svg) and [HTML](iql.html) versions.
-
-![IQL Grammar](iql.svg)
+The IQL follows SQL in all constructs where possible. The full
+[syntax](#IQL-Grammar-BNF) is defined in the
+[iql.iso-ebnf](iql.iso-ebnf) file and it is also available as
+[SVG](iql.svg) and [HTML](iql.html) versions.
 
 ## Data Sources
 
@@ -417,6 +416,19 @@ from 'ansi.json' FILTER 'colors' AS src;
    year of the argument *date*
  - YEAR(*date*): returns an integer representing the year of the
    argument *date*.
+
+### Date Visualization Functions
+
+ - HBAR(*value*, *max*, *width* [,*pad*]): creates a horizontal
+   histogram bar that is *width* characters long. The leftmost
+   *value*/*max* characters are rendered with the Unicode Box Elements
+   (U+2580-U+259F) and the remaining characters are filled with the
+   *pad* character. The default padding character is space (' ',
+   0x20). If the *pad* is a string, it must be one rune long.
+
+## IQL Grammar BNF
+
+![IQL Grammar](iql.svg)
 
 # TODO
 

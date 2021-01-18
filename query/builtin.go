@@ -15,6 +15,7 @@ import (
 	"unicode"
 
 	"github.com/markkurossi/iql/types"
+	"github.com/markkurossi/vt100"
 )
 
 // Function implements a function.
@@ -313,6 +314,15 @@ var builtIns = []Function{
 		Impl:         builtInYear,
 		MinArgs:      1,
 		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+
+	// Visualization functions.
+	{
+		Name:         "HBAR",
+		Impl:         builtInHBar,
+		MinArgs:      3,
+		MaxArgs:      4,
 		IsIdempotent: idempotentArgs,
 	},
 }
@@ -1173,6 +1183,63 @@ func builtInYear(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return nil, err
 	}
 	return types.IntValue(date.Year()), nil
+}
+
+func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	valVal, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	val, err := valVal.Float()
+	if err != nil {
+		return nil, err
+	}
+	maxVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	max, err := maxVal.Float()
+	if err != nil {
+		return nil, err
+	}
+	widthVal, err := args[2].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	width, err := widthVal.Int()
+	if err != nil {
+		return nil, err
+	}
+	pad := ' '
+	if len(args) == 4 {
+		padVal, err := args[3].Eval(row, rows)
+		if err != nil {
+			return nil, err
+		}
+		switch pv := padVal.(type) {
+		case types.StringValue:
+			runes := []rune(pv)
+			if len(runes) != 1 {
+				return nil, fmt.Errorf("HBAR: invalid pad string: %s", pv)
+			}
+			pad = runes[0]
+
+		case types.IntValue:
+			pad64, err := padVal.Int()
+			if err != nil {
+				return nil, err
+			}
+			if pad64 < 0 || pad64 > math.MaxInt32 {
+				return nil, fmt.Errorf("HBAR: invalid pad character: %d", pad64)
+			}
+			pad = rune(pad64)
+
+		default:
+			return nil, fmt.Errorf("HBAR: invalid pad character: %s", pv)
+		}
+	}
+
+	return types.StringValue(vt100.HBlock(int(width), val/max, pad)), nil
 }
 
 var builtInsByName map[string]*Function

@@ -8,8 +8,8 @@ github.com/markkurossi/jsonq v0.0.0-20210109084605-ee95c910c453 h1:Cd0fsMooCMSjb
 github.com/markkurossi/jsonq v0.0.0-20210109084605-ee95c910c453/go.mod h1:ovMm8Z/+Ks74iLTDjT1Ij75xWKzY3g9Ga2yRJk6lTe4=
 github.com/markkurossi/tabulate v0.0.0-20210114062819-d0d604417094 h1:mYIwLlka4w0ntbOYlo5CSsaxxfvGe5dE41ywi1dK6yI=
 github.com/markkurossi/tabulate v0.0.0-20210114062819-d0d604417094/go.mod h1:VNUmSpF+Vv8IUImoBIhSMElphepJke637i93RBFCDMs=
-github.com/markkurossi/vt100 v0.0.0-20210114055223-6aeaded74fda h1:4OHYGsaYmHLxhUmf91OIymQlAtCSxmMHHoEgd/bj7q0=
-github.com/markkurossi/vt100 v0.0.0-20210114055223-6aeaded74fda/go.mod h1:AqptFlt5WiJbzKzx4LMS+sJgfXtrxxPJM/YCkNNRJj4=
+github.com/markkurossi/vt100 v0.0.0-20210117072715-90143d828f7a h1:Q4YeZb9xo6ZmkJLoJ40M2QZiLwPnhHHwKbKQAZ2t5ZE=
+github.com/markkurossi/vt100 v0.0.0-20210117072715-90143d828f7a/go.mod h1:AqptFlt5WiJbzKzx4LMS+sJgfXtrxxPJM/YCkNNRJj4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/net v0.0.0-20180218175443-cbe0f9307d01/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20200202094626-16171245cfb2 h1:CCH4IOTTfewWjGOlSp+zGcjutRKlBEZQ6wTn8ozI/nI=

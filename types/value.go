@@ -316,11 +316,7 @@ func (v StringValue) Bool() (bool, error) {
 
 // Int implements the Value.Int().
 func (v StringValue) Int() (int64, error) {
-	val, err := strconv.ParseInt(string(v), 10, 64)
-	if err != nil {
-		panic("StringValue.Int")
-	}
-	return val, err
+	return strconv.ParseInt(string(v), 10, 64)
 }
 
 // Float implements the Value.Float().
