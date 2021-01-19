@@ -189,6 +189,9 @@ func (p *Parser) parseSet() error {
 	name := t.StrVal
 
 	_, err = p.optional('=')
+	if err != nil {
+		return err
+	}
 
 	// Value to set.
 	expr, err := p.parseExpr()
@@ -239,6 +242,9 @@ func (p *Parser) parseSelect() (*Query, error) {
 
 	// Columns. The columns list is empty for "SELECT *" queries.
 	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
 	if t.Type != '*' {
 		p.lexer.unget(t)
 		for {
