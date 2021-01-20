@@ -17,7 +17,11 @@ import (
 	"github.com/markkurossi/tabulate"
 )
 
-var parserTests = []IQLTest{
+var parserTests = []struct {
+	q    string
+	v    [][]string
+	rest [][][]string
+}{
 	{
 		q: `SELECT 42;`,
 		v: [][]string{{"42"}},
@@ -225,28 +229,6 @@ FROM (
 			{"2010", "200"},
 		},
 	},
-	{
-		q: `
-SELECT SUM(Year) AS Sum
-FROM (
-        SELECT "0" AS Year,
-               "1" AS Value
-        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-        FILTER 'noheaders'
-     );`,
-		v: [][]string{{"6027"}},
-	},
-	{
-		q: `
-SELECT COUNT(Year) AS Count
-FROM (
-        SELECT "0" AS Year,
-               "1" AS Value
-        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
-        FILTER 'noheaders'
-     );`,
-		v: [][]string{{"3"}},
-	},
 
 	{
 		q: `
@@ -352,57 +334,6 @@ FILTER 'noheaders';`,
 		v: [][]string{{"Hello: 1, 1.2, false"}},
 	},
 
-	// GROUP BY tests:
-	//
-	// a,1,200
-	// a,2,100
-	// a,2,50
-	// b,1,50
-	// b,2,50
-	// b,3,100
-	// c,1,10
-	// c,1,7
-	{
-		q: `
-SELECT Name,
-       COUNT(Unit) AS Count,
-       AVG(Count) AS Avg
-FROM (
-	  SELECT "0" AS Name,
-	         "1" AS Unit,
-	         "2" AS Count
-	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
-      FILTER 'noheaders'
-     )
-GROUP BY Name;`,
-		v: [][]string{
-			{"a", "3", "116"},
-			{"b", "3", "66"},
-			{"c", "2", "8"},
-		},
-	},
-	{
-		q: `
-SELECT Name,
-       Unit,
-       AVG(Count) AS Avg
-FROM (
-	  SELECT "0" AS Name,
-	         "1" AS Unit,
-	         "2" AS Count
-	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
-      FILTER 'noheaders'
-     )
-GROUP BY Name, Unit;`,
-		v: [][]string{
-			{"a", "1", "200"},
-			{"a", "2", "75"},
-			{"b", "1", "50"},
-			{"b", "2", "50"},
-			{"b", "3", "100"},
-			{"c", "1", "8"},
-		},
-	},
 	{
 		q: `
 SELECT Name, Unit, Count,
@@ -604,15 +535,65 @@ ORDER BY Strings;`,
 			{"7", "3.1415", "zappa"},
 		},
 	},
+	// GROUP BY tests:
+	//
+	// a,1,200
+	// a,2,100
+	// a,2,50
+	// b,1,50
+	// b,2,50
+	// b,3,100
+	// c,1,10
+	// c,1,7
 	{
 		q: `
-DECLARE data VARCHAR;
-SET data = 'data:text/csv;base64,' + BASE64ENC('Ints,Floats,Strings
-1,42.0,foo
-2,3.14,bar');
+SELECT Name,
+       COUNT(Unit) AS Count,
+       AVG(Count) AS Avg
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
+     )
+GROUP BY Name;`,
+		v: [][]string{
+			{"a", "3", "116"},
+			{"b", "3", "66"},
+			{"c", "2", "8"},
+		},
+	},
+	{
+		q: `
+SELECT Name,
+       Unit,
+       AVG(Count) AS Avg
+FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
+     )
+GROUP BY Name, Unit;`,
+		v: [][]string{
+			{"a", "1", "200"},
+			{"a", "2", "75"},
+			{"b", "1", "50"},
+			{"b", "2", "50"},
+			{"b", "3", "100"},
+			{"c", "1", "8"},
+		},
+	},
 
+	// Ints,Floats,Strings
+	// 1,42.0,foo
+	// 2,3.14,bar
+	{
+		q: `
 SELECT Ints, Floats, Strings
-FROM data
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQyLjAsZm9vCjIsMy4xNCxiYXIK'
 ORDER BY Ints DESC;`,
 		v: [][]string{
 			{"2", "3.14", "bar"},
@@ -621,31 +602,10 @@ ORDER BY Ints DESC;`,
 	},
 	{
 		q: `
-DECLARE data VARCHAR;
-SET data = 'data:text/csv;base64,' + BASE64ENC('Ints,Floats,Strings
-1,42.0,foo
-2,3.14,bar');
-
-SELECT * FROM data;`,
+SELECT * FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQyLjAsZm9vCjIsMy4xNCxiYXIK';`,
 		v: [][]string{
 			{"1", "42", "foo"},
 			{"2", "3.14", "bar"},
-		},
-	},
-	{
-		q: `
-SET REALFMT = '%.2f';
-SELECT 3.1415;`,
-		v: [][]string{
-			{"3.14"},
-		},
-	},
-	{
-		q: `
-SET TERMOUT OFF
-SELECT 'Hello, world!';`,
-		v: [][]string{
-			{"Hello, world!"},
 		},
 	},
 
@@ -684,7 +644,8 @@ END;
 func TestParser(t *testing.T) {
 	for testID, input := range parserTests {
 		name := fmt.Sprintf("Test %d", testID)
-		parser := NewParser(bytes.NewReader([]byte(input.q)), name)
+		global := NewScope(nil)
+		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name)
 
 		var results [][][]string
 
@@ -716,4 +677,43 @@ func TestParser(t *testing.T) {
 			}
 		}
 	}
+}
+
+func verifyResult(t *testing.T, name, source string, q types.Source,
+	v [][]string) {
+	rows, err := q.Get()
+	if err != nil {
+		t.Errorf("%s: q.Get failed: %v:\n%s\n", name, err, source)
+		return
+	}
+	if len(rows) != len(v) {
+		t.Errorf("%s: got %d rows, expected %d\n%s\n",
+			name, len(rows), len(v), source)
+		printResult(q, rows)
+		return
+	}
+	for rowID, row := range rows {
+		if len(row) != len(v[rowID]) {
+			t.Fatalf("%s: row %d: got %d columns, expected %d\n%s\n",
+				name, rowID, len(row), len(v[rowID]), source)
+			printResult(q, rows)
+			continue
+		}
+		for colID, col := range row {
+			result := col.String()
+			if result != v[rowID][colID] {
+				t.Errorf("%s: %d.%d: got '%s', expected '%s'\n%s\n",
+					name, rowID, colID, result, v[rowID][colID], source)
+				printResult(q, rows)
+			}
+		}
+	}
+}
+
+func printResult(q types.Source, rows []types.Row) {
+	tab, err := types.Tabulate(q, tabulate.Unicode)
+	if err != nil {
+		return
+	}
+	tab.Print(os.Stdout)
 }

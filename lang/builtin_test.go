@@ -11,18 +11,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"os"
 	"testing"
-
-	"github.com/markkurossi/iql/types"
-	"github.com/markkurossi/tabulate"
 )
-
-type IQLTest struct {
-	q    string
-	v    [][]string
-	rest [][][]string
-}
 
 var builtInData = `Year,IVal,FVal
 1970,100,100.5
@@ -31,7 +21,11 @@ var builtInData = `Year,IVal,FVal
 1973,400,400.5
 1974,500,500.5`
 
-var builtInTests = []IQLTest{
+var builtInTests = []struct {
+	q    string
+	v    [][]string
+	rest [][][]string
+}{
 	{
 		q: `
 select AVG(Year)
@@ -47,6 +41,17 @@ from (
       select Year, IVal, FVal from data
      );`,
 		v: [][]string{{"5"}},
+	},
+	{
+		q: `
+SELECT COUNT(Year) AS Count
+FROM (
+        SELECT "0" AS Year,
+               "1" AS Value
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
+     );`,
+		v: [][]string{{"3"}},
 	},
 	{
 		q: `
@@ -72,6 +77,18 @@ from (
      );`,
 		v: [][]string{{"9860"}},
 	},
+	{
+		q: `
+SELECT SUM(Year) AS Sum
+FROM (
+        SELECT "0" AS Year,
+               "1" AS Value
+        FROM 'data:text/csv;base64,MjAwOCwxMDAKMjAwOSwxMDEKMjAxMCwyMDAK'
+        FILTER 'noheaders'
+     );`,
+		v: [][]string{{"6027"}},
+	},
+
 	{
 		q: `
 SELECT NULLIF(4, 4);`,
@@ -494,7 +511,8 @@ func TestBuiltIn(t *testing.T) {
 
 	for testID, input := range builtInTests {
 		name := fmt.Sprintf("Test %d", testID)
-		parser := NewParser(bytes.NewReader([]byte(input.q)), name)
+		global := NewScope(nil)
+		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name)
 
 		parser.SetString("data", data)
 
@@ -509,43 +527,4 @@ func TestBuiltIn(t *testing.T) {
 			verifyResult(t, name, input.q, q, input.v)
 		}
 	}
-}
-
-func verifyResult(t *testing.T, name, source string, q types.Source,
-	v [][]string) {
-	rows, err := q.Get()
-	if err != nil {
-		t.Errorf("%s: q.Get failed: %v:\n%s\n", name, err, source)
-		return
-	}
-	if len(rows) != len(v) {
-		t.Errorf("%s: got %d rows, expected %d\n%s\n",
-			name, len(rows), len(v), source)
-		printResult(q, rows)
-		return
-	}
-	for rowID, row := range rows {
-		if len(row) != len(v[rowID]) {
-			t.Fatalf("%s: row %d: got %d columns, expected %d\n%s\n",
-				name, rowID, len(row), len(v[rowID]), source)
-			printResult(q, rows)
-			continue
-		}
-		for colID, col := range row {
-			result := col.String()
-			if result != v[rowID][colID] {
-				t.Errorf("%s: %d.%d: got '%s', expected '%s'\n%s\n",
-					name, rowID, colID, result, v[rowID][colID], source)
-				printResult(q, rows)
-			}
-		}
-	}
-}
-
-func printResult(q types.Source, rows []types.Row) {
-	tab, err := types.Tabulate(q, tabulate.Unicode)
-	if err != nil {
-		return
-	}
-	tab.Print(os.Stdout)
 }
