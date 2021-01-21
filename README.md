@@ -439,7 +439,7 @@ from 'ansi.json' FILTER 'colors' AS src;
 
 # Appendix A: IQL Grammar BNF
 
-![IQL Grammar](iql.svg)
+![IQL Grammar](docs/iql.svg)
 
 # Appendix B: Data Visualization Examples
 
