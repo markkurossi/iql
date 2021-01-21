@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"os"
 	"testing"
 )
 
@@ -512,7 +513,8 @@ func TestBuiltIn(t *testing.T) {
 	for testID, input := range builtInTests {
 		name := fmt.Sprintf("Test %d", testID)
 		global := NewScope(nil)
-		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name)
+		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name,
+			os.Stdout)
 
 		parser.SetString("data", data)
 

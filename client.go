@@ -11,33 +11,66 @@ import (
 	"io"
 
 	"github.com/markkurossi/iql/lang"
+	"github.com/markkurossi/iql/types"
+	"github.com/markkurossi/tabulate"
 )
 
 // Client implements the IQL client.
 type Client struct {
 	global *lang.Scope
-	parser *lang.Parser
+	out    io.Writer
 }
 
 // NewClient creates a new IQL client.
-func NewClient() *Client {
+func NewClient(out io.Writer) *Client {
 	global := lang.NewScope(nil)
 	lang.InitSystemVariables(global)
 
 	return &Client{
 		global: global,
+		out:    out,
 	}
 }
 
-// SetInput sets the IQL input to parse.
-func (c *Client) SetInput(input io.Reader, source string) error {
-	c.parser = lang.NewParser(c.global, input, source)
-	return nil
+// Write implements io.Write().
+func (c *Client) Write(p []byte) (n int, err error) {
+	if c.SysTermOut() {
+		return c.out.Write(p)
+	}
+	return len(p), nil
 }
 
 // Parse parses the IQL file.
-func (c *Client) Parse() (*lang.Query, error) {
-	return c.parser.Parse()
+func (c *Client) Parse(input io.Reader, source string) error {
+	parser := lang.NewParser(c.global, input, source, c)
+	for {
+		q, err := parser.Parse()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		tab, err := types.Tabulate(q, c.SysTableFmt())
+		if err != nil {
+			return err
+		}
+		tab.Print(c)
+	}
+}
+
+// SysTableFmt returns the table formatting style.
+func (c *Client) SysTableFmt() (style tabulate.Style) {
+	style = tabulate.Unicode
+	b := c.global.Get(lang.SysTableFmt)
+	if b == nil {
+		return
+	}
+	s, ok := tabulate.Styles[b.Value.String()]
+	if ok {
+		style = s
+	}
+	return
 }
 
 // SysTermOut describes if terminal output is enabled.

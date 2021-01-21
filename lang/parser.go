@@ -21,13 +21,17 @@ type Parser struct {
 	lexer   *lexer
 	nesting int
 	global  *Scope
+	output  io.Writer
 }
 
 // NewParser creates a new IQL parser.
-func NewParser(global *Scope, input io.Reader, source string) *Parser {
+func NewParser(global *Scope, input io.Reader, source string,
+	output io.Writer) *Parser {
+
 	return &Parser{
-		global: global,
 		lexer:  newLexer(input, source),
+		global: global,
+		output: output,
 	}
 }
 
@@ -231,7 +235,7 @@ func (p *Parser) parsePrint() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", v)
+	fmt.Fprintf(p.output, "%s\n", v)
 	return nil
 }
 

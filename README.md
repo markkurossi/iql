@@ -301,6 +301,7 @@ from 'ansi.json' FILTER 'colors' AS src;
  |Variable|Type   |Default| Description |
  |--------|-------|-------|-------------|
  |REALFMT |VARCHAR|`%g`|The formatting option for real numbers.|
+ |TABLEFMT|VARCHAR|`uc`|The table formatting style.|
  |TERMOUT |BOOLEAN|`ON`|Controls the terminal output from the queries.|
 
 ## Built-in Functions

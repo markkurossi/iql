@@ -645,7 +645,8 @@ func TestParser(t *testing.T) {
 	for testID, input := range parserTests {
 		name := fmt.Sprintf("Test %d", testID)
 		global := NewScope(nil)
-		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name)
+		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name,
+			os.Stdout)
 
 		var results [][][]string
 

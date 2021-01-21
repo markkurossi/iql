@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"os"
 	"testing"
 )
 
@@ -45,7 +46,8 @@ func TestSystem(t *testing.T) {
 		name := fmt.Sprintf("Test %d", testID)
 		global := NewScope(nil)
 		InitSystemVariables(global)
-		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name)
+		parser := NewParser(global, bytes.NewReader([]byte(input.q)), name,
+			os.Stdout)
 
 		parser.SetString("data", data)
 

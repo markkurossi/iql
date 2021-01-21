@@ -12,16 +12,40 @@ import (
 
 // System variables.
 const (
-	SysRealFmt = "REALFMT"
-	SysTermOut = "TERMOUT"
+	SysRealFmt  = "REALFMT"
+	SysTableFmt = "TABLEFMT"
+	SysTermOut  = "TERMOUT"
 )
+
+var sysvars = []struct {
+	name string
+	typ  types.Type
+	def  types.Value
+}{
+	{
+		name: SysRealFmt,
+		typ:  types.String,
+		def:  types.StringValue("%g"),
+	},
+	{
+		name: SysTableFmt,
+		typ:  types.String,
+		def:  types.StringValue("uc"),
+	},
+	{
+		name: SysTermOut,
+		typ:  types.Bool,
+		def:  types.BoolValue(true),
+	},
+}
 
 // InitSystemVariables initializes the global system variables for the
 // scope.
 func InitSystemVariables(scope *Scope) {
-	scope.Declare(SysRealFmt, types.String)
-	scope.Declare(SysTermOut, types.Bool)
-	scope.Set(SysTermOut, types.BoolValue(true))
+	for _, sysvar := range sysvars {
+		scope.Declare(sysvar.name, sysvar.typ)
+		scope.Set(sysvar.name, sysvar.def)
+	}
 }
 
 // Format gets the value formatting options from the scope.
