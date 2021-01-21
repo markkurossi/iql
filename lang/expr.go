@@ -4,7 +4,7 @@
 // All rights reserved.
 //
 
-package query
+package lang
 
 import (
 	"fmt"
@@ -64,7 +64,7 @@ func (call *Call) Bind(iql *Query) error {
 
 		// Define function arguments.
 		for _, arg := range call.Function.Args {
-			call.Env.Global.Declare(arg.Name, arg.Type)
+			call.Env.Global.Declare(arg.Name, arg.Type, nil)
 		}
 
 		// Bind function implementation.

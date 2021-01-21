@@ -4,7 +4,7 @@
 // All rights reserved.
 //
 
-package query
+package lang
 
 import (
 	"fmt"
@@ -21,15 +21,17 @@ type Parser struct {
 	lexer   *lexer
 	nesting int
 	global  *Scope
+	output  io.Writer
 }
 
 // NewParser creates a new IQL parser.
-func NewParser(input io.Reader, source string) *Parser {
-	global := NewScope(nil)
-	InitSystemVariables(global)
+func NewParser(global *Scope, input io.Reader, source string,
+	output io.Writer) *Parser {
+
 	return &Parser{
 		lexer:  newLexer(input, source),
-		global: NewScope(global),
+		global: global,
+		output: output,
 	}
 }
 
@@ -37,7 +39,7 @@ func NewParser(input io.Reader, source string) *Parser {
 func (p *Parser) SetString(name, value string) error {
 	b := p.global.Get(name)
 	if b == nil {
-		p.global.Declare(name, types.String)
+		p.global.Declare(name, types.String, nil)
 	}
 	return p.global.Set(name, types.StringValue(value))
 }
@@ -152,7 +154,7 @@ func (p *Parser) parseDeclare() error {
 		return p.errUnexpected(t)
 	}
 
-	p.global.Declare(name, typ)
+	p.global.Declare(name, typ, nil)
 
 	return nil
 }
@@ -233,7 +235,7 @@ func (p *Parser) parsePrint() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", v)
+	fmt.Fprintf(p.output, "%s\n", v)
 	return nil
 }
 
@@ -278,7 +280,7 @@ func (p *Parser) parseSelect() (*Query, error) {
 		if t.Type != TIdentifier {
 			return nil, p.errUnexpected(t)
 		}
-		err = q.Global.Declare(t.StrVal, types.Table)
+		err = q.Global.Declare(t.StrVal, types.Table, nil)
 		if err != nil {
 			return nil, err
 		}

@@ -4,7 +4,7 @@
 // All rights reserved.
 //
 
-package query
+package lang
 
 import (
 	"fmt"
@@ -48,19 +48,6 @@ func NewQuery(global *Scope) *Query {
 		Global:      global,
 		fromColumns: make(map[string]ColumnIndex),
 	}
-}
-
-// SysTermOut describes if terminal output is enabled.
-func (iql *Query) SysTermOut() bool {
-	b := iql.Global.Get(sysTermOut)
-	if b == nil {
-		panic("system variable TERMOUT not set")
-	}
-	v, err := b.Value.Bool()
-	if err != nil {
-		panic(fmt.Sprintf("invalid system variable value: %s", err))
-	}
-	return v
 }
 
 // ColumnSelector defines selected query output columns.

@@ -4,7 +4,7 @@
 // All rights reserved.
 //
 
-package query
+package lang
 
 import (
 	"github.com/markkurossi/iql/types"
