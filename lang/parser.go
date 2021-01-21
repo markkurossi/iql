@@ -39,7 +39,7 @@ func NewParser(global *Scope, input io.Reader, source string,
 func (p *Parser) SetString(name, value string) error {
 	b := p.global.Get(name)
 	if b == nil {
-		p.global.Declare(name, types.String)
+		p.global.Declare(name, types.String, nil)
 	}
 	return p.global.Set(name, types.StringValue(value))
 }
@@ -154,7 +154,7 @@ func (p *Parser) parseDeclare() error {
 		return p.errUnexpected(t)
 	}
 
-	p.global.Declare(name, typ)
+	p.global.Declare(name, typ, nil)
 
 	return nil
 }
@@ -280,7 +280,7 @@ func (p *Parser) parseSelect() (*Query, error) {
 		if t.Type != TIdentifier {
 			return nil, p.errUnexpected(t)
 		}
-		err = q.Global.Declare(t.StrVal, types.Table)
+		err = q.Global.Declare(t.StrVal, types.Table, nil)
 		if err != nil {
 			return nil, err
 		}

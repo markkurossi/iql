@@ -7,7 +7,10 @@
 package lang
 
 import (
+	"fmt"
+
 	"github.com/markkurossi/iql/types"
+	"github.com/markkurossi/tabulate"
 )
 
 // System variables.
@@ -21,6 +24,7 @@ var sysvars = []struct {
 	name string
 	typ  types.Type
 	def  types.Value
+	ver  Verify
 }{
 	{
 		name: SysRealFmt,
@@ -31,6 +35,13 @@ var sysvars = []struct {
 		name: SysTableFmt,
 		typ:  types.String,
 		def:  types.StringValue("uc"),
+		ver: func(name string, t types.Type, v types.Value) error {
+			_, ok := tabulate.Styles[v.String()]
+			if !ok {
+				return fmt.Errorf("invalid table style: %s", v.String())
+			}
+			return nil
+		},
 	},
 	{
 		name: SysTermOut,
@@ -43,7 +54,7 @@ var sysvars = []struct {
 // scope.
 func InitSystemVariables(scope *Scope) {
 	for _, sysvar := range sysvars {
-		scope.Declare(sysvar.name, sysvar.typ)
+		scope.Declare(sysvar.name, sysvar.typ, sysvar.ver)
 		scope.Set(sysvar.name, sysvar.def)
 	}
 }
