@@ -8,6 +8,7 @@ package lang
 
 import (
 	"bufio"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strconv"
@@ -376,7 +377,7 @@ lexer:
 			return l.token(TokenType('/')), nil
 
 		case '\'':
-			var runes []rune
+			var sb strings.Builder
 			for {
 				r, _, err := l.ReadRune()
 				if err != nil {
@@ -395,11 +396,25 @@ lexer:
 						break
 					}
 				}
-				runes = append(runes, r)
+				sb.WriteRune(r)
 			}
 			token := l.token(TString)
-			token.StrVal = string(runes)
+			token.StrVal = sb.String()
 			return token, nil
+
+		case '`':
+			for i := 0; i < 2; i++ {
+				r, _, err = l.ReadRune()
+				if err != nil {
+					return nil, err
+				}
+				if r != '`' {
+					l.UnreadRune()
+					return nil, fmt.Errorf("unexpected character '%s'",
+						string(r))
+				}
+			}
+			return l.readHereString()
 
 		case '"', '[':
 			end := r
@@ -537,6 +552,76 @@ lexer:
 			return nil, fmt.Errorf("unexpected character '%s'", string(r))
 		}
 	}
+}
+
+func (l *lexer) readHereString() (*Token, error) {
+	var sb strings.Builder
+
+	// Header line until the first newline.
+	for {
+		r, _, err := l.ReadRune()
+		if err != nil {
+			return nil, err
+		}
+		if r == '\n' {
+			break
+		}
+		sb.WriteRune(r)
+	}
+	options := strings.Split(sb.String(), " ")
+
+	sb.Reset()
+	for {
+		r, _, err := l.ReadRune()
+		if err != nil {
+			return nil, err
+		}
+		if r == '`' {
+			count := 1
+			for ; count < 3; count++ {
+				r, _, err = l.ReadRune()
+				if err != nil {
+					return nil, err
+				}
+				if r != '`' {
+					break
+				}
+			}
+			if count >= 3 {
+				break
+			}
+			for ; count > 0; count-- {
+				sb.WriteRune('`')
+			}
+		}
+		sb.WriteRune(r)
+	}
+
+	val := sb.String()
+
+	for _, option := range options {
+		if len(option) == 0 {
+			continue
+		}
+		parts := strings.Split(option, ":")
+		switch len(parts) {
+		case 2:
+			switch parts[0] {
+			case "datauri":
+				val = fmt.Sprintf("data:%s;base64,%s", parts[1],
+					base64.StdEncoding.EncodeToString([]byte(val)))
+			default:
+				return nil, fmt.Errorf("Unknown here option: %s", option)
+			}
+
+		default:
+			return nil, fmt.Errorf("unknown here option: %s", option)
+		}
+	}
+
+	token := l.token(TString)
+	token.StrVal = val
+	return token, nil
 }
 
 func (l *lexer) readBinaryLiteral(val []rune) (int64, error) {

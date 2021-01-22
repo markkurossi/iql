@@ -28,6 +28,8 @@ FROM ',reference.html' FILTER 'tbody > tr' AS ref,
 WHERE ref.link <> '' AND ref.Name = portfolio.name
 `,
 	`select 1 + 0x01 + 0b10 + 077 + 0o70`,
+	"select ```\nHello, world!\n```;",
+	"select ``` datauri:text/csv \nInts,Floats\n1,3.14```;",
 }
 
 func TestLexer(t *testing.T) {
