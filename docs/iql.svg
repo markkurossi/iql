@@ -3,7 +3,7 @@
   xmlns='http://www.w3.org/2000/svg'
   xmlns:xlink='http://www.w3.org/1999/xlink'
 
-  width='900' height='5290'>
+  width='900' height='5560'>
 
   <style>
     rect, line, path { stroke-width: 1.5px; stroke: black; fill: transparent; }
@@ -968,20 +968,79 @@
   <g transform='translate(40 4950)'>
     <text x='-30' y='-10'>String:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
-    <path d='M220.5 14 v12 m 4 0 v-12' class='station'/>
-    <rect x='30' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
-    <text x='40' y='25' text-anchor='middle' class='literal'>'</text>
-    <rect x='70' y='10' height='20' width='90' rx='0' ry='0' class='rule'/>
-    <text x='115' y='25' text-anchor='middle' class='rule'>characters</text>
-    <rect x='180' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
-    <text x='190' y='25' text-anchor='middle' class='literal'>'</text>
-    <path d='M160 20 h20'/>
-    <path d='M50 20 h20'/>
-    <path d='M200 20 h20'/>
-    <path d='M10 20 h20'/>
+    <path d='M560.5 14 v12 m 4 0 v-12' class='station'/>
+    <rect x='200' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='210' y='25' text-anchor='middle' class='literal'>'</text>
+    <rect x='240' y='10' height='20' width='90' rx='0' ry='0' class='rule'/>
+    <text x='285' y='25' text-anchor='middle' class='rule'>characters</text>
+    <rect x='350' y='10' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='360' y='25' text-anchor='middle' class='literal'>'</text>
+    <rect x='60' y='40' height='20' width='40' rx='8' ry='8' class='literal'/>
+    <text x='80' y='55' text-anchor='middle' class='literal'>```</text>
+    <rect x='150' y='70' height='20' width='110' rx='0' ry='0' class='rule'/>
+    <text x='205' y='85' text-anchor='middle' class='rule'>HereOptions</text>
+    <rect x='310' y='40' height='20' width='30' rx='8' ry='8' class='literal'/>
+    <text x='325' y='55' text-anchor='middle' class='literal'>\n</text>
+    <rect x='360' y='40' height='20' width='90' rx='0' ry='0' class='rule'/>
+    <text x='405' y='55' text-anchor='middle' class='rule'>characters</text>
+    <rect x='470' y='40' height='20' width='40' rx='8' ry='8' class='literal'/>
+    <text x='490' y='55' text-anchor='middle' class='literal'>```</text>
+    <path d='M530 30 v10'/>
+    <path d='M510 50 h10 q10 0 10 -10'/>
+    <path d='M450 50 h20'/>
+    <path d='M340 50 h20'/>
+    <path d='M130 60 v10 q0 10 10 10 h10'/>
+    <path d='M260 80 h10 q10 0 10 -10'/>
+    <path d='M270 50 q10 0 10 10 v10'/>
+    <path d='M130 60 q0 -10 10 -10'/>
+    <path d='M100 50 h210'/>
+    <path d='M40 40 q0 10 10 10 h10'/>
+    <path d='M530 30 q0 -10 10 -10'/>
+    <path d='M370 20 h190'/>
+    <path d='M330 20 h20'/>
+    <path d='M220 20 h20'/>
+    <path d='M30 20 q10 0 10 10 v10'/>
+    <path d='M10 20 h190'/>
   </g>
 
-  <g transform='translate(40 5030)'>
+  <g transform='translate(40 5090)'>
+    <text x='-30' y='-10'>HereOptions:</text>
+    <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
+    <path d='M200.5 14 v12 m 4 0 v-12' class='station'/>
+    <rect x='60' y='10' height='20' width='90' rx='0' ry='0' class='rule'/>
+    <text x='105' y='25' text-anchor='middle' class='rule'>HereOption</text>
+    <rect x='80' y='40' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='105' y='55' text-anchor='middle' class='rule'>space</text>
+    <path d='M40 30 v10 q0 10 10 10 h30'/>
+    <path d='M130 50 h30 q10 0 10 -10'/>
+    <path d='M160 20 q10 0 10 10 v10'/>
+    <path d='M150 20 h50'/>
+    <path d='M40 30 q0 -10 10 -10'/>
+    <path d='M10 20 h50'/>
+  </g>
+
+  <g transform='translate(40 5200)'>
+    <text x='-30' y='-10'>HereOption:</text>
+    <path d='M5.5 34 v12 m 4 0 v-12' class='station'/>
+    <path d='M270.5 34 v12 m 4 0 v-12' class='station'/>
+    <rect x='30' y='30' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='55' y='45' text-anchor='middle' class='rule'>name</text>
+    <path d='M177 10 l-4 3 v-6 z' class='arrow'/>
+    <rect x='130' y='30' height='20' width='20' rx='8' ry='8' class='literal'/>
+    <text x='140' y='45' text-anchor='middle' class='literal'>:</text>
+    <rect x='170' y='30' height='20' width='50' rx='0' ry='0' class='rule'/>
+    <text x='195' y='45' text-anchor='middle' class='rule'>value</text>
+    <path d='M110 20 v10'/>
+    <path d='M240 30 q0 10 10 10'/>
+    <path d='M220 40 h50'/>
+    <path d='M150 40 h20'/>
+    <path d='M100 40 q10 0 10 -10'/>
+    <path d='M110 20 q0 -10 10 -10 h110 q10 0 10 10 v10'/>
+    <path d='M80 40 h50'/>
+    <path d='M10 40 h20'/>
+  </g>
+
+  <g transform='translate(40 5300)'>
     <text x='-30' y='-10'>Type:</text>
     <path d='M5.5 14 v12 m 4 0 v-12' class='station'/>
     <path d='M200.5 14 v12 m 4 0 v-12' class='station'/>

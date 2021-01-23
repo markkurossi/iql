@@ -94,6 +94,10 @@ Bool = 'TRUE' | 'FALSE';
 
 Identifier = ucLetter, {ucLetter|ucDigit|'_'|'$'} | '"', characters, '"';
 
-String = "'", characters, "'";
+String = "'", characters, "'"
+       | "```", {HereOptions}, "\n", characters, "```" ;
+
+HereOptions = HereOption, {space, HereOption};
+HereOption = name, [':', value];
 
 Type = 'BOOLEAN' | 'INTEGER' | 'REAL' | 'DATETIME' | 'VARCHAR';
