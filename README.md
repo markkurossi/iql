@@ -7,6 +7,14 @@ data formats are comma-separated values (CSV), JavaScript Object
 Notation (JSON), and HTML. The data sources can be retrieved from HTTP
 and HTTPS URLs, local files, and data URIs.
 
+## Usage
+
+The `iql` command accepts the following command line arguments:
+ - `-cpuprofile` *file*: write Go CPU profile to *file*
+ - `-html` *string*: filter argument files with HTML selector *string*
+ - `-json` *string*: filter argument files with JSON selector *string*
+ - `-t` *style*: set the table formatting style to *style*
+
 # Examples
 
 The [examples](examples/) directory contains sample data files and
@@ -595,3 +603,4 @@ FROM (
  - [ ] HTTP resource cache
  - [ ] YAML data format
  - [ ] SQL Server base year for YEAR(0) is 1900
+ - [ ] $ iql -t csv -e 'select Year,Amount from ARGS' -o out.csv in.csv

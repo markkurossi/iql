@@ -32,6 +32,13 @@ func NewClient(out io.Writer) *Client {
 	}
 }
 
+// SetString assigns the string value to the global variable. The
+// global variable must have been declared and its type must be
+// VARCHAR.
+func (c *Client) SetString(name, value string) error {
+	return c.global.Set(name, types.StringValue(value))
+}
+
 // Write implements io.Write().
 func (c *Client) Write(p []byte) (n int, err error) {
 	if c.SysTermOut() {
