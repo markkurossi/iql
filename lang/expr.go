@@ -296,6 +296,9 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 		case BinMult:
 			return types.IntValue(l * r), nil
 		case BinDiv:
+			if r == 0 {
+				return nil, fmt.Errorf("integer divide by zero")
+			}
 			return types.IntValue(l / r), nil
 		case BinAdd:
 			return types.IntValue(l + r), nil
