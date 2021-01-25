@@ -39,7 +39,7 @@ func NewCSV(input []io.ReadCloser, filter string,
 
 	headers := true
 	var prependHeaders []string
-	trimLeadingSpace := false
+	trimLeadingSpace := true
 	comma := ','
 
 	for _, option := range strings.Split(filter, " ") {
@@ -50,8 +50,8 @@ func NewCSV(input []io.ReadCloser, filter string,
 		switch len(parts) {
 		case 1:
 			switch parts[0] {
-			case "trim-leading-space":
-				trimLeadingSpace = true
+			case "keep-leading-space":
+				trimLeadingSpace = false
 
 			case "noheaders":
 				headers = false

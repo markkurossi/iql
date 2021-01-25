@@ -177,7 +177,7 @@ options:
  - `skip`=*count*: skip the first *count* input lines
  - `comma`=*rune*: use *rune* to separate columns
  - `comment`=*rune*: skip lines starting with *rune*
- - `trim-leading-space`: trim leading space from columns
+ - `keep-leading-space`: keep leading space from columns
  - `noheaders`: the first line of the CSV data is not a header
    line. You must use column indices to select columns from the data.
  - `prepend-headers`=*header*[,...]: prepend the headers to the CSV
@@ -200,8 +200,8 @@ The fields can be processed with the following IQL code:
 SELECT data.'0' AS Year,
        data.'1' AS Value,
        data.'2' AS Delta
-FROM 'test-options.csv'
-     FILTER 'noheaders skip=1 comma=; comment=# trim-leading-space'
+FROM 'test_options.csv'
+     FILTER 'noheaders skip=1 comma=; comment=#'
      AS data;
 ```
 
@@ -220,8 +220,8 @@ name the data columns:
 
 ```sql
 SELECT Year, Value, Delta
-FROM 'test-options.csv'
-     FILTER 'comma=; comment=# trim-leading-space';
+FROM 'test_options.csv'
+     FILTER 'comma=; comment=#';
 ```
 
 This query gives the same result as the previous example:

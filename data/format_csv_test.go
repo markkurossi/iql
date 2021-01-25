@@ -52,7 +52,7 @@ func TestCSVCorrect(t *testing.T) {
 
 func TestCSVOptions(t *testing.T) {
 	source, err := New([]string{"test_options.csv"},
-		"noheaders skip=1 comma=;  comment=# trim-leading-space",
+		"noheaders skip=1 comma=;  comment=#",
 		[]types.ColumnSelector{
 			{
 				Name: types.Reference{

@@ -4,9 +4,9 @@ SELECT data.'0' AS Year,
        data.'1' AS Value,
        data.'2' AS Delta
 FROM 'test_options.csv'
-     FILTER 'skip=1 comma=; comment=# trim-leading-space'
+     FILTER 'noheaders skip=1 comma=; comment=#'
      AS data;
 
 SELECT Year, Value, Delta
 FROM 'test_options.csv'
-     FILTER 'headers comma=; comment=# trim-leading-space';
+     FILTER 'comma=; comment=#';
