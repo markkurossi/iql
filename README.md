@@ -10,10 +10,13 @@ and HTTPS URLs, local files, and data URIs.
 ## Usage
 
 The `iql` command accepts the following command line arguments:
+ - `-e` *iqlcode*: execute *iqlcode*. The remaining command line
+   arguments are provided to the script via the `ARGS` global
+   variable.
+ - `-t` *style*: set the table formatting style to *style*
  - `-cpuprofile` *file*: write Go CPU profile to *file*
  - `-html` *string*: filter argument files with HTML selector *string*
  - `-json` *string*: filter argument files with JSON selector *string*
- - `-t` *style*: set the table formatting style to *style*
 
 # Examples
 
