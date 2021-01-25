@@ -25,6 +25,7 @@ func main() {
 	htmlFilter := flag.String("html", "", "HTML filter")
 	jsonFilter := flag.String("json", "", "JSON filter")
 	tableFmt := flag.String("t", "uc", "table formatting style")
+	expr := flag.String("e", "", "code to execute")
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -44,6 +45,19 @@ func main() {
 			log.Fatal("could not start CPU profile: ", err)
 		}
 		defer pprof.StopCPUProfile()
+	}
+
+	if len(*expr) > 0 {
+		client := newClient(program, *tableFmt)
+		err := client.SetStringArray(lang.SysARGS, flag.Args())
+		if err != nil {
+			log.Fatalf("%s: %s\n", program, err)
+		}
+		err = client.Parse(strings.NewReader(*expr), "expr")
+		if err != nil {
+			log.Fatalf("%s: %s\n", program, err)
+		}
+		return
 	}
 
 	for _, arg := range flag.Args() {
@@ -69,17 +83,22 @@ func main() {
 				fmt.Printf("%s:%s: nth=%d:\n%v\n", arg, *htmlFilter, idx, r)
 			}
 		} else {
-			client := iql.NewClient(os.Stdout)
-			err := client.SetString(lang.SysTableFmt, *tableFmt)
-			if err != nil {
-				log.Printf("%s: %s\n", program, err)
-				log.Fatalf("Possible styles are: %s\n",
-					strings.Join(tabulate.StyleNames(), ", "))
-			}
+			client := newClient(program, *tableFmt)
 			err = client.Parse(f, arg)
 			if err != nil {
 				log.Fatalf("%s: %s\n", arg, err)
 			}
 		}
 	}
+}
+
+func newClient(program, tableFmt string) *iql.Client {
+	client := iql.NewClient(os.Stdout)
+	err := client.SetString(lang.SysTableFmt, tableFmt)
+	if err != nil {
+		log.Printf("%s: %s\n", program, err)
+		log.Fatalf("Possible styles are: %s\n",
+			strings.Join(tabulate.StyleNames(), ", "))
+	}
+	return client
 }

@@ -21,6 +21,7 @@ var (
 	_ Value = DateValue(time.Unix(0, 0))
 	_ Value = StringValue("")
 	_ Value = TableValue{}
+	_ Value = ArrayValue{}
 	_ Value = &FormattedValue{}
 
 	// Null value specifies a non-existing value.
@@ -365,6 +366,49 @@ func (v TableValue) Float() (float64, error) {
 func (v TableValue) String() string {
 	// XXX source names
 	return "table"
+}
+
+// ArrayValue implements arrays.
+type ArrayValue struct {
+	ElemType Type
+	Data     []Value
+}
+
+// NewArray creates a new array value with the type and data.
+func NewArray(t Type, data []Value) Value {
+	return ArrayValue{
+		ElemType: t,
+		Data:     data,
+	}
+}
+
+// Type implements the Value.Type().
+func (v ArrayValue) Type() Type {
+	return Array
+}
+
+// Date implements the Value.Date().
+func (v ArrayValue) Date() (time.Time, error) {
+	return time.Time{}, fmt.Errorf("array used as date")
+}
+
+// Bool implements the Value.Bool().
+func (v ArrayValue) Bool() (bool, error) {
+	return false, fmt.Errorf("array used as bool")
+}
+
+// Int implements the Value.Int().
+func (v ArrayValue) Int() (int64, error) {
+	return int64(len(v.Data)), nil
+}
+
+// Float implements the Value.Float().
+func (v ArrayValue) Float() (float64, error) {
+	return 0, fmt.Errorf("array used as float")
+}
+
+func (v ArrayValue) String() string {
+	return fmt.Sprintf("%v", v.Data)
 }
 
 // NullValue implements non-existing value.

@@ -31,19 +31,33 @@ type NewSource func(in []io.ReadCloser, filter string,
 	columns []types.ColumnSelector) (types.Source, error)
 
 // New creates a new data source for the URL.
-func New(url, filter string, columns []types.ColumnSelector) (
+func New(urls []string, filter string, columns []types.ColumnSelector) (
 	types.Source, error) {
 
-	input, format, err := openInput(url)
-	if err != nil {
-		return nil, err
+	if len(urls) == 0 {
+		return nil, fmt.Errorf("empty URL list")
+	}
+
+	var inputs []io.ReadCloser
+	var format Format
+
+	for idx, url := range urls {
+		input, f, err := openInput(url)
+		if err != nil {
+			return nil, err
+		}
+		if idx > 0 && format != f {
+			return nil, fmt.Errorf("mixed source formats: %s, %s", format, f)
+		}
+		format = f
+		inputs = append(inputs, input...)
 	}
 
 	n, ok := formats[format]
 	if !ok {
 		return nil, fmt.Errorf("unknown data format '%s'", format)
 	}
-	return n(input, filter, columns)
+	return n(inputs, filter, columns)
 }
 
 func openInput(input string) ([]io.ReadCloser, Format, error) {

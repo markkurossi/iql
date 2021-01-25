@@ -15,6 +15,7 @@ import (
 
 // System variables.
 const (
+	SysARGS     = "ARGS"
 	SysRealFmt  = "REALFMT"
 	SysTableFmt = "TABLEFMT"
 	SysTermOut  = "TERMOUT"
@@ -26,6 +27,13 @@ var sysvars = []struct {
 	def  types.Value
 	ver  Verify
 }{
+	{
+		name: SysARGS,
+		typ:  types.Array,
+		def: types.ArrayValue{
+			ElemType: types.String,
+		},
+	},
 	{
 		name: SysRealFmt,
 		typ:  types.String,

@@ -16,7 +16,7 @@ import (
 
 func TestCSVCorrect(t *testing.T) {
 	name := "test.csv"
-	source, err := New(name, "noheaders", []types.ColumnSelector{
+	source, err := New([]string{name}, "noheaders", []types.ColumnSelector{
 		{
 			Name: types.Reference{
 				Column: "0",
@@ -51,7 +51,7 @@ func TestCSVCorrect(t *testing.T) {
 }
 
 func TestCSVOptions(t *testing.T) {
-	source, err := New("test_options.csv",
+	source, err := New([]string{"test_options.csv"},
 		"noheaders skip=1 comma=;  comment=# trim-leading-space",
 		[]types.ColumnSelector{
 			{

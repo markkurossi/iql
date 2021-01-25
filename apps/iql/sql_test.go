@@ -17,7 +17,7 @@ import (
 )
 
 func TestJoin(t *testing.T) {
-	ref, err := data.New("../../data/test.html", "tbody > tr",
+	ref, err := data.New([]string{"../../data/test.html"}, "tbody > tr",
 		[]types.ColumnSelector{
 			{
 				Name: types.Reference{
@@ -41,7 +41,7 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewHTML failed: %s", err)
 	}
-	portfolio, err := data.New("../../data/test.csv", "noheaders",
+	portfolio, err := data.New([]string{"../../data/test.csv"}, "noheaders",
 		[]types.ColumnSelector{
 			{
 				Name: types.Reference{

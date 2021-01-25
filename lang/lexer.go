@@ -202,15 +202,16 @@ func (t *Token) String() string {
 }
 
 type lexer struct {
-	in          *bufio.Reader
-	point       Point
-	tokenStart  Point
-	ungot       *Token
-	unread      bool
-	unreadRune  rune
-	unreadSize  int
-	unreadPoint Point
-	history     map[int][]rune
+	in               *bufio.Reader
+	trailingInjected bool
+	point            Point
+	tokenStart       Point
+	ungot            *Token
+	unread           bool
+	unreadRune       rune
+	unreadSize       int
+	unreadPoint      Point
+	history          map[int][]rune
 }
 
 func newLexer(input io.Reader, source string) *lexer {
@@ -234,7 +235,14 @@ func (l *lexer) ReadRune() (rune, int, error) {
 	}
 	r, size, err := l.in.ReadRune()
 	if err != nil {
-		return r, size, err
+		if err == io.EOF && !l.trailingInjected {
+			r = ';'
+			size = 1
+			err = nil
+			l.trailingInjected = true
+		} else {
+			return r, size, err
+		}
 	}
 
 	l.unreadRune = r

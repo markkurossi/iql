@@ -8,6 +8,7 @@ package types
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ const (
 	Date
 	String
 	Table
+	Array
 	Any
 )
 
@@ -82,6 +84,7 @@ var types = map[Type]string{
 	Date:   "datetime",
 	String: "varchar",
 	Table:  "table",
+	Array:  "array",
 }
 
 func (t Type) String() string {
@@ -116,9 +119,12 @@ func (t Type) CanAssign(v Value) bool {
 		return t == String
 	case TableValue:
 		return t == Table
+	case ArrayValue:
+		return t == Array
 	case NullValue:
 		return true
 	default:
+		log.Printf("%s.CanAssign(%v{%T}: invalid value)\n", t, v, v)
 		return false
 	}
 }

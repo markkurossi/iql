@@ -39,6 +39,17 @@ func (c *Client) SetString(name, value string) error {
 	return c.global.Set(name, types.StringValue(value))
 }
 
+// SetStringArray assings the string array value to the global
+// variable. The global variable must have been declared and its type
+// must be []VARCHAR.
+func (c *Client) SetStringArray(name string, value []string) error {
+	var arr []types.Value
+	for _, v := range value {
+		arr = append(arr, types.StringValue(v))
+	}
+	return c.global.Set(name, types.NewArray(types.String, arr))
+}
+
 // Write implements io.Write().
 func (c *Client) Write(p []byte) (n int, err error) {
 	if c.SysTermOut() {

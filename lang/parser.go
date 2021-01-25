@@ -88,6 +88,9 @@ func (p *Parser) Parse() (*Query, error) {
 			return nil, err
 		}
 		switch t.Type {
+		case ';':
+			// Empty statement.
+
 		case TSymDeclare:
 			err = p.parseDeclare()
 			if err != nil {
@@ -363,18 +366,13 @@ func (p *Parser) parseSelect() (*Query, error) {
 	}
 
 	// Terminator.
-	var expected TokenType
 	if p.nesting == 1 {
-		expected = ';'
+		_, err = p.optional(';')
 	} else {
-		expected = ')'
+		_, err = p.need(')')
 	}
-	t, err = p.get()
 	if err != nil {
 		return nil, err
-	}
-	if t.Type != expected {
-		return nil, p.errUnexpected(t)
 	}
 	return q, nil
 }
@@ -426,7 +424,7 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 			return nil, err
 		}
 	} else {
-		var url string
+		var url []string
 
 		switch t.Type {
 		case TIdentifier:
@@ -437,9 +435,11 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 			if b.Value == types.Null {
 				return nil, p.errf(t.From, "identifier '%s' unset", t.StrVal)
 			}
-			if b.Type == types.String {
-				url = b.Value.String()
-			} else if b.Type == types.Table {
+			switch b.Type {
+			case types.String:
+				url = append(url, b.Value.String())
+
+			case types.Table:
 				table, ok := b.Value.(types.TableValue)
 				if !ok {
 					return nil, p.errf(t.From,
@@ -449,12 +449,22 @@ func (p *Parser) parseSource(q *Query) (*SourceSelector, error) {
 				// Use the symbol name as the default alias. The 'AS'
 				// below can override this.
 				as = t.StrVal
-			} else {
+
+			case types.Array:
+				av, ok := b.Value.(types.ArrayValue)
+				if !ok {
+					return nil, p.errf(t.From, "invalid array: %s", b.Value)
+				}
+				for _, a := range av.Data {
+					url = append(url, a.String())
+				}
+
+			default:
 				return nil, p.errf(t.From, "invalid source type: %s", b.Type)
 			}
 
 		case TString:
-			url = t.StrVal
+			url = append(url, t.StrVal)
 		default:
 			return nil, p.errUnexpected(t)
 		}

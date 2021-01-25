@@ -306,11 +306,12 @@ from 'ansi.json' FILTER 'colors' AS src;
 
 ## System Variables
 
- |Variable|Type   |Default| Description |
- |--------|-------|-------|-------------|
- |REALFMT |VARCHAR|`%g`|The formatting option for real numbers.|
- |TABLEFMT|VARCHAR|`uc`|The table formatting style.|
- |TERMOUT |BOOLEAN|`ON`|Controls the terminal output from the queries.|
+ |Variable|Type     |Default| Description |
+ |--------|---------|-------|-------------|
+ |ARGS    |[]VARCHAR|`[]`|Command line arguments form `-e` invocation.|
+ |REALFMT |VARCHAR  |`%g`|The formatting option for real numbers.|
+ |TABLEFMT|VARCHAR  |`uc`|The table formatting style.|
+ |TERMOUT |BOOLEAN  |`ON`|Controls the terminal output from the queries.|
 
 ## Built-in Functions
 
@@ -604,3 +605,7 @@ FROM (
  - [ ] YAML data format
  - [ ] SQL Server base year for YEAR(0) is 1900
  - [ ] $ iql -t csv -e 'select Year,Amount from ARGS' -o out.csv in.csv
+   - [X] -t csv
+   - [X] -e 'select Year,Amount from ARGS'
+   - [X] ARGS
+   - [ ] -o out.csv

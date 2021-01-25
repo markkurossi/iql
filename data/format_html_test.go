@@ -15,26 +15,27 @@ import (
 )
 
 func TestHTMLCorrect(t *testing.T) {
-	source, err := New("test.html", "tbody > tr", []types.ColumnSelector{
-		{
-			Name: types.Reference{
-				Column: ".stock",
+	source, err := New([]string{"test.html"}, "tbody > tr",
+		[]types.ColumnSelector{
+			{
+				Name: types.Reference{
+					Column: ".stock",
+				},
+				As: "Stock",
 			},
-			As: "Stock",
-		},
-		{
-			Name: types.Reference{
-				Column: ".price",
+			{
+				Name: types.Reference{
+					Column: ".price",
+				},
+				As: "Price",
 			},
-			As: "Price",
-		},
-		{
-			Name: types.Reference{
-				Column: ".share",
+			{
+				Name: types.Reference{
+					Column: ".share",
+				},
+				As: "Share",
 			},
-			As: "Share",
-		},
-	})
+		})
 	if err != nil {
 		t.Fatalf("New failed: %s", err)
 	}
