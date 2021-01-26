@@ -365,6 +365,20 @@ func (p *Parser) parseSelect() (*Query, error) {
 		p.lexer.unget(t)
 	}
 
+	// LIMIT
+	t, err = p.get()
+	if err != nil {
+		return nil, err
+	}
+	if t.Type == TSymLimit {
+		q.LimitFrom, q.Limit, err = p.parseLimit()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		p.lexer.unget(t)
+	}
+
 	// Terminator.
 	if p.nesting == 1 {
 		_, err = p.optional(';')
@@ -606,6 +620,33 @@ func (p *Parser) parseOrderBy() ([]Order, error) {
 			return result, nil
 		}
 	}
+}
+
+func (p *Parser) parseLimit() (uint32, uint32, error) {
+	// LIMIT from [, to]
+	i1, err := p.need(TInt)
+	if err != nil {
+		return 0, 0, err
+	}
+	if i1.IntVal < 0 {
+		return 0, 0, fmt.Errorf("negative limit: %d", i1.IntVal)
+	}
+	t, err := p.get()
+	if err != nil {
+		return 0, 0, err
+	}
+	if t.Type != ',' {
+		p.lexer.unget(t)
+		return 0, uint32(i1.IntVal), nil
+	}
+	i2, err := p.need(TInt)
+	if err != nil {
+		return 0, 0, err
+	}
+	if i2.IntVal < 0 {
+		return 0, 0, fmt.Errorf("negative limit: %d", i2.IntVal)
+	}
+	return uint32(i1.IntVal), uint32(i2.IntVal), nil
 }
 
 func (p *Parser) parseCreate() error {

@@ -608,6 +608,44 @@ SELECT * FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQyLjAsZm9vCjIs
 			{"2", "3.14", "bar"},
 		},
 	},
+	// LIMIT tests:
+	//
+	// Ints,Floats,Strings
+	// 1,4.2,foo
+	// 12,42.7,bar
+	// 7,3.1415,zappa
+	// ,2.75,x
+	// 8,,y
+	// 12,1.234,
+	{
+		q: `
+SELECT Ints
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo='
+LIMIT 1;`,
+		v: [][]string{
+			{"1"},
+		},
+	},
+	{
+		q: `
+SELECT Ints
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo='
+LIMIT 1, 2;`,
+		v: [][]string{
+			{"12"},
+			{"7"},
+		},
+	},
+	{
+		q: `
+SELECT Ints
+FROM 'data:text/csv;base64,SW50cyxGbG9hdHMsU3RyaW5ncwoxLDQuMixmb28KMTIsNDIuNyxiYXIKNywzLjE0MTUsemFwcGEKLDIuNzUseAo4LCx5CjEyLDEuMjM0LAo='
+LIMIT 4, 100;`,
+		v: [][]string{
+			{"8"},
+			{"12"},
+		},
+	},
 
 	// Functions.
 	{

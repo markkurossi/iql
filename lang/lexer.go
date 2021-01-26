@@ -74,6 +74,7 @@ const (
 	TSymDrop
 	TSymIf
 	TSymExists
+	TSymLimit
 	TAnd
 	TOr
 	TNeq
@@ -120,6 +121,7 @@ var tokenTypes = map[TokenType]string{
 	TSymDrop:     "DROP",
 	TSymIf:       "IF",
 	TSymExists:   "EXISTS",
+	TSymLimit:    "LIMIT",
 	TAnd:         "AND",
 	TOr:          "OR",
 	TNeq:         "<>",
@@ -171,6 +173,7 @@ var symbols = map[string]TokenType{
 	"DROP":     TSymDrop,
 	"IF":       TSymIf,
 	"EXISTS":   TSymExists,
+	"LIMIT":    TSymLimit,
 	"AND":      TAnd,
 	"OR":       TOr,
 }

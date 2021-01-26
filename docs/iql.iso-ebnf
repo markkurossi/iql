@@ -18,7 +18,8 @@ SelectClause = Select,
 	       [ From ],
 	       [ Where ],
 	       [ Group ],
-	       [ Order ];
+	       [ Order ],
+	       [ Limit ];
 
 Select = 'SELECT', SelectColumns;
 SelectColumns = SelectColumn, {',', SelectColumn};
@@ -29,6 +30,7 @@ From  = 'FROM', FromClause, { ',', FromClause };
 Where = 'WHERE', Expr;
 Group = 'GROUP', 'BY', Expr, {',', Expr};
 Order = 'ORDER', 'BY', OrderClause, { ',', OrderClause };
+Limit = 'LIMIT', [integer, ','], integer;
 
 FromClause = (String, [ 'FILTER', String ] | '(', SelectClause, ')'),
 	     'AS', Identifier;

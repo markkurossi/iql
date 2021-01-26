@@ -8,6 +8,7 @@ package lang
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"sort"
 
@@ -29,6 +30,8 @@ type Query struct {
 	Where         Expr
 	GroupBy       []Expr
 	OrderBy       []Order
+	LimitFrom     uint32
+	Limit         uint32
 	Global        *Scope
 	fromColumns   map[string]ColumnIndex
 	evaluated     bool
@@ -45,6 +48,7 @@ type Order struct {
 // NewQuery creates a new query object.
 func NewQuery(global *Scope) *Query {
 	return &Query{
+		Limit:       math.MaxUint32,
 		Global:      global,
 		fromColumns: make(map[string]ColumnIndex),
 	}
@@ -301,7 +305,11 @@ func (iql *Query) Get() ([]types.Row, error) {
 		return nil, sortErr
 	}
 
-	for _, match := range matches {
+	for idx, match := range matches {
+		if uint32(idx) < iql.LimitFrom ||
+			uint32(idx) >= iql.LimitFrom+iql.Limit {
+			continue
+		}
 		iql.result = append(iql.result, match.Data[0])
 	}
 
