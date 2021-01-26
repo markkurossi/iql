@@ -13,6 +13,7 @@ The `iql` command accepts the following command line arguments:
  - `-e` *iqlcode*: execute *iqlcode*. The remaining command line
    arguments are provided to the script via the `ARGS` global
    variable.
+ - `-o` *file*: save output to file *file*
  - `-t` *style*: set the table formatting style to *style*
  - `-cpuprofile` *file*: write Go CPU profile to *file*
  - `-html` *string*: filter argument files with HTML selector *string*

@@ -9,6 +9,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -26,6 +27,7 @@ func main() {
 	jsonFilter := flag.String("json", "", "JSON filter")
 	tableFmt := flag.String("t", "uc", "table formatting style")
 	expr := flag.String("e", "", "code to execute")
+	output := flag.String("o", "", "output file name (default is stdout)")
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -47,8 +49,18 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	out := os.Stdout
+	var err error
+	if len(*output) > 0 {
+		out, err = os.Create(*output)
+		if err != nil {
+			log.Fatalf("could not create output file: %s", err)
+		}
+		defer out.Close()
+	}
+
 	if len(*expr) > 0 {
-		client := newClient(program, *tableFmt)
+		client := newClient(out, program, *tableFmt)
 		err := client.SetStringArray(lang.SysARGS, flag.Args())
 		if err != nil {
 			log.Fatalf("%s: %s\n", program, err)
@@ -83,7 +95,7 @@ func main() {
 				fmt.Printf("%s:%s: nth=%d:\n%v\n", arg, *htmlFilter, idx, r)
 			}
 		} else {
-			client := newClient(program, *tableFmt)
+			client := newClient(out, program, *tableFmt)
 			err = client.Parse(f, arg)
 			if err != nil {
 				log.Fatalf("%s: %s\n", arg, err)
@@ -92,8 +104,8 @@ func main() {
 	}
 }
 
-func newClient(program, tableFmt string) *iql.Client {
-	client := iql.NewClient(os.Stdout)
+func newClient(out io.Writer, program, tableFmt string) *iql.Client {
+	client := iql.NewClient(out)
 	err := client.SetString(lang.SysTableFmt, tableFmt)
 	if err != nil {
 		log.Printf("%s: %s\n", program, err)
