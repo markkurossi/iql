@@ -19,6 +19,26 @@ The `iql` command accepts the following command line arguments:
  - `-html` *string*: filter argument files with HTML selector *string*
  - `-json` *string*: filter argument files with JSON selector *string*
 
+## One-Liners
+
+```sh
+$ iql -e 'select time,mag,place from ARGS limit 10' https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.csv
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ time                     ┃  mag ┃ place                                      ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 2021-01-26T18:40:20.930Z │ 2.92 │ 5 km SW of Guánica, Puerto Rico            │
+│ 2021-01-26T17:29:56.580Z │  4.3 │ 14 km W of Foxton, New Zealand             │
+│ 2021-01-26T16:59:35.240Z │ 2.47 │ 4 km SSE of Guánica, Puerto Rico           │
+│ 2021-01-26T16:46:39.097Z │    4 │ 96 km NNW of Villa General Roca, Argentina │
+│ 2021-01-26T16:45:12.923Z │    4 │ 48 km NE of Iquique, Chile                 │
+│ 2021-01-26T16:13:50.750Z │ 2.78 │ 10 km SSE of Indios, Puerto Rico           │
+│ 2021-01-26T15:42:21.236Z │  4.9 │ 71 km SSE of Panguna, Papua New Guinea     │
+│ 2021-01-26T15:28:41.243Z │  4.5 │ Pagan region, Northern Mariana Islands     │
+│ 2021-01-26T14:56:59.874Z │  4.6 │ Kuril Islands                              │
+│ 2021-01-26T14:32:42.636Z │  4.5 │ 19 km WSW of Mamurras, Albania             │
+└──────────────────────────┴──────┴────────────────────────────────────────────┘
+```
+
 # Examples
 
 The [examples](examples/) directory contains sample data files and
