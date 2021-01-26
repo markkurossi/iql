@@ -241,7 +241,6 @@ func (l *lexer) ReadRune() (rune, int, error) {
 		if err == io.EOF && !l.trailingInjected {
 			r = ';'
 			size = 1
-			err = nil
 			l.trailingInjected = true
 		} else {
 			return r, size, err
