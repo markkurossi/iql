@@ -628,8 +628,3 @@ FROM (
  - [ ] HTTP resource cache
  - [ ] YAML data format
  - [ ] SQL Server base year for YEAR(0) is 1900
- - [ ] $ iql -t csv -e 'select Year,Amount from ARGS' -o out.csv in.csv
-   - [X] -t csv
-   - [X] -e 'select Year,Amount from ARGS'
-   - [X] ARGS
-   - [ ] -o out.csv
