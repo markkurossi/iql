@@ -21,7 +21,7 @@ The `iql` command accepts the following command line arguments:
 
 ## One-Liners
 
-```sh
+```
 $ iql -e 'select time,mag,place from ARGS limit 10' https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.csv
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ time                     ┃  mag ┃ place                                      ┃
