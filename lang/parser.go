@@ -628,8 +628,9 @@ func safeUint32(val int64) uint32 {
 		return uint32(0)
 	} else if val > math.MaxUint32 {
 		return math.MaxUint32
+	} else {
+		return uint32(val)
 	}
-	return uint32(val)
 }
 
 func (p *Parser) parseLimit() (uint32, uint32, error) {
