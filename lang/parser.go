@@ -624,7 +624,7 @@ func (p *Parser) parseOrderBy() ([]Order, error) {
 }
 
 func safeUint32(val int64) uint32 {
-	if val < 0 {
+	if val <= 0 {
 		return uint32(0)
 	} else if val >= math.MaxUint32 {
 		return math.MaxUint32
