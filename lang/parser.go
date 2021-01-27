@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/markkurossi/iql/data"
@@ -628,8 +629,8 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	if i1.IntVal < 0 {
-		return 0, 0, fmt.Errorf("negative limit: %d", i1.IntVal)
+	if i1.IntVal < 0 || i1.IntVal > math.MaxUint32 {
+		return 0, 0, fmt.Errorf("invalid limit: %d", i1.IntVal)
 	}
 	t, err := p.get()
 	if err != nil {
@@ -643,8 +644,8 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	if i2.IntVal < 0 {
-		return 0, 0, fmt.Errorf("negative limit: %d", i2.IntVal)
+	if i2.IntVal < 0 || i1.IntVal > math.MaxUint32 {
+		return 0, 0, fmt.Errorf("invalid limit: %d", i2.IntVal)
 	}
 	return uint32(i1.IntVal), uint32(i2.IntVal), nil
 }
