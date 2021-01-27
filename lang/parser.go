@@ -632,22 +632,24 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if i1.IntVal < 0 || i1.IntVal > math.MaxUint32 {
 		return 0, 0, fmt.Errorf("invalid limit: %d", i1.IntVal)
 	}
+	i132 := uint32(i1.IntVal)
 	t, err := p.get()
 	if err != nil {
 		return 0, 0, err
 	}
 	if t.Type != ',' {
 		p.lexer.unget(t)
-		return 0, uint32(i1.IntVal), nil
+		return 0, i132, nil
 	}
 	i2, err := p.need(TInt)
 	if err != nil {
 		return 0, 0, err
 	}
-	if i2.IntVal < 0 || i1.IntVal > math.MaxUint32 {
+	if i2.IntVal < 0 || i2.IntVal > math.MaxUint32 {
 		return 0, 0, fmt.Errorf("invalid limit: %d", i2.IntVal)
 	}
-	return uint32(i1.IntVal), uint32(i2.IntVal), nil
+	i232 := uint32(i2.IntVal)
+	return i132, i232, nil
 }
 
 func (p *Parser) parseCreate() error {
