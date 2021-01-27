@@ -17,6 +17,19 @@ import (
 	"github.com/markkurossi/iql/types"
 )
 
+// Int64To32 converts 64-bit integer value to 32 bits. If the input
+// value exceeds the 32-bit value limits, the value is truncated to
+// valid 32-bit value range.
+func Int64To32(val int64) int32 {
+	if val <= math.MinInt32 {
+		return math.MinInt32
+	}
+	if val >= math.MaxInt32 {
+		return math.MaxInt32
+	}
+	return int32(val)
+}
+
 // Parser implements IQL parser.
 type Parser struct {
 	lexer   *lexer
@@ -623,25 +636,15 @@ func (p *Parser) parseOrderBy() ([]Order, error) {
 	}
 }
 
-func safeInt32(val int64) int32 {
-	if val <= 0 {
-		return 0
-	}
-	if val >= math.MaxInt32 {
-		return math.MaxInt32
-	}
-	return int32(val)
-}
-
 func (p *Parser) parseLimit() (uint32, uint32, error) {
 	// LIMIT from [, to]
 	lim1, err := p.need(TInt)
 	if err != nil {
 		return 0, 0, err
 	}
-	i1 := safeInt32(lim1.IntVal)
+	i1 := Int64To32(lim1.IntVal)
 	if i1 < 0 {
-		return 0, 0, fmt.Errorf("invalid limit: %d", i1)
+		return 0, 0, fmt.Errorf("negative limit: %d", i1)
 	}
 	t, err := p.get()
 	if err != nil {
@@ -655,9 +658,9 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	i2 := safeInt32(lim2.IntVal)
+	i2 := Int64To32(lim2.IntVal)
 	if i2 < 0 {
-		return 0, 0, fmt.Errorf("invalid limit: %d", i2)
+		return 0, 0, fmt.Errorf("negative limit: %d", i2)
 	}
 	return uint32(i1), uint32(i2), nil
 }
