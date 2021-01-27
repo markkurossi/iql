@@ -632,11 +632,12 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if lim1.IntVal < 0 || lim1.IntVal > math.MaxUint32 {
 		return 0, 0, fmt.Errorf("invalid limit: %d", lim1.IntVal)
 	}
+	v64 := lim1.IntVal
 	var i1 uint32
-	if lim1.IntVal > math.MaxUint32 {
+	if v64 > math.MaxUint32 {
 		i1 = math.MaxUint32
 	} else {
-		i1 = uint32(lim1.IntVal)
+		i1 = uint32(v64)
 	}
 	t, err := p.get()
 	if err != nil {
@@ -653,11 +654,12 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if lim2.IntVal < 0 || lim2.IntVal > math.MaxUint32 {
 		return 0, 0, fmt.Errorf("invalid limit: %d", lim2.IntVal)
 	}
+	v64 = lim2.IntVal
 	var i2 uint32
-	if lim2.IntVal > math.MaxUint32 {
+	if v64 > math.MaxUint32 {
 		i2 = math.MaxUint32
 	} else {
-		i2 = uint32(lim2.IntVal)
+		i2 = uint32(v64)
 	}
 	return i1, i2, nil
 }
