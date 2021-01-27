@@ -19,7 +19,7 @@ SET dataurl = 'https://userpage.fu-berlin.de/soga/200/2010_data_sets/students.cs
 
 SELECT height,
        count,
-       HBAR(count, max(count), 20) AS histogram
+       HBAR(count, 0, max(count), 20) AS histogram
 FROM (
        SELECT height / 5 * 5 AS height,
               COUNT(height)  AS count
@@ -30,7 +30,7 @@ FROM (
 
 SELECT height,
        count,
-       HBAR(count, max(count), 20) AS histogram
+       HBAR(count, 0, max(count), 20) AS histogram
 FROM (
        SELECT height / 5 * 5 AS height,
               COUNT(height)  AS count,
@@ -43,7 +43,7 @@ FROM (
 
 SELECT weight,
        count,
-       HBAR(count, max(count), 20) AS hist
+       HBAR(count, 0, max(count), 20) AS hist
 FROM (
        SELECT CAST(FLOOR(weight / 5) * 5 AS INTEGER) AS weight,
               COUNT(weight) AS count
@@ -57,7 +57,7 @@ RETURNS VARCHAR
 AS
 BEGIN
     RETURN CONCAT(CHAR(0x1b), '[107m',
-                  HBAR(val, max, width),
+                  HBAR(val, 0, max, width),
                   CHAR(0x1b), '[0m');
 END
 

@@ -463,12 +463,13 @@ from 'ansi.json' FILTER 'colors' AS src;
 
 ### Data Visualization Functions
 
- - HBAR(*value*, *max*, *width* [,*pad*]): creates a horizontal
+ - HBAR(*value*, *min*, *max*, *width* [,*pad*]): creates a horizontal
    histogram bar that is *width* characters long. The leftmost
-   *value*/*max* characters are rendered with the Unicode Box Elements
-   (U+2580-U+259F) and the remaining characters are filled with the
-   *pad* character. The default padding character is space (' ',
-   0x20). If the *pad* is a string, it must be one rune long.
+   (*value*-*min*)/(*max*-*min*) characters are rendered with the
+   Unicode Box Elements (U+2580-U+259F) and the remaining characters
+   are filled with the *pad* character. The default padding character
+   is space (' ', 0x20). If the *pad* is a string, it must be one rune
+   long. It is an error if the value range from *min* to *max* is zero.
 
 # Appendix A: IQL Grammar BNF
 
@@ -511,7 +512,7 @@ the HBAR() function to create horizontal histogram bars.
 ```sql
 SELECT height,
        count,
-       HBAR(count, max(count), 20) AS histogram
+       HBAR(count, 0, max(count), 20) AS histogram
 FROM (
        SELECT height / 5 * 5 AS height,
               COUNT(height)  AS count
@@ -550,7 +551,7 @@ This example draws height histogram for male students.
 ```sql
 SELECT height,
        count,
-       HBAR(count, max(count), 20) AS histogram
+       HBAR(count, 0, max(count), 20) AS histogram
 FROM (
        SELECT height / 5 * 5 AS height,
               COUNT(height)  AS count,
@@ -597,7 +598,7 @@ RETURNS VARCHAR
 AS
 BEGIN
     RETURN CONCAT(CHAR(0x1b), '[107m',
-                  HBAR(val, max, width),
+                  HBAR(val, 0, max, width),
                   CHAR(0x1b), '[0m');
 END
 ```

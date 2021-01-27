@@ -277,8 +277,8 @@ var builtIns = []Function{
 	{
 		Name:         "HBAR",
 		Impl:         builtInHBar,
-		MinArgs:      3,
-		MaxArgs:      4,
+		MinArgs:      4,
+		MaxArgs:      5,
 		IsIdempotent: idempotentArgs,
 	},
 }
@@ -1167,7 +1167,15 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	maxVal, err := args[1].Eval(row, rows)
+	minVal, err := args[1].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	min, err := minVal.Float()
+	if err != nil {
+		return nil, err
+	}
+	maxVal, err := args[2].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -1175,7 +1183,7 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	widthVal, err := args[2].Eval(row, rows)
+	widthVal, err := args[3].Eval(row, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -1191,8 +1199,8 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	}
 
 	pad := ' '
-	if len(args) == 4 {
-		padVal, err := args[3].Eval(row, rows)
+	if len(args) == 5 {
+		padVal, err := args[4].Eval(row, rows)
 		if err != nil {
 			return nil, err
 		}
@@ -1218,6 +1226,15 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 			return nil, fmt.Errorf("HBAR: invalid pad character: %s", pv)
 		}
 	}
+
+	if val < min {
+		val = min
+	}
+	if min >= max {
+		return nil, fmt.Errorf("HBAR: invalid value range: %v...%v", min, max)
+	}
+	val -= min
+	max -= min
 
 	return types.StringValue(vt100.HBlock(width, val/max, pad)), nil
 }

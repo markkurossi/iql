@@ -493,15 +493,15 @@ SELECT DATEDIFF(year, now, now);`,
 
 	// Visualization functions.
 	{
-		q: `SELECT HBAR(73, 100, 10) AS Completed;`,
+		q: `SELECT HBAR(73, 0, 100, 10) AS Completed;`,
 		v: [][]string{{"\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e  "}},
 	},
 	{
-		q: `SELECT HBAR(73, 100, 10, '.') AS Completed;`,
+		q: `SELECT HBAR(73, 0, 100, 10, '.') AS Completed;`,
 		v: [][]string{{"\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e.."}},
 	},
 	{
-		q: `SELECT HBAR(73, 100, 10, 0x2e) AS Completed;`,
+		q: `SELECT HBAR(73, 0, 100, 10, 0x2e) AS Completed;`,
 		v: [][]string{{"\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e.."}},
 	},
 }
