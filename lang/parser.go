@@ -17,17 +17,17 @@ import (
 	"github.com/markkurossi/iql/types"
 )
 
-// Int64To32 converts 64-bit integer value to 32 bits. If the input
+// Int64ToInt converts 64-bit integer value to 32 bits. If the input
 // value exceeds the 32-bit value limits, the value is truncated to
 // valid 32-bit value range.
-func Int64To32(val int64) int32 {
+func Int64ToInt(val int64) int {
 	if val <= math.MinInt32 {
 		return math.MinInt32
 	}
 	if val >= math.MaxInt32 {
 		return math.MaxInt32
 	}
-	return int32(val)
+	return int(val)
 }
 
 // Parser implements IQL parser.
@@ -642,7 +642,7 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	i1 := Int64To32(lim1.IntVal)
+	i1 := Int64ToInt(lim1.IntVal)
 	if i1 < 0 {
 		return 0, 0, fmt.Errorf("negative limit: %d", i1)
 	}
@@ -658,7 +658,7 @@ func (p *Parser) parseLimit() (uint32, uint32, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	i2 := Int64To32(lim2.IntVal)
+	i2 := Int64ToInt(lim2.IntVal)
 	if i2 < 0 {
 		return 0, 0, fmt.Errorf("negative limit: %d", i2)
 	}

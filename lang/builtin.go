@@ -570,14 +570,10 @@ func builtInCharIndex(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 		runes := []rune(str)
 
-		if idx64 < 0 {
+		idx = Int64ToInt(idx64)
+		if idx < 0 {
 			idx = 0
-		} else if idx64 > math.MaxInt32 {
-			idx = math.MaxInt32
-		} else {
-			idx = int(idx64)
-		}
-		if idx > len(runes) {
+		} else if idx > len(runes) {
 			idx = len(runes)
 		}
 	}
@@ -692,15 +688,10 @@ func builtInLeft(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	runes := []rune(str)
 
-	var idx int
-	if idx64 < 0 {
+	idx := Int64ToInt(idx64)
+	if idx < 0 {
 		idx = 0
-	} else if idx64 > math.MaxInt32 {
-		idx = math.MaxInt32
-	} else {
-		idx = int(idx64)
-	}
-	if idx > len(runes) {
+	} else if idx > len(runes) {
 		idx = len(runes)
 	}
 	return types.StringValue(string(runes[:idx])), nil
@@ -736,13 +727,9 @@ func builtInLPad(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return nil, err
 	}
 
-	var length int
-	if length64 < 0 {
+	length := Int64ToInt(length64)
+	if length < 0 {
 		length = 0
-	} else if length64 > math.MaxInt32 {
-		length = math.MaxInt32
-	} else {
-		length = int(length64)
 	}
 
 	runes := []rune(strVal.String())
