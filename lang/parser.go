@@ -625,33 +625,41 @@ func (p *Parser) parseOrderBy() ([]Order, error) {
 
 func (p *Parser) parseLimit() (uint32, uint32, error) {
 	// LIMIT from [, to]
-	i1, err := p.need(TInt)
+	lim1, err := p.need(TInt)
 	if err != nil {
 		return 0, 0, err
 	}
-	i164 := i1.IntVal
-	if i164 < 0 || i164 > math.MaxUint32 {
-		return 0, 0, fmt.Errorf("invalid limit: %d", i164)
+	if lim1.IntVal < 0 || lim1.IntVal > math.MaxUint32 {
+		return 0, 0, fmt.Errorf("invalid limit: %d", lim1.IntVal)
 	}
-	i132 := uint32(i164)
+	var i1 uint32
+	if lim1.IntVal > math.MaxUint32 {
+		i1 = math.MaxUint32
+	} else {
+		i1 = uint32(lim1.IntVal)
+	}
 	t, err := p.get()
 	if err != nil {
 		return 0, 0, err
 	}
 	if t.Type != ',' {
 		p.lexer.unget(t)
-		return 0, i132, nil
+		return 0, i1, nil
 	}
-	i2, err := p.need(TInt)
+	lim2, err := p.need(TInt)
 	if err != nil {
 		return 0, 0, err
 	}
-	i264 := i2.IntVal
-	if i264 < 0 || i264 > math.MaxUint32 {
-		return 0, 0, fmt.Errorf("invalid limit: %d", i264)
+	if lim2.IntVal < 0 || lim2.IntVal > math.MaxUint32 {
+		return 0, 0, fmt.Errorf("invalid limit: %d", lim2.IntVal)
 	}
-	i232 := uint32(i264)
-	return i132, i232, nil
+	var i2 uint32
+	if lim2.IntVal > math.MaxUint32 {
+		i2 = math.MaxUint32
+	} else {
+		i2 = uint32(lim2.IntVal)
+	}
+	return i1, i2, nil
 }
 
 func (p *Parser) parseCreate() error {
