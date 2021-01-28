@@ -778,15 +778,10 @@ func builtInSubstring(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	runes := []rune(str)
 
-	var idx int
-	if idx64 < 0 {
+	idx := Int64ToInt(idx64)
+	if idx < 0 {
 		idx = 0
-	} else if idx64 > math.MaxInt32 {
-		idx = math.MaxInt32
-	} else {
-		idx = int(idx64)
-	}
-	if idx > len(runes) {
+	} else if idx > len(runes) {
 		idx = len(runes)
 	}
 
@@ -798,14 +793,9 @@ func builtInSubstring(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	if length64 < 0 {
+	length := Int64ToInt(length64)
+	if length < 0 {
 		return nil, fmt.Errorf("SUBSTRING: negative length: %d", length64)
-	}
-	var length int
-	if length64 > math.MaxInt32 {
-		length = math.MaxInt32
-	} else {
-		length = int(length64)
 	}
 	if idx+length > len(runes) {
 		length = len(runes) - idx
@@ -899,15 +889,10 @@ func builtInRight(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 
 	runes := []rune(str)
 
-	var idx int
-	if idx64 < 0 {
+	idx := Int64ToInt(idx64)
+	if idx < 0 {
 		idx = 0
-	} else if idx64 > math.MaxInt32 {
-		idx = math.MaxInt32
-	} else {
-		idx = int(idx64)
-	}
-	if idx > len(runes) {
+	} else if idx > len(runes) {
 		idx = len(runes)
 	}
 	return types.StringValue(string(runes[len(runes)-idx:])), nil
@@ -961,13 +946,9 @@ func builtInStuff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	var start int
-	if start64 <= 0 {
+	start := Int64ToInt(start64)
+	if start <= 0 {
 		return types.Null, nil
-	} else if start64 > math.MaxInt32 {
-		start = math.MaxInt32
-	} else {
-		start = int(start64)
 	}
 	if start > len(runes) {
 		return types.Null, nil
@@ -982,14 +963,9 @@ func builtInStuff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	if count64 < 0 {
+	count := Int64ToInt(count64)
+	if count < 0 {
 		return types.Null, nil
-	}
-	var count int
-	if count64 > math.MaxInt32 {
-		count = math.MaxInt32
-	} else {
-		count = int(count64)
 	}
 	if start+count > len(runes) {
 		count = len(runes) - start
@@ -1178,11 +1154,9 @@ func builtInHBar(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	var width int
-	if width64 > math.MaxInt32 {
-		width = math.MaxInt32
-	} else {
-		width = int(width64)
+	width := Int64ToInt(width64)
+	if width <= 0 {
+		return nil, fmt.Errorf("HBAR: invalid width: %d", width)
 	}
 
 	pad := ' '
