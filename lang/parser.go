@@ -163,12 +163,9 @@ func (p *Parser) parseDeclare() error {
 		return err
 	}
 
-	t, err = p.get()
+	_, err = p.optional(';')
 	if err != nil {
 		return err
-	}
-	if t.Type != ';' {
-		return p.errUnexpected(t)
 	}
 
 	p.global.Declare(name, typ, nil)
@@ -241,12 +238,9 @@ func (p *Parser) parsePrint() error {
 	if err != nil {
 		return err
 	}
-	t, err := p.get()
+	_, err = p.optional(';')
 	if err != nil {
 		return err
-	}
-	if t.Type != ';' {
-		return p.errUnexpected(t)
 	}
 	v, err := expr.Eval(nil, nil)
 	if err != nil {
