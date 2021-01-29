@@ -77,7 +77,8 @@ const (
 	TSymLimit
 	TAnd
 	TOr
-	TNeq
+	TNEq
+	TNMatch
 	TLe
 	TGe
 )
@@ -124,7 +125,10 @@ var tokenTypes = map[TokenType]string{
 	TSymLimit:    "LIMIT",
 	TAnd:         "AND",
 	TOr:          "OR",
-	TNeq:         "<>",
+	TNEq:         "<>",
+	TNMatch:      "!~",
+	TLe:          "<=",
+	TGe:          ">=",
 }
 
 func (t TokenType) String() string {
@@ -317,7 +321,7 @@ lexer:
 			}
 			switch r {
 			case '>':
-				return l.token(TNeq), nil
+				return l.token(TNEq), nil
 			case '=':
 				return l.token(TLe), nil
 			default:
@@ -331,7 +335,7 @@ lexer:
 				if err != io.EOF {
 					return nil, err
 				}
-				return l.token(TokenType('<')), nil
+				return l.token(TokenType('>')), nil
 			}
 			switch r {
 			case '=':
@@ -339,6 +343,20 @@ lexer:
 			default:
 				l.UnreadRune()
 				return l.token(TokenType('>')), nil
+			}
+
+		case '!':
+			r, _, err := l.ReadRune()
+			if err != nil {
+				return nil, err
+			}
+			switch r {
+			case '~':
+				return l.token(TNMatch), nil
+			default:
+				l.UnreadRune()
+				return nil, fmt.Errorf("unexpected character '%s'",
+					string(r))
 			}
 
 		case '-':

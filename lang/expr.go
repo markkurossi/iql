@@ -150,20 +150,22 @@ const (
 	BinAdd
 	BinSub
 	BinRegexpEq
+	BinRegexpNEq
 )
 
 var binaries = map[BinaryType]string{
-	BinEq:       "=",
-	BinNeq:      "<>",
-	BinLt:       "<",
-	BinLe:       "<=",
-	BinGt:       ">",
-	BinGe:       ">=",
-	BinMult:     "*",
-	BinDiv:      "/",
-	BinAdd:      "+",
-	BinSub:      "-",
-	BinRegexpEq: "~",
+	BinEq:        "=",
+	BinNeq:       "<>",
+	BinLt:        "<",
+	BinLe:        "<=",
+	BinGt:        ">",
+	BinGe:        ">=",
+	BinMult:      "*",
+	BinDiv:       "/",
+	BinAdd:       "+",
+	BinSub:       "-",
+	BinRegexpEq:  "~",
+	BinRegexpNEq: "!~",
 }
 
 func (t BinaryType) String() string {
@@ -357,10 +359,13 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 			return types.BoolValue(l > r), nil
 		case BinAdd:
 			return types.StringValue(l + r), nil
-		case BinRegexpEq:
+		case BinRegexpEq, BinRegexpNEq:
 			match, err := regexp.MatchString(r, l)
 			if err != nil {
 				return nil, err
+			}
+			if b.Type == BinRegexpNEq {
+				match = !match
 			}
 			return types.BoolValue(match), nil
 		default:

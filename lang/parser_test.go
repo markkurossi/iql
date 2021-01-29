@@ -84,6 +84,10 @@ var parserTests = []struct {
 		q: `SELECT 'foo bar baz' ~ '(?i)\bbAr\b';`,
 		v: [][]string{{"true"}},
 	},
+	{
+		q: `SELECT 'foo bar baz' !~ '^bar';`,
+		v: [][]string{{"true"}},
+	},
 
 	// 2008,100
 	// 2009,101

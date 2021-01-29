@@ -881,7 +881,7 @@ func (p *Parser) parseExprComparative() (Expr, error) {
 		switch t.Type {
 		case '=':
 			bt = BinEq
-		case TNeq:
+		case TNEq:
 			bt = BinNeq
 		case '<':
 			bt = BinLt
@@ -893,6 +893,8 @@ func (p *Parser) parseExprComparative() (Expr, error) {
 			bt = BinGe
 		case '~':
 			bt = BinRegexpEq
+		case TNMatch:
+			bt = BinRegexpNEq
 		default:
 			p.lexer.unget(t)
 			return left, nil
