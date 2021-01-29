@@ -891,6 +891,8 @@ func (p *Parser) parseExprComparative() (Expr, error) {
 			bt = BinGt
 		case TGe:
 			bt = BinGe
+		case '~':
+			bt = BinRegexpEq
 		default:
 			p.lexer.unget(t)
 			return left, nil

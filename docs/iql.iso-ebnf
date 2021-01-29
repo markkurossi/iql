@@ -59,7 +59,8 @@ LogicalAndExpr = LogicalNotExpr, {'AND', LogicalNotExpr};
 LogicalNotExpr = ['NOT'], ComparativeExpr;
 
 ComparativeExpr = AdditiveExpr,
-		  {('=' | '<>' | '<' | '<=' | '>' | '>='), AdditiveExpr};
+		  {('=' | '<>' | '<' | '<=' | '>' | '>=' | '~'),
+		  AdditiveExpr};
 
 AdditiveExpr = MultiplicativeExpr, {('+' | '-'), MultiplicativeExpr};
 

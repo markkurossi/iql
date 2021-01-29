@@ -72,6 +72,18 @@ var parserTests = []struct {
 		q: `SELECT 1 + 0x01 + 0b10 + 077 + 0o70 AS Sum, 100-42 AS Diff;`,
 		v: [][]string{{"123", "58"}},
 	},
+	{
+		q: `SELECT 'foo bar baz' ~ '\bbar\b';`,
+		v: [][]string{{"true"}},
+	},
+	{
+		q: `SELECT 'foo bar baz' ~ '\bbAr\b';`,
+		v: [][]string{{"false"}},
+	},
+	{
+		q: `SELECT 'foo bar baz' ~ '(?i)\bbAr\b';`,
+		v: [][]string{{"true"}},
+	},
 
 	// 2008,100
 	// 2009,101

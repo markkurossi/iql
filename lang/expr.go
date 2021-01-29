@@ -8,6 +8,7 @@ package lang
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/markkurossi/iql/types"
 )
@@ -148,19 +149,21 @@ const (
 	BinDiv
 	BinAdd
 	BinSub
+	BinRegexpEq
 )
 
 var binaries = map[BinaryType]string{
-	BinEq:   "=",
-	BinNeq:  "<>",
-	BinLt:   "<",
-	BinLe:   "<=",
-	BinGt:   ">",
-	BinGe:   ">=",
-	BinMult: "*",
-	BinDiv:  "/",
-	BinAdd:  "+",
-	BinSub:  "-",
+	BinEq:       "=",
+	BinNeq:      "<>",
+	BinLt:       "<",
+	BinLe:       "<=",
+	BinGt:       ">",
+	BinGe:       ">=",
+	BinMult:     "*",
+	BinDiv:      "/",
+	BinAdd:      "+",
+	BinSub:      "-",
+	BinRegexpEq: "~",
 }
 
 func (t BinaryType) String() string {
@@ -354,6 +357,12 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 			return types.BoolValue(l > r), nil
 		case BinAdd:
 			return types.StringValue(l + r), nil
+		case BinRegexpEq:
+			match, err := regexp.MatchString(r, l)
+			if err != nil {
+				return nil, err
+			}
+			return types.BoolValue(match), nil
 		default:
 			return nil, fmt.Errorf("unknown string binary expression: %s %s %s",
 				left, b.Type, right)
