@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -309,7 +309,7 @@ func Tabulate(source Source, style tabulate.Style) (*tabulate.Tabulate, error) {
 	}
 	tab := tabulate.New(style)
 	tab.Measure = func(column string) int {
-		w, _ := vt100.DisplayWidth(column)
+		w, _, _ := vt100.DisplayWidth(column)
 		return w
 	}
 	for _, col := range source.Columns() {
