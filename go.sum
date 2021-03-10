@@ -7,8 +7,8 @@ github.com/markkurossi/jsonq v0.0.0-20210109084605-ee95c910c453 h1:Cd0fsMooCMSjb
 github.com/markkurossi/jsonq v0.0.0-20210109084605-ee95c910c453/go.mod h1:ovMm8Z/+Ks74iLTDjT1Ij75xWKzY3g9Ga2yRJk6lTe4=
 github.com/markkurossi/tabulate v0.0.0-20210127062617-6941d28e7f2e h1:CuRIeVqQbd8ymn8K1B+I/B7aV4VOMX6rj3nbAI3hlTc=
 github.com/markkurossi/tabulate v0.0.0-20210127062617-6941d28e7f2e/go.mod h1:VNUmSpF+Vv8IUImoBIhSMElphepJke637i93RBFCDMs=
-github.com/markkurossi/vt100 v0.0.0-20210307102754-92ea10924728 h1:bBAa7W/sPKrcstfeYCVzkK5gsmTA2sJMFgqXSp3ZQ+A=
-github.com/markkurossi/vt100 v0.0.0-20210307102754-92ea10924728/go.mod h1:oXQbqKqclTaa7KnRXBLzNpEQv4d/eXyAlCDEtnBZN8s=
+github.com/markkurossi/vt100 v0.0.0-20210310125947-ae8bd63f23ad h1:qFymup3byLifiwbtrR90OjDuuhKZ2XGje1qk11Uweiw=
+github.com/markkurossi/vt100 v0.0.0-20210310125947-ae8bd63f23ad/go.mod h1:oXQbqKqclTaa7KnRXBLzNpEQv4d/eXyAlCDEtnBZN8s=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/net v0.0.0-20180218175443-cbe0f9307d01/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20200202094626-16171245cfb2/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
