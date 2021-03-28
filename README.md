@@ -169,6 +169,27 @@ WHERE orders.Product = products.ID AND orders.Customer = customers.ID;
 └──────────────────┴──────────────────────────────────────────┴───────────────────────────────────────────────────┴───────┴───────┘
 ```
 
+The "here strings" allow embedding data in the IQL scripts:
+
+````sql
+SET REALFMT = '%.2f';
+
+SELECT * FROM ```datauri:text/csv
+Ints,Floats,Strings
+1,42,foo
+2,3.14,bar
+```;
+````
+
+```
+┏━━━━━━┳━━━━━━━━┳━━━━━━━━━┓
+┃ Ints ┃ Floats ┃ Strings ┃
+┡━━━━━━╇━━━━━━━━╇━━━━━━━━━┩
+│    1 │  42.00 │ foo     │
+│    2 │   3.14 │ bar     │
+└──────┴────────┴─────────┘
+```
+
 # Query Language Documentation
 
 The IQL follows SQL in all constructs where possible. The full
