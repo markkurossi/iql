@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -67,6 +67,20 @@ var builtIns = []Function{
 	{
 		Name:         "FLOOR",
 		Impl:         builtInFloor,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
+		Name:         "LOG",
+		Impl:         builtInLog,
+		MinArgs:      1,
+		MaxArgs:      1,
+		IsIdempotent: idempotentArgs,
+	},
+	{
+		Name:         "LOG10",
+		Impl:         builtInLog10,
 		MinArgs:      1,
 		MaxArgs:      1,
 		IsIdempotent: idempotentArgs,
@@ -527,6 +541,44 @@ func builtInFloor(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 	default:
 		return types.Null, nil
 	}
+}
+
+func builtInLog(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	val, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	var f64 float64
+	switch v := val.(type) {
+	case types.IntValue:
+		f64 = float64(v)
+
+	case types.FloatValue:
+		f64 = float64(v)
+
+	default:
+		return types.Null, nil
+	}
+	return types.FloatValue(math.Log(f64)), nil
+}
+
+func builtInLog10(args []Expr, row *Row, rows []*Row) (types.Value, error) {
+	val, err := args[0].Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	var f64 float64
+	switch v := val.(type) {
+	case types.IntValue:
+		f64 = float64(v)
+
+	case types.FloatValue:
+		f64 = float64(v)
+
+	default:
+		return types.Null, nil
+	}
+	return types.FloatValue(math.Log10(f64)), nil
 }
 
 func builtInChar(args []Expr, row *Row, rows []*Row) (types.Value, error) {

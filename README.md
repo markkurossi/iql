@@ -379,6 +379,8 @@ from 'ansi.json' FILTER 'colors' AS src;
 
  - FLOOR(*numeric*): rounds the *numeric* value down to the largest
    integer less than or equal to the argument value.
+ - LOG(*numeric*): returns the natural logarithm of *numeric*.
+ - LOG10(*numeric*): returns the decimal logarithm of *numeric*.
 
 ### String Functions
 

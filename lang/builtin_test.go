@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -161,6 +161,14 @@ SELECT 5 / NULLIF(5.0, 0.0);`,
 	{
 		q: `SELECT FLOOR(123.45), FLOOR(-123.45);`,
 		v: [][]string{{"123", "-124"}},
+	},
+	{
+		q: `SELECT LOG(10);`,
+		v: [][]string{{"2.302585092994046"}},
+	},
+	{
+		q: `SELECT LOG10(145.175643);`,
+		v: [][]string{{"2.1618937582509687"}},
 	},
 
 	// String functions.
