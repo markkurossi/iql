@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -798,7 +798,7 @@ func (c *Case) IsIdempotent() bool {
 }
 
 func (c *Case) String() string {
-	return fmt.Sprintf("CASE %s %v ELSE %s END", c.Input, c.Branches, c.Else)
+	return fmt.Sprintf("CASE %v %v ELSE %s END", c.Input, c.Branches, c.Else)
 }
 
 // References implements the Expr.References().

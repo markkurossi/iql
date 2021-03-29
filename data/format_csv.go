@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -128,20 +128,24 @@ func NewCSV(input []io.ReadCloser, filter string,
 
 				r0 := append(prependHeaders, records[0]...)
 
-				if len(columns) == 0 {
-					// SELECT *
-					for _, col := range r0 {
+				// Collect all column names; unselected columns are
+				// appended to the source's columns array.
+				seen := make(map[string]bool)
+				for _, col := range columns {
+					seen[col.Name.Column] = true
+				}
+				names := make(map[string]int)
+				for idx, col := range r0 {
+					names[col] = idx
+
+					if !seen[col] {
+						seen[col] = true
 						columns = append(columns, types.ColumnSelector{
 							Name: types.Reference{
 								Column: col,
 							},
 						})
 					}
-				}
-
-				names := make(map[string]int)
-				for idx, col := range r0 {
-					names[col] = idx
 				}
 
 				for _, col := range columns {
