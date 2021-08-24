@@ -530,7 +530,10 @@ func (in *In) String() string {
 
 // References implements the Expr.References().
 func (in *In) References() (result []types.Reference) {
-	panic("In.References not implemented yet")
+	result = append(result, in.Left.References()...)
+	for _, expr := range in.Exprs {
+		result = append(result, expr.References()...)
+	}
 	return result
 }
 
