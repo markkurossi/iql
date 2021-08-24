@@ -16,6 +16,7 @@ import (
 var (
 	_ Expr = &Call{}
 	_ Expr = &Binary{}
+	_ Expr = &In{}
 	_ Expr = &Unary{}
 	_ Expr = &And{}
 	_ Expr = &Constant{}
@@ -212,48 +213,9 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 	}
 
 	// Resolve operation type.
-
-	var opType types.Type
-
-	switch left.(type) {
-	case types.BoolValue:
-		switch right.(type) {
-		case types.BoolValue:
-			opType = types.Bool
-		default:
-			return nil,
-				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
-					left, left, b.Type, right, right)
-		}
-
-	case types.IntValue:
-		switch right.(type) {
-		case types.IntValue:
-			opType = types.Int
-		case types.FloatValue:
-			opType = types.Float
-		default:
-			return nil,
-				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
-					left, left, b.Type, right, right)
-		}
-
-	case types.FloatValue:
-		switch right.(type) {
-		case types.IntValue, types.FloatValue:
-			opType = types.Float
-		default:
-			return nil,
-				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
-					left, left, b.Type, right, right)
-		}
-
-	case types.StringValue:
-		opType = types.String
-
-	default:
-		return nil, fmt.Errorf("binary %s{%T} %s %s{%T} not implemented",
-			left, left, b.Type, right, right)
+	opType, err := superType(left, right, b.Type.String())
+	if err != nil {
+		return nil, err
 	}
 
 	switch opType {
@@ -380,6 +342,49 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 	}
 }
 
+func superType(left, right types.Value, op string) (types.Type, error) {
+	switch left.(type) {
+	case types.BoolValue:
+		switch right.(type) {
+		case types.BoolValue:
+			return types.Bool, nil
+		default:
+			return types.Any,
+				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
+					left, left, op, right, right)
+		}
+
+	case types.IntValue:
+		switch right.(type) {
+		case types.IntValue:
+			return types.Int, nil
+		case types.FloatValue:
+			return types.Float, nil
+		default:
+			return types.Any,
+				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
+					left, left, op, right, right)
+		}
+
+	case types.FloatValue:
+		switch right.(type) {
+		case types.IntValue, types.FloatValue:
+			return types.Float, nil
+		default:
+			return types.Any,
+				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
+					left, left, op, right, right)
+		}
+
+	case types.StringValue:
+		return types.String, nil
+
+	default:
+		return types.Any, fmt.Errorf("%s{%T} %s %s{%T} not implemented",
+			left, left, op, right, right)
+	}
+}
+
 // IsIdempotent implements the Expr.IsIdempotent().
 func (b *Binary) IsIdempotent() bool {
 	return b.Left.IsIdempotent() && b.Right.IsIdempotent()
@@ -393,6 +398,139 @@ func (b *Binary) String() string {
 func (b *Binary) References() (result []types.Reference) {
 	result = append(result, b.Left.References()...)
 	result = append(result, b.Right.References()...)
+	return result
+}
+
+// In implements `WHERE IN' expressions.
+type In struct {
+	Left  Expr
+	Not   bool
+	Exprs []Expr
+}
+
+// Bind implements the Expr.Bind().
+func (in *In) Bind(iql *Query) error {
+	err := in.Left.Bind(iql)
+	if err != nil {
+		return err
+	}
+	for _, e := range in.Exprs {
+		err := e.Bind(iql)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Eval implements the Expr.Eval().
+func (in *In) Eval(row *Row, rows []*Row) (types.Value, error) {
+	left, err := in.Left.Eval(row, rows)
+	if err != nil {
+		return nil, err
+	}
+	_, lNull := left.(types.NullValue)
+
+	for _, expr := range in.Exprs {
+		right, err := expr.Eval(row, rows)
+		if err != nil {
+			return nil, err
+		}
+		var eq bool
+
+		_, rNull := right.(types.NullValue)
+		if lNull || rNull {
+			eq = lNull && rNull
+		} else {
+			opType, err := superType(left, right, "IN")
+			if err != nil {
+				return nil, err
+			}
+			switch opType {
+			case types.Bool:
+				l, err := left.Bool()
+				if err != nil {
+					return nil, err
+				}
+				r, err := right.Bool()
+				if err != nil {
+					return nil, err
+				}
+				eq = l == r
+
+			case types.Int:
+				l, err := left.Int()
+				if err != nil {
+					return nil, err
+				}
+				r, err := right.Int()
+				if err != nil {
+					return nil, err
+				}
+				eq = l == r
+
+			case types.Float:
+				l, err := left.Float()
+				if err != nil {
+					return nil, err
+				}
+				r, err := right.Float()
+				if err != nil {
+					return nil, err
+				}
+				eq = l == r
+
+			case types.String:
+				l := left.String()
+				r := right.String()
+				eq = l == r
+
+			default:
+				return nil, fmt.Errorf("invalid types: %s{%T} IN %s{%T}",
+					left, left, right, right)
+			}
+		}
+		if eq {
+			return types.BoolValue(!in.Not), nil
+		}
+	}
+
+	return types.BoolValue(in.Not), nil
+}
+
+// IsIdempotent implements the Expr.IsIdempotent().
+func (in *In) IsIdempotent() bool {
+	if !in.Left.IsIdempotent() {
+		return false
+	}
+	for _, expr := range in.Exprs {
+		if !expr.IsIdempotent() {
+			return false
+		}
+	}
+	return true
+}
+
+func (in *In) String() string {
+	var str string
+
+	if in.Not {
+		str = "NOT "
+	}
+	str += "IN ("
+
+	for idx, expr := range in.Exprs {
+		if idx > 0 {
+			str += ", "
+		}
+		str += expr.String()
+	}
+	return str + ")"
+}
+
+// References implements the Expr.References().
+func (in *In) References() (result []types.Reference) {
+	panic("In.References not implemented yet")
 	return result
 }
 

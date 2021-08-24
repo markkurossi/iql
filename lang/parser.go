@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -871,44 +871,99 @@ func (p *Parser) parseExprComparative() (Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	for {
-		t, err := p.get()
-		if err != nil {
-			return nil, err
-		}
-		var bt BinaryType
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	var bt BinaryType
 
-		switch t.Type {
-		case '=':
-			bt = BinEq
-		case TNEq:
-			bt = BinNeq
-		case '<':
-			bt = BinLt
-		case TLe:
-			bt = BinLe
-		case '>':
-			bt = BinGt
-		case TGe:
-			bt = BinGe
-		case '~':
-			bt = BinRegexpEq
-		case TNMatch:
-			bt = BinRegexpNEq
-		default:
-			p.lexer.unget(t)
-			return left, nil
-		}
-		right, err := p.parseExprAdditive()
+	switch t.Type {
+	case '=':
+		bt = BinEq
+	case TNEq:
+		bt = BinNeq
+	case '<':
+		bt = BinLt
+	case TLe:
+		bt = BinLe
+	case '>':
+		bt = BinGt
+	case TGe:
+		bt = BinGe
+	case '~':
+		bt = BinRegexpEq
+	case TNMatch:
+		bt = BinRegexpNEq
+
+	case TSymNot:
+		_, err = p.need(TSymIn)
 		if err != nil {
 			return nil, err
 		}
-		left = &Binary{
-			Type:  bt,
-			Left:  left,
-			Right: right,
+		return p.parseExprIn(true, left)
+
+	case TSymIn:
+		return p.parseExprIn(false, left)
+
+	default:
+		p.lexer.unget(t)
+		return left, nil
+	}
+	right, err := p.parseExprAdditive()
+	if err != nil {
+		return nil, err
+	}
+	return &Binary{
+		Type:  bt,
+		Left:  left,
+		Right: right,
+	}, nil
+}
+
+func (p *Parser) parseExprIn(not bool, left Expr) (Expr, error) {
+	_, err := p.need('(')
+	if err != nil {
+		return nil, err
+	}
+	t, err := p.get()
+	if err != nil {
+		return nil, err
+	}
+	p.lexer.unget(t)
+	if t.Type == TSymSelect {
+		q, err := p.parseSelect()
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("q: %v\n", q)
+		return nil, fmt.Errorf("parseExprIn not implemented")
+	}
+
+	var exprs []Expr
+	for {
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		exprs = append(exprs, expr)
+
+		t, err = p.get()
+		if err != nil {
+			return nil, err
+		}
+		if t.Type == ')' {
+			break
+		}
+		if t.Type != ',' {
+			return nil, p.errUnexpected(t)
 		}
 	}
+
+	return &In{
+		Left:  left,
+		Not:   not,
+		Exprs: exprs,
+	}, nil
 }
 
 func (p *Parser) parseExprAdditive() (Expr, error) {

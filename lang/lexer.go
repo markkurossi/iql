@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2021 Markku Rossi
 //
 // All rights reserved.
 //
@@ -42,7 +42,8 @@ const (
 	TNull
 	TSymSelect
 	TSymInto
-	TSymInfo
+	TSymNot
+	TSymIn
 	TSymFrom
 	TSymWhere
 	TSymGroup
@@ -91,6 +92,8 @@ var tokenTypes = map[TokenType]string{
 	TNull:        "NULL",
 	TSymSelect:   "SELECT",
 	TSymInto:     "INTO",
+	TSymNot:      "NOT",
+	TSymIn:       "IN",
 	TSymFrom:     "FROM",
 	TSymWhere:    "WHERE",
 	TSymGroup:    "GROUP",
@@ -146,6 +149,8 @@ var symbols = map[string]TokenType{
 	"NULL":     TNull,
 	"SELECT":   TSymSelect,
 	"INTO":     TSymInto,
+	"NOT":      TSymNot,
+	"IN":       TSymIn,
 	"FROM":     TSymFrom,
 	"WHERE":    TSymWhere,
 	"GROUP":    TSymGroup,

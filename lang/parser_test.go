@@ -501,6 +501,38 @@ ORDER BY Name DESC, Unit DESC, Count;`,
 			{"a", "1", "200"},
 		},
 	},
+	{
+		q: `
+SELECT Name, Unit, Count FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
+) WHERE Name IN ('a', 'b');`,
+		v: [][]string{
+			{"a", "1", "200"},
+			{"a", "2", "100"},
+			{"a", "2", "50"},
+			{"b", "1", "50"},
+			{"b", "2", "50"},
+			{"b", "3", "100"},
+		},
+	},
+	{
+		q: `
+SELECT Name, Unit, Count FROM (
+	  SELECT "0" AS Name,
+	         "1" AS Unit,
+	         "2" AS Count
+	  FROM 'data:text/csv;base64,YSwxLDIwMAphLDIsMTAwCmEsMiw1MApiLDEsNTAKYiwyLDUwCmIsMywxMDAKYywxLDEwCmMsMSw3Cg=='
+      FILTER 'noheaders'
+) WHERE Name NOT IN ('a', 'b');`,
+		v: [][]string{
+			{"c", "1", "10"},
+			{"c", "1", "7"},
+		},
+	},
 
 	// Ints,Floats,Strings
 	// 1,4.2,foo
