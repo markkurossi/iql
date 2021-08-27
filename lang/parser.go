@@ -929,15 +929,23 @@ func (p *Parser) parseExprIn(not bool, left Expr) (Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.lexer.unget(t)
 	if t.Type == TSymSelect {
 		q, err := p.parseSelect()
 		if err != nil {
 			return nil, err
 		}
-		fmt.Printf("q: %v\n", q)
-		return nil, fmt.Errorf("parseExprIn not implemented")
+		_, err = p.need(')')
+		if err != nil {
+			return nil, err
+		}
+		return &In{
+			Left:  left,
+			Not:   not,
+			Query: q,
+		}, nil
 	}
+
+	p.lexer.unget(t)
 
 	var exprs []Expr
 	for {

@@ -213,7 +213,7 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 	}
 
 	// Resolve operation type.
-	opType, err := superType(left, right, b.Type.String())
+	opType, err := superType(left.Type(), right.Type(), b.Type.String())
 	if err != nil {
 		return nil, err
 	}
@@ -342,46 +342,88 @@ func (b *Binary) Eval(row *Row, rows []*Row) (types.Value, error) {
 	}
 }
 
-func superType(left, right types.Value, op string) (types.Type, error) {
-	switch left.(type) {
-	case types.BoolValue:
-		switch right.(type) {
-		case types.BoolValue:
+func superType(left, right types.Type, op string) (types.Type, error) {
+	switch left {
+	case types.Bool:
+		switch right {
+		case types.Bool:
 			return types.Bool, nil
 		default:
 			return types.Any,
-				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
-					left, left, op, right, right)
+				fmt.Errorf("invalid types: %s %s %s", left, op, right)
 		}
 
-	case types.IntValue:
-		switch right.(type) {
-		case types.IntValue:
+	case types.Int:
+		switch right {
+		case types.Int:
 			return types.Int, nil
-		case types.FloatValue:
+		case types.Float:
 			return types.Float, nil
 		default:
 			return types.Any,
-				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
-					left, left, op, right, right)
+				fmt.Errorf("invalid types: %s %s %s", left, op, right)
 		}
 
-	case types.FloatValue:
-		switch right.(type) {
-		case types.IntValue, types.FloatValue:
+	case types.Float:
+		switch right {
+		case types.Int, types.Float:
 			return types.Float, nil
 		default:
 			return types.Any,
-				fmt.Errorf("invalid types: %s{%T} %s %s{%T}",
-					left, left, op, right, right)
+				fmt.Errorf("invalid types: %s %s %s", left, op, right)
 		}
 
-	case types.StringValue:
+	case types.String:
 		return types.String, nil
 
 	default:
-		return types.Any, fmt.Errorf("%s{%T} %s %s{%T} not implemented",
-			left, left, op, right, right)
+		return types.Any, fmt.Errorf("%s %s %s not implemented",
+			left, op, right)
+	}
+}
+
+func equal(left, right types.Value, opType types.Type) (bool, error) {
+	switch opType {
+	case types.Bool:
+		l, err := left.Bool()
+		if err != nil {
+			return false, err
+		}
+		r, err := right.Bool()
+		if err != nil {
+			return false, err
+		}
+		return l == r, nil
+
+	case types.Int:
+		l, err := left.Int()
+		if err != nil {
+			return false, err
+		}
+		r, err := right.Int()
+		if err != nil {
+			return false, err
+		}
+		return l == r, nil
+
+	case types.Float:
+		l, err := left.Float()
+		if err != nil {
+			return false, err
+		}
+		r, err := right.Float()
+		if err != nil {
+			return false, err
+		}
+		return l == r, err
+
+	case types.String:
+		l := left.String()
+		r := right.String()
+		return l == r, nil
+
+	default:
+		return false, fmt.Errorf("unsupported type: %s", opType)
 	}
 }
 
@@ -406,6 +448,7 @@ type In struct {
 	Left  Expr
 	Not   bool
 	Exprs []Expr
+	Query *Query
 }
 
 // Bind implements the Expr.Bind().
@@ -431,6 +474,77 @@ func (in *In) Eval(row *Row, rows []*Row) (types.Value, error) {
 	}
 	_, lNull := left.(types.NullValue)
 
+	if in.Query != nil {
+		rows, err := in.Query.Get()
+		if err != nil {
+			return nil, err
+		}
+		columns := in.Query.Columns()
+		if len(columns) != 1 {
+			return nil, fmt.Errorf("IN SELECT must return one column")
+		}
+		opType, err := superType(left.Type(), columns[0].Type, "IN SELECT")
+		if err != nil {
+			return nil, err
+		}
+
+		for _, row := range rows {
+			col := row[0]
+
+			var eq bool
+
+			_, rNull := col.(types.NullColumn)
+			if lNull || rNull {
+				eq = lNull && rNull
+			} else {
+				var right types.Value
+				switch opType {
+				case types.Bool:
+					right, err = col.Bool()
+					if err != nil {
+						return nil, err
+					}
+					eq, err = equal(left, right, opType)
+					if err != nil {
+						return nil, err
+					}
+
+				case types.Int:
+					right, err = col.Int()
+					if err != nil {
+						return nil, err
+					}
+					eq, err = equal(left, right, opType)
+					if err != nil {
+						return nil, err
+					}
+
+				case types.Float:
+					right, err = col.Float()
+					if err != nil {
+						return nil, err
+					}
+					eq, err = equal(left, right, opType)
+					if err != nil {
+						return nil, err
+					}
+
+				case types.String:
+					l := left.String()
+					r := right.String()
+					eq = l == r
+
+				default:
+					return nil, fmt.Errorf("invalid types: %s IN SELECT %s",
+						left.Type(), right.Type())
+				}
+			}
+			if eq {
+				return types.BoolValue(!in.Not), nil
+			}
+		}
+	}
+
 	for _, expr := range in.Exprs {
 		right, err := expr.Eval(row, rows)
 		if err != nil {
@@ -442,52 +556,13 @@ func (in *In) Eval(row *Row, rows []*Row) (types.Value, error) {
 		if lNull || rNull {
 			eq = lNull && rNull
 		} else {
-			opType, err := superType(left, right, "IN")
+			opType, err := superType(left.Type(), right.Type(), "IN")
 			if err != nil {
 				return nil, err
 			}
-			switch opType {
-			case types.Bool:
-				l, err := left.Bool()
-				if err != nil {
-					return nil, err
-				}
-				r, err := right.Bool()
-				if err != nil {
-					return nil, err
-				}
-				eq = l == r
-
-			case types.Int:
-				l, err := left.Int()
-				if err != nil {
-					return nil, err
-				}
-				r, err := right.Int()
-				if err != nil {
-					return nil, err
-				}
-				eq = l == r
-
-			case types.Float:
-				l, err := left.Float()
-				if err != nil {
-					return nil, err
-				}
-				r, err := right.Float()
-				if err != nil {
-					return nil, err
-				}
-				eq = l == r
-
-			case types.String:
-				l := left.String()
-				r := right.String()
-				eq = l == r
-
-			default:
-				return nil, fmt.Errorf("invalid types: %s{%T} IN %s{%T}",
-					left, left, right, right)
+			eq, err = equal(left, right, opType)
+			if err != nil {
+				return nil, err
 			}
 		}
 		if eq {
