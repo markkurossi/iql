@@ -155,6 +155,9 @@ func (iql *Query) Get() ([]types.Row, error) {
 				if len(f.As) != 0 {
 					ref.Source = f.As
 				}
+				if len(col.As) != 0 {
+					ref.Column = col.As
+				}
 
 				iql.Select = append(iql.Select, ColumnSelector{
 					Expr: &Reference{
