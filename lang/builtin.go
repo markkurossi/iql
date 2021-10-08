@@ -294,6 +294,9 @@ var builtIns = []Function{
 		MinArgs:      4,
 		MaxArgs:      5,
 		IsIdempotent: idempotentArgs,
+		Usage: `
+HBAR(value, min, max, width [,pad])
+`,
 	},
 }
 

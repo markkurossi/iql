@@ -9,6 +9,7 @@ package lang
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/markkurossi/iql/types"
 )
@@ -82,13 +83,19 @@ func (call *Call) Bind(iql *Query) error {
 // Eval implements the Expr.Eval().
 func (call *Call) Eval(row *Row, rows []*Row) (types.Value, error) {
 
+	var usage string
+	if len(call.Function.Usage) > 0 {
+		usage = fmt.Sprintf("\n\nUsage: %s",
+			strings.TrimSpace(call.Function.Usage))
+	}
+
 	if len(call.Arguments) < call.Function.MinArgs {
-		return nil, fmt.Errorf("%s: too few arguments: got %d, expected %d",
-			call.Name, len(call.Arguments), call.Function.MinArgs)
+		return nil, fmt.Errorf("%s: too few arguments: got %d, expected %d%s",
+			call.Name, len(call.Arguments), call.Function.MinArgs, usage)
 	}
 	if len(call.Arguments) > call.Function.MaxArgs {
-		return nil, fmt.Errorf("%s: too many arguments: got %d, expected %d",
-			call.Name, len(call.Arguments), call.Function.MaxArgs)
+		return nil, fmt.Errorf("%s: too many arguments: got %d, expected %d%s",
+			call.Name, len(call.Arguments), call.Function.MaxArgs, usage)
 	}
 
 	if call.Function.Impl == nil {
@@ -106,7 +113,11 @@ func (call *Call) Eval(row *Row, rows []*Row) (types.Value, error) {
 		return call.Function.Ret.Eval(row, rows)
 	}
 
-	return call.Function.Impl(call.Arguments, row, rows)
+	v, err := call.Function.Impl(call.Arguments, row, rows)
+	if err != nil {
+		return v, fmt.Errorf("%s%s", err, usage)
+	}
+	return v, nil
 }
 
 // IsIdempotent implements the Expr.IsIdempotent().

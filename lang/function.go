@@ -23,6 +23,7 @@ type Function struct {
 	MaxArgs      int
 	FirstBound   int
 	IsIdempotent IsIdempotent
+	Usage        string
 }
 
 func (f *Function) String() string {
