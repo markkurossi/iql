@@ -257,6 +257,18 @@ var builtIns = []Function{
 		MaxArgs:      3,
 		FirstBound:   1,
 		IsIdempotent: idempotentArgs,
+		Usage: `
+DATEDIFF(diff, from, to): returns the time difference between from and
+to. The diff specifies the units in which the difference is computed:
+ - year, yy, yyyy:   difference between date year parts
+ - day, dd, d:       difference in calendar days
+ - hour, hh:         difference in hours
+ - minute, mi, n:    difference in minutes
+ - second, ss, s:    difference seconds
+ - millisecond, ms:  difference in milliseconds
+ - microsecond, mcs: difference in microseconds
+ - nanosecond, ns:   difference in nanoseconds
+`,
 	},
 	{
 		Name:         "DAY",
