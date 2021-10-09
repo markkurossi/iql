@@ -85,8 +85,14 @@ func (call *Call) Eval(row *Row, rows []*Row) (types.Value, error) {
 
 	var usage string
 	if len(call.Function.Usage) > 0 {
-		usage = fmt.Sprintf("\n\nUsage: %s",
-			strings.TrimSpace(call.Function.Usage))
+		var t string
+		if call.Function.Impl == nil {
+			t = "Function"
+		} else {
+			t = "Builtin"
+		}
+		usage = fmt.Sprintf("\n\n%s %s",
+			t, strings.TrimSpace(call.Function.Usage))
 	}
 
 	if len(call.Arguments) < call.Function.MinArgs {

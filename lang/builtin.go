@@ -258,8 +258,9 @@ var builtIns = []Function{
 		FirstBound:   1,
 		IsIdempotent: idempotentArgs,
 		Usage: `
-DATEDIFF(diff, from, to): returns the time difference between from and
-to. The diff specifies the units in which the difference is computed:
+DATEDIFF(diff, from, to)
+DATEDIFF returns the time difference between from and to. The diff
+specifies the units in which the difference is computed:
  - year, yy, yyyy:   difference between date year parts
  - day, dd, d:       difference in calendar days
  - hour, hh:         difference in hours
@@ -308,6 +309,12 @@ to. The diff specifies the units in which the difference is computed:
 		IsIdempotent: idempotentArgs,
 		Usage: `
 HBAR(value, min, max, width [,pad])
+HBAR creates a horizontal histogram bar that is width characters
+long. The leftmost (value-min)/(max-min) characters are rendered with
+the Unicode Box Elements (U+2580-U+259F) and the remaining characters
+are filled with the pad character. The default padding character is
+space (' ', 0x20). If the pad is a string, it must be one rune
+long. It is an error if the value range from min to max is zero.
 `,
 	},
 }
