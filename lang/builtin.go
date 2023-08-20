@@ -1121,7 +1121,8 @@ func builtInDateDiff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		// XXX quarter, qq, q
 
 	case "month", "mm", "m":
-		return types.IntValue(to.Month() - from.Month()), nil
+		return types.IntValue((int64(to.Year())*12 + int64(to.Month())) -
+			(int64(from.Year())*12 + int64(from.Month()))), nil
 
 		// XXX dayofyear, dy, y
 

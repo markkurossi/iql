@@ -469,6 +469,7 @@ from 'ansi.json' FILTER 'colors' AS src;
    *from* and *to*. The *diff* specifies the units in which the
    difference is computed:
    - `year`, `yy`, `yyyy`: difference between date year parts
+   - `month`, `mm`, `m`:     difference in months
    - `day`, `dd`, `d`: difference in calendar days
    - `hour`, `hh`: difference in hours
    - `minute`, `mi`, `n`: difference in minutes

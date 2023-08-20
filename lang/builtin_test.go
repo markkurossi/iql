@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020-2021 Markku Rossi
+// Copyright (c) 2020-2023 Markku Rossi
 //
 // All rights reserved.
 //
@@ -445,6 +445,18 @@ SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
                             '2005-12-31 23:59:59.9999999',
                             '2006-01-01 00:00:00.0000000');`,
 		v: [][]string{{"1"}},
+	},
+	{
+		q: `SELECT DATEDIFF(month,
+                            '2005-12-31 23:59:59.9999999',
+                            '2006-01-01 00:00:00.0000000');`,
+		v: [][]string{{"1"}},
+	},
+	{
+		q: `SELECT DATEDIFF(month,
+                            '2005-01-01 00:00:00.0000000',
+                            '2006-02-01 00:00:00.0000000');`,
+		v: [][]string{{"13"}},
 	},
 	{
 		q: `SELECT DATEDIFF(day,
