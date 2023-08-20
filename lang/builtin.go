@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020-2021 Markku Rossi
+// Copyright (c) 2020-2023 Markku Rossi
 //
 // All rights reserved.
 //
@@ -262,6 +262,7 @@ DATEDIFF(diff, from, to)
 DATEDIFF returns the time difference between from and to. The diff
 specifies the units in which the difference is computed:
  - year, yy, yyyy:   difference between date year parts
+ - month, mm, m:     difference in months
  - day, dd, d:       difference in calendar days
  - hour, hh:         difference in hours
  - minute, mi, n:    difference in minutes
@@ -1118,7 +1119,10 @@ func builtInDateDiff(args []Expr, row *Row, rows []*Row) (types.Value, error) {
 		return types.IntValue(to.Year() - from.Year()), nil
 
 		// XXX quarter, qq, q
-		// XXX month, mm, m
+
+	case "month", "mm", "m":
+		return types.IntValue(to.Month() - from.Month()), nil
+
 		// XXX dayofyear, dy, y
 
 	case "day", "dd", "d":
