@@ -501,6 +501,10 @@ SELECT UNICODE(nstring), NCHAR(UNICODE(nstring));`,
 		v: [][]string{{"100"}},
 	},
 	{
+		q: `SELECT DATEDIFF(day, '2036-03-01', '2036-02-28');`,
+		v: [][]string{{"-2"}},
+	},
+	{
 		q: `DECLARE now DATETIME;
 SET now = GETDATE();
 SELECT DATEDIFF(year, now, now);`,
