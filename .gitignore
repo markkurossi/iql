@@ -16,4 +16,4 @@
 
 ,*
 cpu.prof
-apps/iql/iql
+cmd/iql/iql
