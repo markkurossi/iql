@@ -1,0 +1,32 @@
+/* -*- sql -*- */
+
+SET REALFMT = '%.0f';
+
+PRINT 'cpu: Intel(R) Core(TM) i5-8257U CPU @ 1.40GHz';
+
+SELECT b.Algorithm		AS Algorithm,
+       b.Operation              AS Operation,
+       b."ns/Op"                AS "ns/Op",
+       1000000000 / b."ns/Op"	AS "Ops/s",
+       s.Length                 AS "Length"
+FROM ```datauri:text/csv
+Algorithm,	Operation,	ns/Op
+P256,           Sign,           26992
+P256,           Verify,         75555
+Ed25519,        Sign,           50715
+Ed25519,        Verify, 	140803
+RSA2048-SHA256, Sign,		1439878
+RSA2048-SHA256, Verify,		52893
+RSA3072-SHA256, Sign,		3887954
+RSA3072-SHA256, Verify,		91888
+``` FILTER 'trim-leading-space' AS b, ```datauri:text/csv
+Algorithm,      Length
+P256,		71
+P384,		104
+P521,		137
+Ed25519,	64
+RSA2048-SHA256,	256
+RSA3072-SHA256,	384
+``` FILTER 'trim-leading-space' AS s
+WHERE b.Algorithm = s.Algorithm
+ORDER BY b.Operation, b.Algorithm;
