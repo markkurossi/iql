@@ -217,9 +217,9 @@ data.  The data source uses Go's CSV encoding package for decoding the
 data. The `FILTER` parameter can be used to specify CSV processing
 options:
  - `skip`=*count*: skip the first *count* input lines
- - `comma`=*rune*: use *rune* to separate columns
+ - `comma`=*rune*: use *rune* to separate columns, or TAB for \t
  - `comment`=*rune*: skip lines starting with *rune*
- - `keep-leading-space`: keep leading space from columns
+ - `trim-leading-space`: trim leading space from columns
  - `noheaders`: the first line of the CSV data is not a header
    line. You must use column indices to select columns from the data.
  - `prepend-headers`=*header*[,...]: prepend the headers to the CSV

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020-2021 Markku Rossi
+// Copyright (c) 2020-2024 Markku Rossi
 //
 // All rights reserved.
 //
@@ -39,7 +39,7 @@ func NewCSV(input []io.ReadCloser, filter string,
 
 	headers := true
 	var prependHeaders []string
-	trimLeadingSpace := true
+	trimLeadingSpace := false
 	comma := ','
 
 	for _, option := range strings.Split(filter, " ") {
@@ -50,8 +50,8 @@ func NewCSV(input []io.ReadCloser, filter string,
 		switch len(parts) {
 		case 1:
 			switch parts[0] {
-			case "keep-leading-space":
-				trimLeadingSpace = false
+			case "trim-leading-space":
+				trimLeadingSpace = true
 
 			case "noheaders":
 				headers = false
@@ -70,12 +70,17 @@ func NewCSV(input []io.ReadCloser, filter string,
 				}
 
 			case "comma":
-				runes := []rune(parts[1])
-				if len(runes) != 1 {
-					return nil, fmt.Errorf("csv: comma must be rune: %s",
-						parts[1])
+				switch parts[1] {
+				case "TAB":
+					comma = '\t'
+				default:
+					runes := []rune(parts[1])
+					if len(runes) != 1 {
+						return nil, fmt.Errorf("csv: comma must be rune: %s",
+							parts[1])
+					}
+					comma = runes[0]
 				}
-				comma = runes[0]
 
 			case "comment":
 				runes := []rune(parts[1])
