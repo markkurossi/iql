@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020-2021 Markku Rossi
+// Copyright (c) 2020-2025 Markku Rossi
 //
 // All rights reserved.
 //
@@ -644,7 +644,7 @@ func (l *lexer) readHereString() (*Token, error) {
 				val = fmt.Sprintf("data:%s;base64,%s", parts[1],
 					base64.StdEncoding.EncodeToString([]byte(val)))
 			default:
-				return nil, fmt.Errorf("Unknown here option: %s", option)
+				return nil, fmt.Errorf("unknown here option: %s", option)
 			}
 
 		default:

@@ -1,9 +1,10 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2025 Markku Rossi
 //
 // All rights reserved.
 //
 
+// Package types implements the IQL type system.
 package types
 
 import (

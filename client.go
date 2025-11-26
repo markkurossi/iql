@@ -1,9 +1,11 @@
 //
-// Copyright (c) 2021 Markku Rossi
+// Copyright (c) 2021-2025 Markku Rossi
 //
 // All rights reserved.
 //
 
+// Package iql provides a public API for the IQL language compiler and
+// runtime.
 package iql
 
 import (

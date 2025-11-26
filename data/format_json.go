@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2025 Markku Rossi
 //
 // All rights reserved.
 //
@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sort"
 	"strings"
 
@@ -24,7 +23,7 @@ import (
 func JSONFilter(input io.ReadCloser, filter string) ([]interface{}, error) {
 	defer input.Close()
 
-	data, err := ioutil.ReadAll(input)
+	data, err := io.ReadAll(input)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +52,7 @@ func NewJSON(input []io.ReadCloser, filter string,
 	var rows []types.Row
 
 	for idx, in := range input {
-		data, err := ioutil.ReadAll(in)
+		data, err := io.ReadAll(in)
 		if err != nil {
 			return nil, err
 		}

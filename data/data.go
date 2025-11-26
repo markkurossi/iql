@@ -1,9 +1,10 @@
 //
-// Copyright (c) 2020 Markku Rossi
+// Copyright (c) 2020-2025 Markku Rossi
 //
 // All rights reserved.
 //
 
+// Package data implements the data sources.
 package data
 
 import (
@@ -11,7 +12,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -75,7 +75,7 @@ func openInput(input string) ([]io.ReadCloser, Format, error) {
 			return nil, 0, err
 		}
 		if resp.StatusCode != http.StatusOK {
-			io.Copy(ioutil.Discard, resp.Body)
+			io.Copy(io.Discard, resp.Body)
 			resp.Body.Close()
 			return nil, 0, fmt.Errorf("HTTP URL '%s' not found", input)
 		}

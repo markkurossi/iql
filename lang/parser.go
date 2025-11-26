@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020-2021 Markku Rossi
+// Copyright (c) 2020-2025 Markku Rossi
 //
 // All rights reserved.
 //
@@ -681,7 +681,7 @@ func (p *Parser) parseCreateFunction() error {
 	name := strings.ToUpper(t.StrVal)
 	var args []FunctionArg
 
-	t, err = p.need('(')
+	_, err = p.need('(')
 	if err != nil {
 		return err
 	}
